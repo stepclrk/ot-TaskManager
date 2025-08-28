@@ -1469,6 +1469,66 @@ def add_comment(task_id):
     
     return jsonify({'error': 'Task not found'}), 404
 
+@app.route('/api/tasks/<task_id>/comments/<int:comment_index>', methods=['PUT'])
+def edit_comment(task_id, comment_index):
+    data = request.json
+    new_text = data.get('text')
+    
+    if not new_text:
+        return jsonify({'error': 'No text provided'}), 400
+    
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            if 'comments' not in task or comment_index >= len(task['comments']):
+                return jsonify({'error': 'Comment not found'}), 404
+            
+            old_text = task['comments'][comment_index].get('text', '')
+            task['comments'][comment_index]['text'] = new_text
+            task['comments'][comment_index]['edited_at'] = datetime.now().isoformat()
+            
+            # Add to history
+            if 'history' not in task:
+                task['history'] = []
+            task['history'].append({
+                'timestamp': datetime.now().isoformat(),
+                'action': 'comment_edited',
+                'field': 'comments',
+                'old_value': old_text,
+                'new_value': new_text
+            })
+            
+            save_tasks(tasks)
+            return jsonify(task['comments'][comment_index]), 200
+    
+    return jsonify({'error': 'Task not found'}), 404
+
+@app.route('/api/tasks/<task_id>/comments/<int:comment_index>', methods=['DELETE'])
+def delete_comment(task_id, comment_index):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            if 'comments' not in task or comment_index >= len(task['comments']):
+                return jsonify({'error': 'Comment not found'}), 404
+            
+            deleted_comment = task['comments'].pop(comment_index)
+            
+            # Add to history
+            if 'history' not in task:
+                task['history'] = []
+            task['history'].append({
+                'timestamp': datetime.now().isoformat(),
+                'action': 'comment_deleted',
+                'field': 'comments',
+                'old_value': deleted_comment.get('text', ''),
+                'new_value': None
+            })
+            
+            save_tasks(tasks)
+            return jsonify({'success': True}), 200
+    
+    return jsonify({'error': 'Task not found'}), 404
+
 # Attachments endpoints
 @app.route('/api/tasks/<task_id>/attachments', methods=['POST'])
 def upload_attachment(task_id):

@@ -146,27 +146,75 @@ function hideSimilarTasksWarning() {
 
 // Comments System
 function loadComments(taskId) {
-    const task = allTasks.find(t => t.id === taskId);
-    const comments = task?.comments || [];
-    
     const container = document.getElementById('commentsContainer');
     if (!container) return;
+    
+    // Check if we're in Add Task mode - if so, always show empty
+    const modalTitle = document.getElementById('modalTitle')?.textContent;
+    if (modalTitle === 'Add Task') {
+        console.log('loadComments: Add Task mode - forcing clear');
+        container.innerHTML = '<p class="no-comments">No comments yet</p>';
+        return;
+    }
+    
+    // ALWAYS clear for new tasks - check the form field directly
+    const currentFormTaskId = document.getElementById('taskId')?.value;
+    if (!currentFormTaskId || currentFormTaskId === '') {
+        console.log('loadComments: NEW TASK - forcing clear');
+        container.innerHTML = '<p class="no-comments">No comments yet</p>';
+        return;
+    }
+    
+    // Only proceed if taskId matches what's in the form
+    if (taskId !== currentFormTaskId) {
+        console.log('loadComments: taskId mismatch - clearing');
+        container.innerHTML = '<p class="no-comments">No comments yet</p>';
+        return;
+    }
+    
+    // Don't load comments if no taskId provided
+    if (!taskId || taskId === '') {
+        console.log('loadComments: No taskId, showing empty');
+        container.innerHTML = '<p class="no-comments">No comments yet</p>';
+        return;
+    }
+    
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) {
+        console.log('loadComments: Task not found, showing empty');
+        container.innerHTML = '<p class="no-comments">No comments yet</p>';
+        return;
+    }
+    
+    const comments = task.comments || [];
     
     if (comments.length === 0) {
         container.innerHTML = '<p class="no-comments">No comments yet</p>';
     } else {
-        container.innerHTML = comments.map(comment => {
+        container.innerHTML = comments.map((comment, index) => {
             // Check if comment contains HTML (rich text)
             const commentText = comment.text || '';
             const isHtml = commentText.includes('<') && commentText.includes('>');
             
+            // Generate or use existing comment ID
+            const commentId = comment.id || `comment-${index}`;
+            
             return `
-            <div class="comment">
+            <div class="comment" data-comment-id="${commentId}" data-comment-index="${index}">
                 <div class="comment-header">
                     <span class="comment-author">${escapeHtml(comment.author || 'Anonymous')}</span>
                     <span class="comment-time">${formatDate(comment.timestamp)}</span>
+                    <div class="comment-actions">
+                        <button onclick="window.enhancedFeatures.editComment('${taskId}', ${index})" class="btn-icon" title="Edit">✏️</button>
+                        <button onclick="window.enhancedFeatures.deleteComment('${taskId}', ${index})" class="btn-icon" title="Delete">🗑️</button>
+                    </div>
                 </div>
-                <div class="comment-text">${isHtml ? commentText : escapeHtml(commentText)}</div>
+                <div class="comment-text" id="comment-text-${index}">${isHtml ? commentText : escapeHtml(commentText)}</div>
+                <div class="comment-edit-container" id="comment-edit-${index}" style="display: none;">
+                    <div id="comment-editor-${index}" style="height: 100px; background: white; margin-bottom: 10px;"></div>
+                    <button onclick="window.enhancedFeatures.saveCommentEdit('${taskId}', ${index})" class="btn btn-primary btn-small">Save</button>
+                    <button onclick="window.enhancedFeatures.cancelCommentEdit(${index})" class="btn btn-secondary btn-small">Cancel</button>
+                </div>
             </div>
             `;
         }).join('');
@@ -201,11 +249,40 @@ async function addComment(taskId, text) {
 
 // Attachments System
 function loadAttachments(taskId) {
-    const task = allTasks.find(t => t.id === taskId);
-    const attachments = task?.attachments || [];
-    
     const container = document.getElementById('attachmentsList');
     if (!container) return;
+    
+    // Check if we're in Add Task mode - if so, always show empty
+    const modalTitle = document.getElementById('modalTitle')?.textContent;
+    if (modalTitle === 'Add Task') {
+        console.log('loadAttachments: Add Task mode - forcing clear');
+        container.innerHTML = '<p class="no-attachments">No attachments</p>';
+        return;
+    }
+    
+    // ALWAYS clear for new tasks - check the form field directly  
+    const currentFormTaskId = document.getElementById('taskId')?.value;
+    if (!currentFormTaskId || currentFormTaskId === '') {
+        console.log('loadAttachments: NEW TASK - forcing clear');
+        container.innerHTML = '<p class="no-attachments">No attachments</p>';
+        return;
+    }
+    
+    // Only proceed if taskId matches what's in the form
+    if (taskId !== currentFormTaskId) {
+        console.log('loadAttachments: taskId mismatch - clearing');
+        container.innerHTML = '<p class="no-attachments">No attachments</p>';
+        return;
+    }
+    
+    // Don't load attachments if no taskId provided
+    if (!taskId) {
+        container.innerHTML = '<p class="no-attachments">No attachments</p>';
+        return;
+    }
+    
+    const task = allTasks.find(t => t.id === taskId);
+    const attachments = task?.attachments || [];
     
     if (attachments.length === 0) {
         container.innerHTML = '<p class="no-attachments">No attachments</p>';
@@ -298,11 +375,47 @@ window.deleteAttachment = deleteAttachment;
 
 // History Timeline
 function loadHistory(taskId) {
-    const task = allTasks.find(t => t.id === taskId);
-    const history = task?.history || [];
-    
     const container = document.getElementById('historyTimeline');
     if (!container) return;
+    
+    // Check if we're in Add Task mode - if so, always show empty
+    const modalTitle = document.getElementById('modalTitle')?.textContent;
+    if (modalTitle === 'Add Task') {
+        console.log('loadHistory: Add Task mode - forcing clear');
+        container.innerHTML = '<p class="no-history">No history available</p>';
+        return;
+    }
+    
+    // ALWAYS clear for new tasks - check the form field directly
+    const currentFormTaskId = document.getElementById('taskId')?.value;
+    if (!currentFormTaskId || currentFormTaskId === '') {
+        console.log('loadHistory: NEW TASK - forcing clear');
+        container.innerHTML = '<p class="no-history">No history available</p>';
+        return;
+    }
+    
+    // Only proceed if taskId matches what's in the form
+    if (taskId !== currentFormTaskId) {
+        console.log('loadHistory: taskId mismatch - clearing');
+        container.innerHTML = '<p class="no-history">No history available</p>';
+        return;
+    }
+    
+    // Don't load history if no taskId provided
+    if (!taskId || taskId === '') {
+        console.log('loadHistory: No taskId, showing empty');
+        container.innerHTML = '<p class="no-history">No history available</p>';
+        return;
+    }
+    
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) {
+        console.log('loadHistory: Task not found, showing empty');
+        container.innerHTML = '<p class="no-history">No history available</p>';
+        return;
+    }
+    
+    const history = task.history || [];
     
     if (history.length === 0) {
         container.innerHTML = '<p class="no-history">No history available</p>';
@@ -341,12 +454,61 @@ function formatHistoryAction(entry) {
 
 // Dependencies Management
 function loadDependencies(taskId) {
+    const depsContainer = document.getElementById('dependenciesList');
+    const blocksContainer = document.getElementById('blocksList');
+    
+    // Check if we're in Add Task mode - if so, always show empty
+    const modalTitle = document.getElementById('modalTitle')?.textContent;
+    if (modalTitle === 'Add Task') {
+        console.log('loadDependencies: Add Task mode - forcing clear');
+        if (depsContainer) {
+            depsContainer.innerHTML = '<p class="no-deps">No dependencies</p>';
+        }
+        if (blocksContainer) {
+            blocksContainer.innerHTML = '<p class="no-blocks">No tasks blocked</p>';
+        }
+        return;
+    }
+    
+    // ALWAYS clear for new tasks - check the form field directly
+    const currentFormTaskId = document.getElementById('taskId')?.value;
+    if (!currentFormTaskId || currentFormTaskId === '') {
+        console.log('loadDependencies: NEW TASK - forcing clear');
+        if (depsContainer) {
+            depsContainer.innerHTML = '<p class="no-deps">No dependencies</p>';
+        }
+        if (blocksContainer) {
+            blocksContainer.innerHTML = '<p class="no-blocks">No tasks blocked</p>';
+        }
+        return;
+    }
+    
+    // Only proceed if taskId matches what's in the form
+    if (taskId !== currentFormTaskId) {
+        console.log('loadDependencies: taskId mismatch - clearing');
+        if (depsContainer) {
+            depsContainer.innerHTML = '<p class="no-deps">No dependencies</p>';
+        }
+        if (blocksContainer) {
+            blocksContainer.innerHTML = '<p class="no-blocks">No tasks blocked</p>';
+        }
+        return;
+    }
+    
+    // Don't load dependencies if no taskId provided
+    if (!taskId) {
+        if (depsContainer) {
+            depsContainer.innerHTML = '<p class="no-deps">No dependencies</p>';
+        }
+        if (blocksContainer) {
+            blocksContainer.innerHTML = '<p class="no-blocks">No tasks blocked</p>';
+        }
+        return;
+    }
+    
     const task = allTasks.find(t => t.id === taskId);
     const dependencies = task?.dependencies || [];
     const blocks = task?.blocks || [];
-    
-    const depsContainer = document.getElementById('dependenciesList');
-    const blocksContainer = document.getElementById('blocksList');
     
     if (depsContainer) {
         if (dependencies.length === 0) {
@@ -509,6 +671,112 @@ function viewTask(taskId) {
     setTimeout(() => editTask(taskId), 100);
 }
 
+// Comment editing functions
+let editingCommentEditor = null;
+
+function editComment(taskId, commentIndex) {
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task || !task.comments || !task.comments[commentIndex]) return;
+    
+    const comment = task.comments[commentIndex];
+    
+    // Hide text display, show edit container
+    document.getElementById(`comment-text-${commentIndex}`).style.display = 'none';
+    document.getElementById(`comment-edit-${commentIndex}`).style.display = 'block';
+    
+    // Initialize Quill editor for this comment
+    editingCommentEditor = new Quill(`#comment-editor-${commentIndex}`, {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'blockquote'],
+                ['clean']
+            ]
+        }
+    });
+    
+    // Load existing comment content
+    const commentText = comment.text || '';
+    if (commentText.includes('<') && commentText.includes('>')) {
+        editingCommentEditor.root.innerHTML = commentText;
+    } else {
+        editingCommentEditor.setText(commentText);
+    }
+}
+
+async function saveCommentEdit(taskId, commentIndex) {
+    if (!editingCommentEditor) return;
+    
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task || !task.comments || !task.comments[commentIndex]) return;
+    
+    const newText = editingCommentEditor.root.innerHTML;
+    
+    try {
+        const response = await fetch(`/api/tasks/${taskId}/comments/${commentIndex}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text: newText })
+        });
+        
+        if (response.ok) {
+            // Update local data
+            task.comments[commentIndex].text = newText;
+            task.comments[commentIndex].edited_at = new Date().toISOString();
+            
+            // Reload comments display
+            loadComments(taskId);
+            
+            // Clean up editor
+            editingCommentEditor = null;
+        }
+    } catch (error) {
+        console.error('Error updating comment:', error);
+        alert('Failed to update comment');
+    }
+}
+
+function cancelCommentEdit(commentIndex) {
+    // Hide edit container, show text display
+    document.getElementById(`comment-text-${commentIndex}`).style.display = 'block';
+    document.getElementById(`comment-edit-${commentIndex}`).style.display = 'none';
+    
+    // Clean up editor
+    editingCommentEditor = null;
+}
+
+async function deleteComment(taskId, commentIndex) {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+    
+    try {
+        const response = await fetch(`/api/tasks/${taskId}/comments/${commentIndex}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            // Update local data
+            const task = allTasks.find(t => t.id === taskId);
+            if (task && task.comments) {
+                task.comments.splice(commentIndex, 1);
+            }
+            
+            // Update comment count badge
+            const commentCount = (task?.comments || []).length;
+            document.getElementById('commentCount').textContent = commentCount > 0 ? commentCount : '';
+            
+            // Reload comments display
+            loadComments(taskId);
+        }
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        alert('Failed to delete comment');
+    }
+}
+
 // Export functions for use in main tasks.js
 window.enhancedFeatures = {
     loadTemplates,
@@ -517,6 +785,10 @@ window.enhancedFeatures = {
     checkSimilarTasks,
     loadComments,
     addComment,
+    editComment,
+    saveCommentEdit,
+    cancelCommentEdit,
+    deleteComment,
     loadAttachments,
     uploadAttachment,
     loadHistory,
