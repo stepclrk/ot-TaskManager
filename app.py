@@ -24,6 +24,7 @@ DASHBOARD_LAYOUTS_FILE = 'data/dashboard_layouts.json'
 AI_SUMMARY_CACHE_FILE = 'data/ai_summary_cache.json'
 TOPICS_FILE = 'data/objectives.json'
 PROJECTS_FILE = 'data/projects.json'
+DEALS_FILE = 'data/deals.json'
 
 def load_tasks():
     if os.path.exists(DATA_FILE):
@@ -197,6 +198,17 @@ def save_projects(projects):
     with open(PROJECTS_FILE, 'w') as f:
         json.dump(projects, f, indent=2, default=str)
 
+def load_deals():
+    if os.path.exists(DEALS_FILE):
+        with open(DEALS_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+def save_deals(deals):
+    os.makedirs('data', exist_ok=True)
+    with open(DEALS_FILE, 'w') as f:
+        json.dump(deals, f, indent=2, default=str)
+
 def load_dashboard_layouts():
     if os.path.exists(DASHBOARD_LAYOUTS_FILE):
         with open(DASHBOARD_LAYOUTS_FILE, 'r') as f:
@@ -356,6 +368,10 @@ def objective_workspace(objective_id):
 @app.route('/projects')
 def projects():
     return render_template('projects.html')
+
+@app.route('/deals')
+def deals():
+    return render_template('deals.html')
 
 @app.route('/projects/<project_id>')
 def project_workspace(project_id):
@@ -631,17 +647,23 @@ def ai_summary():
     
     tasks = load_tasks()
     topics = load_objectives()  # Load objectives
+    projects = load_projects()  # Load projects
+    deals = load_deals()  # Load deals
     
     # Filter tasks based on the parameter
     if include_completed_cancelled:
         open_tasks = tasks
         active_objectives = topics
+        active_projects = projects
+        active_deals = deals
     else:
         open_tasks = [t for t in tasks if t.get('status') not in ['Completed', 'Cancelled']]
         active_objectives = [t for t in topics if t.get('status') not in ['Completed']]
+        active_projects = [p for p in projects if p.get('status') not in ['Completed']]
+        active_deals = [d for d in deals if d.get('dealStatus') != 'Lost']
     
-    if not open_tasks and not active_objectives:
-        summary_text = 'No active tasks or objectives to summarize.'
+    if not open_tasks and not active_objectives and not active_projects and not active_deals:
+        summary_text = 'No active tasks, objectives, projects, or deals to summarize.'
         save_ai_summary_cache(summary_text, include_completed_cancelled)
         return jsonify({'summary': summary_text})
     
@@ -768,15 +790,59 @@ def ai_summary():
             task_descriptions.append(info)
     
     # Add summary statistics
-    task_descriptions.append(f"\n**📊 SUMMARY:**")
+    task_descriptions.append(f"\n**📊 TASK SUMMARY:**")
     task_descriptions.append(f"- Total active tasks: {len(open_tasks)}")
     task_descriptions.append(f"- Overdue: {len(overdue_tasks)}")
     task_descriptions.append(f"- Due today: {len(due_today)}")
     task_descriptions.append(f"- Due this week: {len(due_this_week)}")
     task_descriptions.append(f"- High/Critical priority: {len([t for t in open_tasks if t.get('priority') in ['High', 'Critical']])}")
     
-    # Combine objectives and tasks for the prompt
-    all_descriptions = objectives_text + task_descriptions
+    # Build projects summary
+    projects_text = []
+    if active_projects:
+        projects_text.append("\n**📂 ACTIVE PROJECTS:**")
+        for proj in active_projects[:10]:
+            proj_info = f"- {proj.get('name', 'Untitled')} ({proj.get('status', 'Active')})"
+            
+            # Count associated tasks
+            proj_tasks = [t for t in open_tasks if t.get('project_id') == proj['id']]
+            if proj_tasks:
+                proj_info += f" - {len(proj_tasks)} tasks"
+            
+            # Add milestone info if available
+            if proj.get('milestones'):
+                active_milestones = [m for m in proj['milestones'] if not m.get('completed')]
+                if active_milestones:
+                    proj_info += f" - {len(active_milestones)} active milestones"
+            
+            projects_text.append(proj_info)
+    
+    # Build deals summary
+    deals_text = []
+    if active_deals:
+        deals_text.append("\n**💰 DEALS OVERVIEW:**")
+        
+        # Calculate totals
+        total_forecast = sum(float(d.get('dealForecast', 0) or 0) for d in active_deals)
+        total_actual = sum(float(d.get('dealActual', 0) or 0) for d in active_deals)
+        open_deals = [d for d in active_deals if d.get('dealStatus') == 'Open']
+        won_deals = [d for d in active_deals if d.get('dealStatus') == 'Won']
+        
+        deals_text.append(f"- Total deals: {len(active_deals)} (Open: {len(open_deals)}, Won: {len(won_deals)})")
+        deals_text.append(f"- Total forecast: ${total_forecast:,.0f}")
+        deals_text.append(f"- Total actual: ${total_actual:,.0f}")
+        
+        # List top open deals
+        if open_deals:
+            deals_text.append("\n**Open Deals:**")
+            for deal in sorted(open_deals, key=lambda d: float(d.get('dealForecast', 0) or 0), reverse=True)[:5]:
+                deal_info = f"- {deal.get('customerName', 'Unknown')} - {deal.get('dealType', 'N/A')}"
+                if deal.get('dealForecast'):
+                    deal_info += f" (${float(deal.get('dealForecast', 0)):,.0f})"
+                deals_text.append(deal_info)
+    
+    # Combine all sections for the prompt
+    all_descriptions = objectives_text + task_descriptions + projects_text + deals_text
     
     # Enhanced prompt for consistent structure
     prompt = f"""Generate a task summary using EXACTLY this structure (use these exact section headers):
@@ -1265,6 +1331,99 @@ def delete_project(project_id):
         return jsonify({'success': True, 'deleted': deleted_project})
     
     return jsonify({'error': 'Project not found'}), 404
+
+# Deals endpoints
+@app.route('/api/deals', methods=['GET'])
+def get_deals():
+    deals = load_deals()
+    return jsonify(deals)
+
+@app.route('/api/deals', methods=['POST'])
+def create_deal():
+    deal = request.json
+    deal['id'] = str(uuid.uuid4())
+    deal['created_at'] = datetime.now().isoformat()
+    deal['updated_at'] = datetime.now().isoformat()
+    
+    # Initialize notes array if not provided
+    if 'notes' not in deal:
+        deal['notes'] = []
+    
+    deals = load_deals()
+    deals.append(deal)
+    save_deals(deals)
+    return jsonify(deal)
+
+@app.route('/api/deals/<deal_id>', methods=['GET'])
+def get_deal(deal_id):
+    deals = load_deals()
+    deal = next((d for d in deals if d['id'] == deal_id), None)
+    if deal:
+        return jsonify(deal)
+    return jsonify({'error': 'Deal not found'}), 404
+
+@app.route('/api/deals/<deal_id>', methods=['PUT'])
+def update_deal(deal_id):
+    deal_data = request.json
+    deals = load_deals()
+    for i, deal in enumerate(deals):
+        if deal['id'] == deal_id:
+            # Preserve original data
+            deal_data['id'] = deal_id
+            deal_data['created_at'] = deal.get('created_at', datetime.now().isoformat())
+            deal_data['updated_at'] = datetime.now().isoformat()
+            
+            # Preserve notes if not in update
+            if 'notes' not in deal_data:
+                deal_data['notes'] = deal.get('notes', [])
+            
+            deals[i] = deal_data
+            save_deals(deals)
+            return jsonify(deal_data)
+    return jsonify({'error': 'Deal not found'}), 404
+
+@app.route('/api/deals/<deal_id>/notes', methods=['POST'])
+def add_deal_note(deal_id):
+    note = request.json
+    note['id'] = str(uuid.uuid4())
+    note['timestamp'] = datetime.now().isoformat()
+    
+    deals = load_deals()
+    for deal in deals:
+        if deal['id'] == deal_id:
+            if 'notes' not in deal:
+                deal['notes'] = []
+            deal['notes'].append(note)
+            deal['updated_at'] = datetime.now().isoformat()
+            save_deals(deals)
+            return jsonify(note)
+    
+    return jsonify({'error': 'Deal not found'}), 404
+
+@app.route('/api/deals/<deal_id>/notes/<note_id>', methods=['DELETE'])
+def delete_deal_note(deal_id, note_id):
+    deals = load_deals()
+    for deal in deals:
+        if deal['id'] == deal_id:
+            if 'notes' in deal:
+                deal['notes'] = [n for n in deal['notes'] if n.get('id') != note_id]
+                deal['updated_at'] = datetime.now().isoformat()
+                save_deals(deals)
+                return jsonify({'success': True})
+    
+    return jsonify({'error': 'Deal or note not found'}), 404
+
+@app.route('/api/deals/<deal_id>', methods=['DELETE'])
+def delete_deal(deal_id):
+    deals = load_deals()
+    original_length = len(deals)
+    deals = [d for d in deals if d['id'] != deal_id]
+    
+    if len(deals) < original_length:
+        save_deals(deals)
+        return jsonify({'success': True})
+    
+    return jsonify({'error': 'Deal not found'}), 404
 
 # Comments endpoints
 @app.route('/api/tasks/<task_id>/comments', methods=['POST'])

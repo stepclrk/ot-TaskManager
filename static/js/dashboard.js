@@ -259,11 +259,25 @@ async function loadDashboard() {
         const projects = await projectsResponse.json();
         const openProjectsCount = projects.filter(p => p.status !== 'Completed').length;
         
+        // Fetch deals statistics
+        const dealsResponse = await fetch('/api/deals');
+        const deals = await dealsResponse.json();
+        const totalDealsCount = deals.length;
+        const openDealsCount = deals.filter(d => d.dealStatus === 'Open').length;
+        const wonDealsCount = deals.filter(d => d.dealStatus === 'Won').length;
+        const lostDealsCount = deals.filter(d => d.dealStatus === 'Lost').length;
+        
         document.getElementById('activeObjectives').textContent = summary.active_objectives || 0;
         document.getElementById('totalTasks').textContent = summary.total;
         document.getElementById('openProjects').textContent = openProjectsCount;
         document.getElementById('dueToday').textContent = summary.due_today;
         document.getElementById('overdueTasksCount').textContent = summary.overdue;
+        
+        // Update deals statistics
+        document.getElementById('totalDeals').textContent = totalDealsCount;
+        document.getElementById('openDeals').textContent = openDealsCount;
+        document.getElementById('wonDeals').textContent = wonDealsCount;
+        document.getElementById('lostDeals').textContent = lostDealsCount;
         
         displayOverdueTasks(summary.overdue_tasks || []);
         displayActiveObjectives(summary.objectives || []);

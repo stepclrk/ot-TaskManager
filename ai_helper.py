@@ -27,6 +27,8 @@ def create_local_summary(content: str) -> str:
     customers = {}
     task_titles = []
     objectives_info = []
+    projects_info = []
+    deals_info = []
     
     # Track sections we're in
     current_section = None
@@ -34,6 +36,13 @@ def create_local_summary(content: str) -> str:
     overdue_count = 0
     due_today_count = 0
     high_priority_count = 0
+    
+    # Track deals statistics
+    total_deals_count = 0
+    open_deals_count = 0
+    won_deals_count = 0
+    total_forecast = 0
+    total_actual = 0
     
     lines = content.split('\n')
     
@@ -50,10 +59,16 @@ def create_local_summary(content: str) -> str:
                 current_section = 'due_tomorrow'
             elif 'HIGH PRIORITY' in line or 'PRIORITY TASKS' in line:
                 current_section = 'high_priority'
-            elif 'SUMMARY' in line:
+            elif 'TASK SUMMARY' in line:
                 current_section = 'summary'
-            elif 'Active Objectives' in line:
+            elif 'Active Objectives' in line or 'OBJECTIVES' in line:
                 current_section = 'objectives'
+            elif 'ACTIVE PROJECTS' in line:
+                current_section = 'projects'
+            elif 'DEALS OVERVIEW' in line:
+                current_section = 'deals'
+            elif 'Open Deals' in line:
+                current_section = 'open_deals'
             continue
             
         # Process summary statistics
@@ -79,8 +94,43 @@ def create_local_summary(content: str) -> str:
                 except:
                     pass
         
+        # Process deals statistics
+        if current_section == 'deals' and line_stripped.startswith('-'):
+            if 'Total deals:' in line:
+                # Parse format: "Total deals: X (Open: Y, Won: Z)"
+                try:
+                    parts = line.split(':')[-1].strip()
+                    total_deals_count = int(parts.split('(')[0].strip())
+                    if 'Open:' in parts:
+                        open_deals_count = int(parts.split('Open:')[1].split(',')[0].strip())
+                    if 'Won:' in parts:
+                        won_deals_count = int(parts.split('Won:')[1].split(')')[0].strip())
+                except:
+                    pass
+            elif 'Total forecast:' in line:
+                try:
+                    # Extract number from format like "$123,456"
+                    forecast_str = line.split('$')[-1].strip().replace(',', '')
+                    total_forecast = float(forecast_str)
+                except:
+                    pass
+            elif 'Total actual:' in line:
+                try:
+                    actual_str = line.split('$')[-1].strip().replace(',', '')
+                    total_actual = float(actual_str)
+                except:
+                    pass
+        
+        # Process projects and objectives
+        if current_section == 'projects' and line_stripped.startswith('-'):
+            projects_info.append(line_stripped[1:].strip())
+        elif current_section == 'objectives' and line_stripped.startswith('-'):
+            objectives_info.append(line_stripped[1:].strip())
+        elif current_section == 'open_deals' and line_stripped.startswith('-'):
+            deals_info.append(line_stripped[1:].strip())
+        
         # Process task items
-        if line_stripped.startswith('-'):
+        if line_stripped.startswith('-') and current_section in ['overdue', 'due_today', 'due_tomorrow', 'high_priority']:
             # Extract task details
             task_info = line_stripped[1:].strip()
             
@@ -201,9 +251,57 @@ def create_local_summary(content: str) -> str:
             summary_parts.append(f"<li><em>...and {due_tomorrow_count - 2} more</em></li>")
         summary_parts.append("</ul></div>")
     
+    # Projects and Objectives section
+    if projects_info or objectives_info:
+        summary_parts.append(f"<div style='margin-bottom: 15px;'>")
+        if objectives_info:
+            summary_parts.append(f"<strong style='color: #20c997;'>🎯 Active Objectives ({len(objectives_info)}):</strong>")
+            summary_parts.append("<ul style='margin: 5px 0; padding-left: 20px;'>")
+            for obj in objectives_info[:3]:
+                if obj:
+                    summary_parts.append(f"<li>{obj}</li>")
+            if len(objectives_info) > 3:
+                summary_parts.append(f"<li><em>...and {len(objectives_info) - 3} more</em></li>")
+            summary_parts.append("</ul>")
+        
+        if projects_info:
+            summary_parts.append(f"<strong style='color: #007bff;'>📂 Active Projects ({len(projects_info)}):</strong>")
+            summary_parts.append("<ul style='margin: 5px 0; padding-left: 20px;'>")
+            for proj in projects_info[:3]:
+                if proj:
+                    summary_parts.append(f"<li>{proj}</li>")
+            if len(projects_info) > 3:
+                summary_parts.append(f"<li><em>...and {len(projects_info) - 3} more</em></li>")
+            summary_parts.append("</ul>")
+        summary_parts.append("</div>")
+    
+    # Deals section
+    if total_deals_count > 0 or deals_info:
+        summary_parts.append(f"<div style='margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-radius: 4px;'>")
+        summary_parts.append(f"<strong style='color: #0056b3;'>💰 Deals Summary:</strong><br/>")
+        if total_deals_count > 0:
+            summary_parts.append(f"Total: <strong>{total_deals_count}</strong> | ")
+            summary_parts.append(f"Open: <strong style='color: #17a2b8;'>{open_deals_count}</strong> | ")
+            summary_parts.append(f"Won: <strong style='color: #28a745;'>{won_deals_count}</strong><br/>")
+        if total_forecast > 0:
+            summary_parts.append(f"Forecast: <strong>${total_forecast:,.0f}</strong> | ")
+        if total_actual > 0:
+            summary_parts.append(f"Actual: <strong>${total_actual:,.0f}</strong><br/>")
+        
+        if deals_info:
+            summary_parts.append("<strong>Top Open Deals:</strong>")
+            summary_parts.append("<ul style='margin: 5px 0; padding-left: 20px;'>")
+            for deal in deals_info[:3]:
+                if deal:
+                    summary_parts.append(f"<li>{deal}</li>")
+            if len(deals_info) > 3:
+                summary_parts.append(f"<li><em>...and {len(deals_info) - 3} more</em></li>")
+            summary_parts.append("</ul>")
+        summary_parts.append("</div>")
+    
     # Quick stats in a formatted box
     summary_parts.append(f"<div style='padding: 10px; background: #e9ecef; border-radius: 4px; margin-bottom: 15px;'>")
-    summary_parts.append(f"<strong>📊 Quick Stats:</strong><br/>")
+    summary_parts.append(f"<strong>📊 Task Stats:</strong><br/>")
     summary_parts.append(f"Total Tasks: <strong>{total_count}</strong> | ")
     summary_parts.append(f"Overdue: <strong style='color: #dc3545;'>{overdue_count}</strong> | ")
     summary_parts.append(f"Due Today: <strong style='color: #fd7e14;'>{due_today_count}</strong> | ")
