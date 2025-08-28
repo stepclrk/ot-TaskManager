@@ -1,6 +1,7 @@
 let currentConfig = {};
 let currentSettings = {};
 let currentTemplates = [];
+let hasUnsavedChanges = false;
 
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
@@ -18,6 +19,32 @@ function showNotification(message, type = 'info') {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 300);
     }, 3000);
+}
+
+function showSaveIndicator(indicatorId) {
+    const indicator = document.getElementById(indicatorId);
+    if (indicator) {
+        indicator.classList.add('show');
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 2000);
+    }
+}
+
+function markUnsavedChanges() {
+    hasUnsavedChanges = true;
+    const unsavedIndicator = document.getElementById('unsavedIndicator');
+    if (unsavedIndicator) {
+        unsavedIndicator.classList.add('show');
+    }
+}
+
+function clearUnsavedChanges() {
+    hasUnsavedChanges = false;
+    const unsavedIndicator = document.getElementById('unsavedIndicator');
+    if (unsavedIndicator) {
+        unsavedIndicator.classList.remove('show');
+    }
 }
 
 async function testNotification() {
@@ -47,16 +74,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // AI Provider selection handler
     document.getElementById('aiProvider').addEventListener('change', handleAiProviderChange);
     
+    // Task configuration
     document.getElementById('addCategoryBtn').addEventListener('click', () => addItem('categories'));
     document.getElementById('addStatusBtn').addEventListener('click', () => addItem('statuses'));
     document.getElementById('addPriorityBtn').addEventListener('click', () => addItem('priorities'));
     document.getElementById('addTagBtn').addEventListener('click', () => addItem('tags'));
+    
+    // Deal configuration
+    document.getElementById('addDealCustomerTypeBtn').addEventListener('click', () => addItem('dealCustomerTypes'));
+    document.getElementById('addDealTypeBtn').addEventListener('click', () => addItem('dealTypes'));
+    document.getElementById('addDealStatusBtn').addEventListener('click', () => addItem('dealStatuses'));
+    document.getElementById('addCsmLocationBtn').addEventListener('click', () => addItem('csmLocations'));
     
     document.getElementById('addTemplateBtn').addEventListener('click', addTemplate);
     
     document.getElementById('saveAllBtn').addEventListener('click', saveAllConfig);
     document.getElementById('resetBtn').addEventListener('click', resetToDefaults);
     
+    // Task configuration enter key handlers
     document.getElementById('newCategory').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addItem('categories');
     });
@@ -68,6 +103,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('newTag').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addItem('tags');
+    });
+    
+    // Deal configuration enter key handlers
+    document.getElementById('newDealCustomerType').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addItem('dealCustomerTypes');
+    });
+    document.getElementById('newDealType').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addItem('dealTypes');
+    });
+    document.getElementById('newDealStatus').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addItem('dealStatuses');
+    });
+    document.getElementById('newCsmLocation').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addItem('csmLocations');
+    });
+    
+    // Warn about unsaved changes
+    window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
     });
 });
 
@@ -138,17 +195,22 @@ function handleAiProviderChange() {
     updateAiStatusMessage();
 }
 
-
-
 async function loadConfig() {
     try {
         const response = await fetch('/api/config');
         currentConfig = await response.json();
         
+        // Display task configurations
         displayList('categories', currentConfig.categories);
         displayList('statuses', currentConfig.statuses);
         displayList('priorities', currentConfig.priorities);
         displayList('tags', currentConfig.tags);
+        
+        // Display deal configurations
+        displayList('dealCustomerTypes', currentConfig.dealCustomerTypes || ['New Customer', 'Existing Customer']);
+        displayList('dealTypes', currentConfig.dealTypes || ['BNCE', 'BNCF', 'Advisory', 'RTS']);
+        displayList('dealStatuses', currentConfig.dealStatuses || ['Open', 'Won', 'Lost']);
+        displayList('csmLocations', currentConfig.csmLocations || ['Onshore', 'Offshore']);
     } catch (error) {
         console.error('Error loading config:', error);
     }
@@ -156,6 +218,7 @@ async function loadConfig() {
 
 function displayList(type, items) {
     const container = document.getElementById(`${type}List`);
+    if (!container) return;
     
     container.innerHTML = items.map((item, index) => `
         <div class="list-item">
@@ -168,25 +231,41 @@ function displayList(type, items) {
 function addItem(type) {
     const inputId = type === 'categories' ? 'newCategory' :
                    type === 'statuses' ? 'newStatus' :
-                   type === 'priorities' ? 'newPriority' : 'newTag';
+                   type === 'priorities' ? 'newPriority' :
+                   type === 'tags' ? 'newTag' :
+                   type === 'dealCustomerTypes' ? 'newDealCustomerType' :
+                   type === 'dealTypes' ? 'newDealType' :
+                   type === 'dealStatuses' ? 'newDealStatus' :
+                   type === 'csmLocations' ? 'newCsmLocation' : '';
     
     const input = document.getElementById(inputId);
+    if (!input) return;
+    
     const value = input.value.trim();
     
     if (!value) return;
+    
+    // Initialize array if it doesn't exist (for new deal configs)
+    if (!currentConfig[type]) {
+        currentConfig[type] = [];
+    }
     
     if (!currentConfig[type].includes(value)) {
         currentConfig[type].push(value);
         displayList(type, currentConfig[type]);
         input.value = '';
+        markUnsavedChanges();
     } else {
         alert('This item already exists');
     }
 }
 
 function removeItem(type, index) {
+    if (!currentConfig[type]) return;
+    
     currentConfig[type].splice(index, 1);
     displayList(type, currentConfig[type]);
+    markUnsavedChanges();
 }
 
 async function testApiKey() {
@@ -253,7 +332,7 @@ async function testApiKey() {
         
         setTimeout(() => {
             button.style.background = '';
-            button.textContent = 'Test API Key';
+            button.textContent = 'Test Configuration';
         }, 3000);
         
     } catch (error) {
@@ -296,18 +375,19 @@ async function saveApiSettings(e) {
         });
         
         if (response.ok) {
+            showSaveIndicator('aiSaveIndicator');
             if (aiProvider === 'none') {
-                alert('AI settings saved successfully!\n\nLocal Summary Mode enabled - summaries will be generated without external AI.');
+                showNotification('Local Summary Mode enabled - summaries will be generated without external AI.', 'success');
             } else if (apiKey && apiKey !== '') {
-                alert('API settings saved successfully!\n\nClaude AI features are now enabled:\n• AI Summary on Dashboard\n• Generate Follow-up Messages\n• Text Enhancement in Tasks');
+                showNotification('Claude AI features are now enabled!', 'success');
             } else {
-                alert('API key removed.\n\nAI features have been disabled.');
+                showNotification('API key removed. AI features have been disabled.', 'info');
             }
             loadSettings();
         }
     } catch (error) {
         console.error('Error saving API settings:', error);
-        alert('Error saving API settings');
+        showNotification('Error saving API settings', 'error');
     }
 }
 
@@ -329,11 +409,12 @@ async function saveNotificationSettings(e) {
         });
         
         if (response.ok) {
-            alert('Notification settings saved successfully');
+            showSaveIndicator('notificationSaveIndicator');
+            showNotification('Notification settings saved successfully', 'success');
         }
     } catch (error) {
         console.error('Error saving notification settings:', error);
-        alert('Error saving notification settings');
+        showNotification('Error saving notification settings', 'error');
     }
 }
 
@@ -348,11 +429,20 @@ async function saveAllConfig() {
         });
         
         if (response.ok) {
-            alert('Configuration saved successfully');
+            clearUnsavedChanges();
+            
+            // Show save indicators for visible sections
+            showSaveIndicator('taskConfigSaveIndicator');
+            showSaveIndicator('dealConfigSaveIndicator');
+            
+            showNotification('All configurations saved successfully!', 'success');
+            
+            // Trigger a custom event so other pages know config has changed
+            window.dispatchEvent(new Event('configUpdated'));
         }
     } catch (error) {
         console.error('Error saving config:', error);
-        alert('Error saving configuration');
+        showNotification('Error saving configuration', 'error');
     }
 }
 
@@ -363,13 +453,24 @@ function resetToDefaults() {
         categories: ['Development', 'Support', 'Bug', 'Feature', 'Documentation'],
         statuses: ['Open', 'In Progress', 'Pending', 'Completed', 'Cancelled'],
         priorities: ['Low', 'Medium', 'High', 'Urgent'],
-        tags: ['Frontend', 'Backend', 'Database', 'API', 'UI', 'Security']
+        tags: ['Frontend', 'Backend', 'Database', 'API', 'UI', 'Security'],
+        dealCustomerTypes: ['New Customer', 'Existing Customer'],
+        dealTypes: ['BNCE', 'BNCF', 'Advisory', 'RTS'],
+        dealStatuses: ['Open', 'Won', 'Lost'],
+        csmLocations: ['Onshore', 'Offshore']
     };
     
+    // Display task configurations
     displayList('categories', currentConfig.categories);
     displayList('statuses', currentConfig.statuses);
     displayList('priorities', currentConfig.priorities);
     displayList('tags', currentConfig.tags);
+    
+    // Display deal configurations
+    displayList('dealCustomerTypes', currentConfig.dealCustomerTypes);
+    displayList('dealTypes', currentConfig.dealTypes);
+    displayList('dealStatuses', currentConfig.dealStatuses);
+    displayList('csmLocations', currentConfig.csmLocations);
     
     saveAllConfig();
 }
@@ -379,7 +480,6 @@ function escapeHtml(text) {
     div.textContent = text || '';
     return div.innerHTML;
 }
-
 
 // Template Management Functions
 async function loadTemplates() {
@@ -457,13 +557,14 @@ async function addTemplate() {
             document.getElementById('newTemplateTitle').value = '';
             document.getElementById('newTemplateDescription').value = '';
             
-            alert('Template added successfully');
+            showSaveIndicator('templateSaveIndicator');
+            showNotification('Template added successfully', 'success');
         } else {
-            alert('Failed to add template');
+            showNotification('Failed to add template', 'error');
         }
     } catch (error) {
         console.error('Error adding template:', error);
-        alert('Error adding template');
+        showNotification('Error adding template', 'error');
     }
 }
 
@@ -480,11 +581,12 @@ async function removeTemplate(index) {
         if (response.ok) {
             currentTemplates.splice(index, 1);
             displayTemplates();
+            showNotification('Template removed successfully', 'success');
         } else {
-            alert('Failed to remove template');
+            showNotification('Failed to remove template', 'error');
         }
     } catch (error) {
         console.error('Error removing template:', error);
-        alert('Error removing template');
+        showNotification('Error removing template', 'error');
     }
 }

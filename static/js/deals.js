@@ -2,10 +2,20 @@ let allDeals = [];
 let currentDealId = null;
 let dealSummaryEditor = null;
 let noteEditor = null;
+let dealConfig = {
+    dealCustomerTypes: ['New Customer', 'Existing Customer'],
+    dealTypes: ['BNCE', 'BNCF', 'Advisory', 'RTS'],
+    dealStatuses: ['Open', 'Won', 'Lost'],
+    csmLocations: ['Onshore', 'Offshore']
+};
 
 document.addEventListener('DOMContentLoaded', function() {
+    loadConfiguration();
     loadDeals();
     initializeEditors();
+    
+    // Listen for configuration updates
+    window.addEventListener('configUpdated', loadConfiguration);
 });
 
 function initializeEditors() {
@@ -41,6 +51,67 @@ function initializeEditors() {
             },
             placeholder: 'Add a note...'
         });
+    }
+}
+
+async function loadConfiguration() {
+    try {
+        const response = await fetch('/api/config');
+        const config = await response.json();
+        
+        // Update deal configuration if present
+        if (config.dealCustomerTypes) dealConfig.dealCustomerTypes = config.dealCustomerTypes;
+        if (config.dealTypes) dealConfig.dealTypes = config.dealTypes;
+        if (config.dealStatuses) dealConfig.dealStatuses = config.dealStatuses;
+        if (config.csmLocations) dealConfig.csmLocations = config.csmLocations;
+        
+        // Update dropdowns if they exist
+        updateDropdowns();
+    } catch (error) {
+        console.error('Error loading configuration:', error);
+    }
+}
+
+function updateDropdowns() {
+    // Update filter dropdowns
+    updateSelectOptions('statusFilter', dealConfig.dealStatuses);
+    updateSelectOptions('typeFilter', dealConfig.dealTypes);
+    updateSelectOptions('customerTypeFilter', dealConfig.dealCustomerTypes);
+    
+    // Update form dropdowns
+    updateSelectOptions('customerType', dealConfig.dealCustomerTypes, 'Select Type');
+    updateSelectOptions('dealType', dealConfig.dealTypes, 'Select Type');
+    updateSelectOptions('dealStatus', dealConfig.dealStatuses, 'Select Status');
+    updateSelectOptions('csmLocation', dealConfig.csmLocations, 'Select Location');
+}
+
+function updateSelectOptions(selectId, options, placeholder = 'All') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    // Save current value
+    const currentValue = select.value;
+    
+    // Clear and rebuild options
+    select.innerHTML = '';
+    
+    // Add placeholder option
+    const placeholderOption = document.createElement('option');
+    placeholderOption.value = '';
+    placeholderOption.textContent = placeholder;
+    select.appendChild(placeholderOption);
+    
+    // Add all options
+    options.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option;
+        optionElement.textContent = option;
+        select.appendChild(optionElement);
+    });
+    
+    // Restore previous value if it still exists
+    if (currentValue && options.includes(currentValue)) {
+        select.value = currentValue;
     }
 }
 
@@ -80,6 +151,9 @@ function renderDeals(deals = null) {
                 <div class="action-buttons">
                     <button class="btn-icon" onclick="event.stopPropagation(); editDeal('${deal.id}')" title="Edit">
                         ✏️
+                    </button>
+                    <button class="btn-icon" onclick="event.stopPropagation(); copyDealToClipboard('${deal.id}')" title="Copy Deal Info">
+                        📋
                     </button>
                     <button class="btn-icon" onclick="event.stopPropagation(); deleteDeal('${deal.id}')" title="Delete">
                         🗑️
@@ -454,5 +528,81 @@ window.onclick = function(event) {
     const modal = document.getElementById('dealModal');
     if (event.target == modal) {
         closeDealModal();
+    }
+}
+
+// Copy deal information to clipboard
+async function copyDealToClipboard(dealId) {
+    const deal = allDeals.find(d => d.id === dealId);
+    if (!deal) return;
+    
+    // Strip HTML from summary for plain text
+    const summaryText = deal.dealSummary ? 
+        deal.dealSummary.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() : 
+        'No summary provided';
+    
+    // Format deal information as plain text
+    let dealText = `DEAL INFORMATION\n`;
+    dealText += `${'='.repeat(50)}\n\n`;
+    
+    dealText += `BASIC INFORMATION\n`;
+    dealText += `-----------------\n`;
+    dealText += `Salesforce ID: ${deal.salesforceId || 'N/A'}\n`;
+    dealText += `Customer Name: ${deal.customerName || 'N/A'}\n`;
+    dealText += `Customer Type: ${deal.customerType || 'N/A'}\n`;
+    dealText += `Deal Type: ${deal.dealType || 'N/A'}\n`;
+    dealText += `Status: ${deal.dealStatus || 'N/A'}\n\n`;
+    
+    dealText += `CSM DETAILS\n`;
+    dealText += `-----------\n`;
+    dealText += `CSM Location: ${deal.csmLocation || 'N/A'}\n`;
+    dealText += `CSM Allocation: ${deal.csmAllocation ? deal.csmAllocation + '%' : 'N/A'}\n\n`;
+    
+    dealText += `FINANCIAL\n`;
+    dealText += `---------\n`;
+    dealText += `Forecast Amount: ${formatCurrency(deal.dealForecast)}\n`;
+    dealText += `Actual Amount: ${formatCurrency(deal.dealActual)}\n\n`;
+    
+    dealText += `DEAL SUMMARY\n`;
+    dealText += `------------\n`;
+    dealText += `${summaryText}\n\n`;
+    
+    // Add notes if they exist
+    if (deal.notes && deal.notes.length > 0) {
+        dealText += `NOTES (${deal.notes.length})\n`;
+        dealText += `${'='.repeat(50)}\n`;
+        deal.notes.forEach((note, index) => {
+            const noteDate = new Date(note.timestamp).toLocaleString();
+            const noteText = note.text ? 
+                note.text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() : 
+                'Empty note';
+            dealText += `\n[${index + 1}] ${noteDate}\n`;
+            dealText += `${noteText}\n`;
+        });
+    }
+    
+    dealText += `\n${'='.repeat(50)}\n`;
+    dealText += `Generated on: ${new Date().toLocaleString()}\n`;
+    
+    // Copy to clipboard
+    try {
+        await navigator.clipboard.writeText(dealText);
+        showNotification('Deal information copied to clipboard!', 'success');
+    } catch (err) {
+        console.error('Failed to copy:', err);
+        // Fallback method
+        const textarea = document.createElement('textarea');
+        textarea.value = dealText;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showNotification('Deal information copied to clipboard!', 'success');
+        } catch (err) {
+            showNotification('Failed to copy deal information', 'error');
+        }
+        document.body.removeChild(textarea);
     }
 }

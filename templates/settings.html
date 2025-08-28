@@ -6,6 +6,107 @@
     <title>Task Manager - Settings</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/quick-actions.css">
+    <style>
+        .settings-sections {
+            margin-top: 20px;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 20px;
+        }
+        
+        .section-header:first-of-type {
+            margin-top: 0;
+        }
+        
+        .section-header:hover {
+            opacity: 0.95;
+        }
+        
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+        
+        .section-toggle {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+        
+        .section-header.collapsed .section-toggle {
+            transform: rotate(-90deg);
+        }
+        
+        .section-content {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-content.collapsed {
+            display: none;
+        }
+        
+        .save-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9em;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .save-indicator.show {
+            opacity: 1;
+        }
+        
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .settings-actions {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px;
+            border-top: 2px solid #e5e5e5;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 30px -20px -20px -20px;
+        }
+        
+        .unsaved-changes {
+            background: #fff3cd;
+            color: #856404;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-left: auto;
+            display: none;
+        }
+        
+        .unsaved-changes.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -25,10 +126,14 @@
 
     <div class="container">
         <h2>Settings</h2>
-
-        <div class="settings-grid">
-            <div class="settings-card">
-                <h3>AI Configuration</h3>
+        
+        <div class="settings-sections">
+            <!-- AI Configuration Section -->
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3>🤖 AI Configuration</h3>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
                 <div id="aiStatusMessage" style="padding: 10px; margin-bottom: 15px; border-radius: 4px; display: none;"></div>
                 <form id="apiSettingsForm">
                     <div class="form-group">
@@ -53,6 +158,7 @@
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <button type="submit" class="btn btn-primary">Save AI Settings</button>
                         <button type="button" id="testApiKeyBtn" class="btn btn-secondary">Test Configuration</button>
+                        <span class="save-indicator" id="aiSaveIndicator">✓ Saved</span>
                     </div>
                 </form>
                 <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
@@ -69,8 +175,12 @@
                 </div>
             </div>
 
-            <div class="settings-card">
-                <h3>Notification Settings</h3>
+            <!-- Notification Settings Section -->
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3>🔔 Notifications</h3>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
                 <form id="notificationSettingsForm">
                     <div class="form-group">
                         <label>
@@ -82,72 +192,147 @@
                         <label for="checkInterval">Check interval (minutes)</label>
                         <input type="number" id="checkInterval" min="1" max="1440" value="60">
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Notification Settings</button>
-                    <button type="button" class="btn btn-secondary" onclick="testNotification()" style="margin-left: 10px;">Test Notification</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                        <button type="button" class="btn btn-secondary" onclick="testNotification()">Test Notification</button>
+                        <span class="save-indicator" id="notificationSaveIndicator">✓ Saved</span>
+                    </div>
                 </form>
             </div>
 
-            <div class="settings-card">
-                <h3>Categories</h3>
-                <div id="categoriesList" class="editable-list"></div>
-                <div class="add-item">
-                    <input type="text" id="newCategory" placeholder="New category">
-                    <button id="addCategoryBtn" class="btn btn-small">Add</button>
+            <!-- Task Configuration Section -->
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3>📋 Task Configuration</h3>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="config-grid">
+                    <div class="settings-card">
+                        <h4>Categories</h4>
+                        <div id="categoriesList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newCategory" placeholder="New category">
+                            <button id="addCategoryBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h4>Statuses</h4>
+                        <div id="statusesList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newStatus" placeholder="New status">
+                            <button id="addStatusBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h4>Priorities</h4>
+                        <div id="prioritiesList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newPriority" placeholder="New priority">
+                            <button id="addPriorityBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h4>Tags</h4>
+                        <div id="tagsList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newTag" placeholder="New tag">
+                            <button id="addTagBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <span class="save-indicator" id="taskConfigSaveIndicator">✓ Task configuration saved</span>
                 </div>
             </div>
 
-            <div class="settings-card">
-                <h3>Statuses</h3>
-                <div id="statusesList" class="editable-list"></div>
-                <div class="add-item">
-                    <input type="text" id="newStatus" placeholder="New status">
-                    <button id="addStatusBtn" class="btn btn-small">Add</button>
+            <!-- Deal Configuration Section -->
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3>💼 Deal Configuration</h3>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="config-grid">
+                    <div class="settings-card">
+                        <h4>Customer Types</h4>
+                        <div id="dealCustomerTypesList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newDealCustomerType" placeholder="New customer type">
+                            <button id="addDealCustomerTypeBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h4>Deal Types</h4>
+                        <div id="dealTypesList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newDealType" placeholder="New deal type">
+                            <button id="addDealTypeBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h4>Deal Statuses</h4>
+                        <div id="dealStatusesList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newDealStatus" placeholder="New deal status">
+                            <button id="addDealStatusBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h4>CSM Locations</h4>
+                        <div id="csmLocationsList" class="editable-list"></div>
+                        <div class="add-item">
+                            <input type="text" id="newCsmLocation" placeholder="New CSM location">
+                            <button id="addCsmLocationBtn" class="btn btn-small">Add</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <span class="save-indicator" id="dealConfigSaveIndicator">✓ Deal configuration saved</span>
                 </div>
             </div>
 
-            <div class="settings-card">
-                <h3>Priorities</h3>
-                <div id="prioritiesList" class="editable-list"></div>
-                <div class="add-item">
-                    <input type="text" id="newPriority" placeholder="New priority">
-                    <button id="addPriorityBtn" class="btn btn-small">Add</button>
-                </div>
+            <!-- Task Templates Section -->
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3>📝 Task Templates</h3>
+                <span class="section-toggle">▼</span>
             </div>
-
-            <div class="settings-card">
-                <h3>Tags</h3>
-                <div id="tagsList" class="editable-list"></div>
-                <div class="add-item">
-                    <input type="text" id="newTag" placeholder="New tag">
-                    <button id="addTagBtn" class="btn btn-small">Add</button>
+            <div class="section-content">
+                <div id="templatesList" class="templates-list"></div>
+                <div class="template-form">
+                    <h4>Add New Template</h4>
+                    <div class="form-group">
+                        <input type="text" id="newTemplateName" placeholder="Template Name">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="newTemplateTitle" placeholder="Title Pattern (use {variable} for placeholders)">
+                    </div>
+                    <div class="form-group">
+                        <textarea id="newTemplateDescription" placeholder="Default Description"></textarea>
+                    </div>
+                    <button id="addTemplateBtn" class="btn btn-primary">Add Template</button>
+                    <span class="save-indicator" id="templateSaveIndicator">✓ Template saved</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="settings-card full-width">
-            <h3>Task Templates</h3>
-            <div id="templatesList" class="templates-list"></div>
-            <div class="template-form">
-                <h4>Add New Template</h4>
-                <div class="form-group">
-                    <input type="text" id="newTemplateName" placeholder="Template Name">
-                </div>
-                <div class="form-group">
-                    <input type="text" id="newTemplateTitle" placeholder="Title Pattern (use {variable} for placeholders)">
-                </div>
-                <div class="form-group">
-                    <textarea id="newTemplateDescription" placeholder="Default Description"></textarea>
-                </div>
-                <button id="addTemplateBtn" class="btn btn-primary">Add Template</button>
             </div>
         </div>
 
         <div class="settings-actions">
-            <button id="saveAllBtn" class="btn btn-primary">Save All Configuration</button>
+            <button id="saveAllBtn" class="btn btn-primary btn-large">💾 Save All Changes</button>
             <button id="resetBtn" class="btn btn-secondary">Reset to Defaults</button>
+            <span class="unsaved-changes" id="unsavedIndicator">⚠️ You have unsaved changes</span>
         </div>
     </div>
 
+    <script>
+        function toggleSection(header) {
+            header.classList.toggle('collapsed');
+            header.nextElementSibling.classList.toggle('collapsed');
+        }
+    </script>
     <script src="/static/js/settings.js"></script>
     <script src="/static/js/quick-actions.js"></script>
 </body>

@@ -6,6 +6,30 @@
     "Feature",
     "Documentation"
   ],
+  "csmLocations": [
+    "Onshore",
+    "Offshore",
+    "Remote"
+  ],
+  "dealCustomerTypes": [
+    "New Customer",
+    "Existing Customer",
+    "Partner"
+  ],
+  "dealStatuses": [
+    "Open",
+    "Won",
+    "Lost",
+    "On Hold"
+  ],
+  "dealTypes": [
+    "BNCE",
+    "BNCF",
+    "Advisory",
+    "RTS",
+    "Custom Deal",
+    "RTI"
+  ],
   "priorities": [
     "Low",
     "Medium",

@@ -40,12 +40,26 @@ def save_tasks(tasks):
 def load_config():
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, 'r') as f:
-            return json.load(f)
+            config = json.load(f)
+            # Add deal configurations if they don't exist
+            if 'dealCustomerTypes' not in config:
+                config['dealCustomerTypes'] = ['New Customer', 'Existing Customer']
+            if 'dealTypes' not in config:
+                config['dealTypes'] = ['BNCE', 'BNCF', 'Advisory', 'RTS']
+            if 'dealStatuses' not in config:
+                config['dealStatuses'] = ['Open', 'Won', 'Lost']
+            if 'csmLocations' not in config:
+                config['csmLocations'] = ['Onshore', 'Offshore']
+            return config
     return {
         'categories': ['Development', 'Support', 'Bug', 'Feature', 'Documentation'],
         'statuses': ['Open', 'In Progress', 'Pending', 'Completed', 'Cancelled'],
         'priorities': ['Low', 'Medium', 'High', 'Urgent'],
-        'tags': ['Frontend', 'Backend', 'Database', 'API', 'UI', 'Security']
+        'tags': ['Frontend', 'Backend', 'Database', 'API', 'UI', 'Security'],
+        'dealCustomerTypes': ['New Customer', 'Existing Customer'],
+        'dealTypes': ['BNCE', 'BNCF', 'Advisory', 'RTS'],
+        'dealStatuses': ['Open', 'Won', 'Lost'],
+        'csmLocations': ['Onshore', 'Offshore']
     }
 
 def save_config(config):
@@ -802,7 +816,7 @@ def ai_summary():
     if active_projects:
         projects_text.append("\n**📂 ACTIVE PROJECTS:**")
         for proj in active_projects[:10]:
-            proj_info = f"- {proj.get('name', 'Untitled')} ({proj.get('status', 'Active')})"
+            proj_info = f"- {proj.get('title', proj.get('name', 'Untitled'))} ({proj.get('status', 'Active')})"
             
             # Count associated tasks
             proj_tasks = [t for t in open_tasks if t.get('project_id') == proj['id']]

@@ -3,11 +3,14 @@ let currentReportData = [];
 let allTasks = [];
 let allObjectives = [];
 let allTopics = [];
+let allDeals = [];
 let progressChart = null;
 let statusChart = null;
 let typeChart = null;
 let topicsStatusChart = null;
 let topicsTaskChart = null;
+let dealsStatusChart = null;
+let dealsTypeChart = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     loadInitialData();
@@ -28,6 +31,10 @@ async function loadInitialData() {
         // Load topics (projects)
         const topicsResponse = await fetch('/api/projects');
         allTopics = await topicsResponse.json();
+        
+        // Load deals
+        const dealsResponse = await fetch('/api/deals');
+        allDeals = await dealsResponse.json();
     } catch (error) {
         console.error('Error loading data:', error);
     }
@@ -54,6 +61,12 @@ function setupEventListeners() {
     document.getElementById('copyTopicsReportBtn').addEventListener('click', copyTopicsReport);
     document.getElementById('exportTopicsCSVBtn').addEventListener('click', exportTopicsToCSV);
     document.getElementById('printTopicsBtn').addEventListener('click', printTopicsReport);
+    
+    // Deals report listeners
+    document.getElementById('generateDealsReportBtn').addEventListener('click', generateDealsReport);
+    document.getElementById('copyDealsReportBtn').addEventListener('click', copyDealsReport);
+    document.getElementById('exportDealsCSVBtn').addEventListener('click', exportDealsToCSV);
+    document.getElementById('printDealsBtn').addEventListener('click', printDealsReport);
 }
 
 function setupTabSwitching() {
@@ -75,6 +88,7 @@ function setupTabSwitching() {
             document.getElementById('tasksTab').style.display = tabName === 'tasks' ? 'block' : 'none';
             document.getElementById('objectivesTab').style.display = tabName === 'objectives' ? 'block' : 'none';
             document.getElementById('topicsTab').style.display = tabName === 'topics' ? 'block' : 'none';
+            document.getElementById('dealsTab').style.display = tabName === 'deals' ? 'block' : 'none';
         });
     });
 }
