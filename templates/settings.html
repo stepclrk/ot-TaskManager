@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Settings</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/quick-actions.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1>Task Manager</h1>
+            <ul class="nav-menu">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/objectives">Objectives</a></li>
+                <li><a href="/projects">Projects</a></li>
+                <li><a href="/tasks">Tasks</a></li>
+                <li><a href="/reports">Reports</a></li>
+                <li><a href="/settings" class="active">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Settings</h2>
+
+        <div class="settings-grid">
+            <div class="settings-card">
+                <h3>AI Configuration</h3>
+                <div id="aiStatusMessage" style="padding: 10px; margin-bottom: 15px; border-radius: 4px; display: none;"></div>
+                <form id="apiSettingsForm">
+                    <div class="form-group">
+                        <label for="aiProvider">AI Provider</label>
+                        <select id="aiProvider" class="form-control">
+                            <option value="claude">Claude (Anthropic API)</option>
+                            <option value="none">None (Template-Based)</option>
+                        </select>
+                        <small>Choose your AI provider for task analysis</small>
+                    </div>
+                    <div id="claudeConfig" class="form-group">
+                        <label for="apiKey">Claude API Key</label>
+                        <input type="password" id="apiKey" placeholder="sk-ant-...">
+                        <small>Enter your Anthropic API key for Claude features</small>
+                    </div>
+                    <div id="noneConfig" class="form-group" style="display: none;">
+                        <div style="padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                            <strong>Template-Based Mode</strong>
+                            <p style="margin-top: 10px; margin-bottom: 0;">Uses pre-built templates without AI. Fast and private, provides basic task summaries and follow-up templates.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button type="submit" class="btn btn-primary">Save AI Settings</button>
+                        <button type="button" id="testApiKeyBtn" class="btn btn-secondary">Test Configuration</button>
+                    </div>
+                </form>
+                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                    <strong>AI Features:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.6;">
+                        <li>AI-powered task summaries on Dashboard</li>
+                        <li>Generate follow-up messages for tasks</li>
+                        <li>Enhance task descriptions with AI</li>
+                    </ul>
+                    <small style="display: block; margin-top: 10px;">
+                        <strong>Claude:</strong> Most powerful, cloud-based, requires API key<br>
+                        <strong>None:</strong> Template-based, fastest, no AI required
+                    </small>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Notification Settings</h3>
+                <form id="notificationSettingsForm">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notificationsEnabled">
+                            Enable desktop notifications
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="checkInterval">Check interval (minutes)</label>
+                        <input type="number" id="checkInterval" min="1" max="1440" value="60">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                    <button type="button" class="btn btn-secondary" onclick="testNotification()" style="margin-left: 10px;">Test Notification</button>
+                </form>
+            </div>
+
+            <div class="settings-card">
+                <h3>Categories</h3>
+                <div id="categoriesList" class="editable-list"></div>
+                <div class="add-item">
+                    <input type="text" id="newCategory" placeholder="New category">
+                    <button id="addCategoryBtn" class="btn btn-small">Add</button>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Statuses</h3>
+                <div id="statusesList" class="editable-list"></div>
+                <div class="add-item">
+                    <input type="text" id="newStatus" placeholder="New status">
+                    <button id="addStatusBtn" class="btn btn-small">Add</button>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Priorities</h3>
+                <div id="prioritiesList" class="editable-list"></div>
+                <div class="add-item">
+                    <input type="text" id="newPriority" placeholder="New priority">
+                    <button id="addPriorityBtn" class="btn btn-small">Add</button>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Tags</h3>
+                <div id="tagsList" class="editable-list"></div>
+                <div class="add-item">
+                    <input type="text" id="newTag" placeholder="New tag">
+                    <button id="addTagBtn" class="btn btn-small">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-card full-width">
+            <h3>Task Templates</h3>
+            <div id="templatesList" class="templates-list"></div>
+            <div class="template-form">
+                <h4>Add New Template</h4>
+                <div class="form-group">
+                    <input type="text" id="newTemplateName" placeholder="Template Name">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="newTemplateTitle" placeholder="Title Pattern (use {variable} for placeholders)">
+                </div>
+                <div class="form-group">
+                    <textarea id="newTemplateDescription" placeholder="Default Description"></textarea>
+                </div>
+                <button id="addTemplateBtn" class="btn btn-primary">Add Template</button>
+            </div>
+        </div>
+
+        <div class="settings-actions">
+            <button id="saveAllBtn" class="btn btn-primary">Save All Configuration</button>
+            <button id="resetBtn" class="btn btn-secondary">Reset to Defaults</button>
+        </div>
+    </div>
+
+    <script src="/static/js/settings.js"></script>
+    <script src="/static/js/quick-actions.js"></script>
+</body>
+</html>
