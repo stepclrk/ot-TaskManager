@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager - Settings</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/sidebar.css">
     <link rel="stylesheet" href="/static/css/quick-actions.css">
     <style>
         .settings-sections {
@@ -109,22 +110,77 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <h1>Task Manager</h1>
-            <ul class="nav-menu">
-                <li><a href="/">Dashboard</a></li>
-                <li><a href="/objectives">Objectives</a></li>
-                <li><a href="/projects">Projects</a></li>
-                <li><a href="/tasks">Tasks</a></li>
-                <li><a href="/deals">Deals</a></li>
-                <li><a href="/reports">Reports</a></li>
-                <li><a href="/settings" class="active">Settings</a></li>
-            </ul>
+    <!-- Mobile Hamburger Menu -->
+    <button id="hamburgerMenu" class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <span class="nav-icon">📋</span>
+                <h1>Task Manager</h1>
+            </a>
+            <button id="sidebarToggle" class="sidebar-toggle">
+                <span class="toggle-icon">◀</span>
+            </button>
+        </div>
+        
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/" class="nav-link" data-tooltip="Dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/objectives" class="nav-link" data-tooltip="Objectives">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-text">Objectives</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/projects" class="nav-link" data-tooltip="Projects">
+                    <span class="nav-icon">📁</span>
+                    <span class="nav-text">Projects</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/tasks" class="nav-link" data-tooltip="Tasks">
+                    <span class="nav-icon">✅</span>
+                    <span class="nav-text">Tasks</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/deals" class="nav-link" data-tooltip="Deals">
+                    <span class="nav-icon">💼</span>
+                    <span class="nav-text">Deals</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/reports" class="nav-link" data-tooltip="Reports">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Reports</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/settings" class="nav-link active" data-tooltip="Settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </div>
         </div>
     </nav>
-
-    <div class="container">
+    
+    <!-- Overlay for mobile -->
+    <div id="sidebarOverlay" class="overlay"></div>
+    
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <div class="content-container">
         <h2>Settings</h2>
         
         <div class="settings-sections">
@@ -325,6 +381,7 @@
             <button id="resetBtn" class="btn btn-secondary">Reset to Defaults</button>
             <span class="unsaved-changes" id="unsavedIndicator">⚠️ You have unsaved changes</span>
         </div>
+        </div>
     </div>
 
     <script>
@@ -333,6 +390,7 @@
             header.nextElementSibling.classList.toggle('collapsed');
         }
     </script>
+    <script src="/static/js/sidebar.js"></script>
     <script src="/static/js/settings.js"></script>
     <script src="/static/js/quick-actions.js"></script>
 </body>

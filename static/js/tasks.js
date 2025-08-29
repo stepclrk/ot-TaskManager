@@ -314,7 +314,7 @@ function renderListView(tasks, container) {
         }
         
         return `
-            <div class="task-list-item ${className}">
+            <div class="task-list-item ${className}" onclick="handleTaskClick(event, '${task.id}')">
                 <div class="task-info">
                     <div class="task-title">${escapeHtml(task.title)}</div>
                     <div class="task-meta">
@@ -325,7 +325,7 @@ function renderListView(tasks, container) {
                         ${topicName ? ` | <span style="color: #3498db;">📊 ${escapeHtml(topicName)}</span>` : ''}
                     </div>
                 </div>
-                <div class="task-actions">
+                <div class="task-actions" onclick="event.stopPropagation()">
                     <button class="edit-btn" onclick="editTask('${task.id}')">Edit</button>
                     <button class="followup-btn" onclick="generateTaskFollowUp('${task.id}')">Follow-up</button>
                     <button class="delete-btn" onclick="deleteTask('${task.id}')">Delete</button>
@@ -445,6 +445,14 @@ function showAddTaskModal() {
     if (generateSummaryBtn) {
         generateSummaryBtn.style.display = 'none'; // Hide for new tasks
     }
+}
+
+function handleTaskClick(event, taskId) {
+    // If clicking on the task actions area, don't trigger edit
+    if (event.target.closest('.task-actions')) {
+        return;
+    }
+    editTask(taskId);
 }
 
 function editTask(taskId) {
