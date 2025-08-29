@@ -13,108 +13,199 @@ run_task_manager.bat
 
 **Manual start:**
 ```bash
-# Install dependencies (if needed)
+# Install dependencies
 pip install -r requirements.txt
 
-# Run with production server (Waitress)
+# Production server (Waitress) - RECOMMENDED
 python -m waitress --port=8080 --threads=4 app:app
 
-# Run with development server (Flask)
+# Development server (Flask) - for debugging only
 python app.py
 ```
 
 ### Development Tasks
 
-**Install/update dependencies:**
+**Install/update all dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-**Update specific dependency:**
+**Update specific dependency (Windows):**
 ```bash
 update_dependencies.bat
 ```
 
-## Architecture
+## Architecture Overview
 
-### Backend Structure
-- **app.py**: Main Flask application with all API endpoints. Handles routing, CRUD operations, file management, and AI integration
-- **ai_helper.py**: Anthropic Claude API integration module for AI features (summaries, follow-ups, text enhancement)
-- **Data Storage**: JSON-based file storage in `data/` directory:
-  - `tasks.json`: Task data with full history
-  - `config.json`: Categories, statuses, priorities, tags
-  - `settings.json`: User settings and API keys
-  - `templates.json`: Task templates
-  - `objectives.json`: Objectives/topics data
-  - `projects.json`: Project management data
-  - `ai_summary_cache.json`: Cached AI responses
-  - `dashboard_layouts.json`: Dashboard widget configurations
+### Core Application Structure
+
+The application follows a monolithic Flask architecture with JSON file-based storage:
+
+- **app.py** (2000+ lines): Central Flask application containing all route handlers and business logic. Key responsibilities:
+  - API endpoints for tasks, deals, projects, objectives
+  - File upload/download handling  
+  - User settings and configuration management
+  - FTP sync orchestration for deals
+  - AI feature integration
+
+- **ftp_sync.py**: Handles team collaboration for deals via FTP with TLS encryption. Implements:
+  - Manifest-based synchronization to track deletions
+  - Conflict resolution (newest_wins strategy)
+  - Automatic retry with exponential backoff
+  - File naming: `deals_[userid]_[YYYYMMDD]_[HHMMSS].json`
+
+- **ai_helper.py**: Anthropic Claude API wrapper providing:
+  - Task/deal summaries
+  - Follow-up generation
+  - Text enhancement
+  - Response caching to minimize API calls
+
+### Data Layer
+
+All data stored as JSON files in `data/` directory:
+
+**Core Data Files:**
+- `tasks.json`: Task records with full history and metadata
+- `deals.json`: Deal pipeline with ownership and sync metadata
+- `projects.json` / `objectives.json`: Project and OKR tracking
+- `config.json`: Application-wide configuration (categories, statuses, priorities)
+- `settings.json`: User preferences, API keys, FTP credentials
+- `templates.json`: Reusable task templates
+- `attachments/`: UUID-named file uploads
+
+**Sync Metadata Structure (Deals):**
+```json
+{
+  "sync_metadata": {
+    "last_synced": "ISO timestamp",
+    "synced_by": "user_id",
+    "imported_from": "source_filename",
+    "imported_at": "ISO timestamp"
+  }
+}
+```
 
 ### Frontend Architecture
-- **Templates**: Server-side rendered HTML templates using Jinja2
-- **JavaScript Modules** in `static/js/`:
-  - `tasks.js` / `tasks_enhanced.js`: Main task management UI logic
-  - `dashboard.js`: Dashboard widgets and AI summaries
-  - `objectives.js` / `objective_workspace.js`: OKR management
-  - `projects.js` / `project_workspace.js`: Project management
-  - `reports.js`: Analytics and reporting
-  - `settings.js`: Configuration management
-  - `enhanced_features.js`: Advanced features (kanban, dependencies)
 
-### Key Features Implementation
-- **Kanban Board**: Drag-and-drop functionality implemented in `tasks_enhanced.js`
-- **AI Integration**: Server-side API calls through `/api/ai/*` endpoints
-- **File Attachments**: Stored in `data/attachments/` with UUID-based naming
-- **Task Dependencies**: Managed through task relationships in the data model
-- **Real-time Notifications**: Uses `plyer` library for desktop notifications
+**Multi-file JavaScript modules** with specific responsibilities:
 
-### API Endpoints Pattern
-- `/api/tasks/*`: Task CRUD operations
-- `/api/config/*`: Configuration management
-- `/api/settings/*`: User settings
-- `/api/templates/*`: Template management
-- `/api/ai/*`: AI feature endpoints
-- `/api/objectives/*`: Objectives/OKR management
-- `/api/projects/*`: Project management
+- **tasks.js + tasks_enhanced.js**: Task modal management, form handling, and enhanced features (tabs, dependencies, attachments)
+- **deals.js**: Deal CRUD, ownership validation, comment system, FTP sync UI
+- **dashboard.js**: Widget management, drag-and-drop layout, AI summaries
+- **enhanced_features.js**: Shared utilities for Quill editor, file uploads, templates
 
-### Data Model
-Tasks contain:
-- Core fields: id, title, customer, description, category, status, priority
-- Dates: created_at, updated_at, follow_up_date
-- Relations: tags[], dependencies[], attachments[]
-- History: comments[], history[]
-- AI: ai_summary, ai_summary_timestamp
+**Key Frontend Patterns:**
+- Tab-based modals with separate content panels
+- Event delegation for dynamically added elements
+- LocalStorage for UI preferences (hidden deals, dashboard layout)
+- Quill.js for all rich text editing
 
-## Development Guidelines
+### Critical Implementation Details
 
-### When modifying task functionality:
-1. Update both `app.py` for backend logic and corresponding JavaScript file for frontend
-2. Maintain data compatibility - preserve existing JSON structure
-3. Test import/export functionality after data model changes
+**Deal Ownership Model:**
+- `owned_by` field determines edit permissions
+- Non-owners get read-only view with commenting ability
+- Comments have read/unread status for owners
+- Local hiding of irrelevant deals via localStorage
 
-### When adding new features:
-1. Follow existing patterns for API endpoints in `app.py`
-2. Create corresponding JavaScript module in `static/js/`
-3. Add HTML template if new page needed
-4. Update navigation in relevant templates
+**FTP Sync Flow:**
+1. Upload: Create manifest with active_deal_ids → Upload to FTP
+2. Download: Fetch all team files → Merge by newest_wins → Process deletions via manifest
+3. Auto-sync: Runs every 60 seconds (configurable) if enabled
 
-### AI Integration:
-- All AI API calls go through `ai_helper.py`
-- Cache AI responses in `ai_summary_cache.json` to reduce API calls
-- Handle API key absence gracefully - features should degrade without breaking
+**Modal Tab Systems:**
+- Tasks use `.tab-panel` with nested visibility control
+- Deals use `.tab-content` with explicit display styles
+- CSS specificity: `#taskModal .tab-content` vs general `.tab-content`
 
-### File Management:
-- Attachments stored with UUID names in `data/attachments/`
-- Always use `secure_filename()` for uploaded files
-- Maintain attachment references in task data
+**File Attachment Security:**
+- Files renamed to UUID on upload
+- Original names preserved in metadata
+- Stored in `data/attachments/` with reference in parent object
 
-### Error Handling:
-- Backend returns consistent JSON error responses
-- Frontend shows user-friendly error messages
-- Log errors but don't expose sensitive information
+## API Endpoint Patterns
 
-### Testing Approach:
-- No formal test suite currently exists
-- Test manually through the UI
-- Verify data persistence by checking JSON files
-- Test import/export functionality for data integrity
+### Standard CRUD Pattern
+```
+GET    /api/{resource}          - List all
+POST   /api/{resource}          - Create new
+GET    /api/{resource}/{id}     - Get specific
+PUT    /api/{resource}/{id}     - Update specific  
+DELETE /api/{resource}/{id}     - Delete specific
+```
+
+### Special Endpoints
+- `/api/deals/sync` - Trigger manual FTP sync
+- `/api/deals/{id}/comments` - GET/POST comments (team collaboration)
+- `/api/tasks/{id}/dependencies` - Manage task relationships
+- `/api/ai/summary` - Generate AI summaries (requires API key)
+- `/api/import` / `/api/export` - Bulk data operations
+
+## Common Development Scenarios
+
+### Adding a New Tab to Task/Deal Modal
+1. Add tab button in HTML template with `data-tab` attribute
+2. Add corresponding tab panel div with matching ID pattern
+3. Ensure CSS classes: deals use `.tab-content`, tasks use `.tab-panel`
+4. Initialize content in `switchTab()` or `resetTabs()` functions
+
+### Implementing New Sync Features
+1. Update `ftp_sync.py` for sync logic
+2. Add sync_metadata fields to data model
+3. Update frontend sync status indicators in deals.js
+4. Test with multiple user_ids locally
+
+### Adding AI Features
+1. Implement method in `ai_helper.py`
+2. Add API endpoint in `app.py` with API key validation
+3. Add UI trigger in relevant JavaScript file
+4. Cache responses in `ai_summary_cache.json`
+
+### Debugging FTP Sync Issues
+1. Check Settings → Sync Configuration for credentials
+2. Review browser console for sync status logs
+3. Check `data/sync_log.json` for detailed sync history
+4. Verify FTP server requires TLS (most do)
+
+## Data Model Considerations
+
+### Task Dependencies Structure
+```json
+{
+  "dependencies": {
+    "depends_on": ["task_id_1", "task_id_2"],
+    "blocks": ["task_id_3"]
+  }
+}
+```
+
+### Deal Comment Threading
+```json
+{
+  "comments": [{
+    "id": "uuid",
+    "text": "comment text",
+    "author": "user_id",
+    "timestamp": "ISO",
+    "read": false
+  }]
+}
+```
+
+## Error Handling Patterns
+
+- Backend: Return `{'error': 'message'}` with appropriate HTTP status
+- Frontend: Check response.ok before processing
+- Show notifications via `showNotification()` utility
+- Log errors to console but not sensitive data
+
+## Testing Approach
+
+No automated test suite exists. Manual testing checklist:
+1. Create/edit/delete for each entity type
+2. Verify JSON persistence after operations
+3. Test import/export with various data sets
+4. Multi-user sync testing with different user_ids
+5. Tab switching in all modals
+6. File upload with various file types
+7. AI features with/without API key
