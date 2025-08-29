@@ -223,6 +223,30 @@ def save_deals(deals):
     with open(DEALS_FILE, 'w') as f:
         json.dump(deals, f, indent=2, default=str)
 
+def calculate_financial_year(date_str):
+    """Calculate Australian financial year from a date string.
+    FY starts July 1st and ends June 30th.
+    E.g., July 2025 - June 2026 is FY26"""
+    try:
+        if isinstance(date_str, str):
+            date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00').split('T')[0])
+        else:
+            date_obj = date_str
+        
+        year = date_obj.year
+        month = date_obj.month
+        
+        # If July or later, it's the next FY
+        if month >= 7:
+            fy_year = year + 1
+        else:
+            fy_year = year
+        
+        # Return in FY format (e.g., FY26)
+        return f"FY{str(fy_year)[-2:]}"
+    except:
+        return None
+
 def load_dashboard_layouts():
     if os.path.exists(DASHBOARD_LAYOUTS_FILE):
         with open(DASHBOARD_LAYOUTS_FILE, 'r') as f:
@@ -1363,6 +1387,14 @@ def create_deal():
     if 'notes' not in deal:
         deal['notes'] = []
     
+    # If status is Won and date_won not set, set it to today
+    if deal.get('dealStatus') == 'Won' and not deal.get('date_won'):
+        deal['date_won'] = datetime.now().date().isoformat()
+    
+    # Calculate financial year if date_won exists
+    if deal.get('date_won'):
+        deal['financial_year'] = calculate_financial_year(deal['date_won'])
+    
     deals = load_deals()
     deals.append(deal)
     save_deals(deals)
@@ -1390,6 +1422,14 @@ def update_deal(deal_id):
             # Preserve notes if not in update
             if 'notes' not in deal_data:
                 deal_data['notes'] = deal.get('notes', [])
+            
+            # If status changed to Won and date_won not set, set it to today
+            if deal_data.get('dealStatus') == 'Won' and not deal_data.get('date_won'):
+                deal_data['date_won'] = datetime.now().date().isoformat()
+            
+            # Calculate financial year if date_won exists
+            if deal_data.get('date_won'):
+                deal_data['financial_year'] = calculate_financial_year(deal_data['date_won'])
             
             deals[i] = deal_data
             save_deals(deals)

@@ -458,6 +458,12 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label>Financial Year:</label>
+                    <select id="fyFilter" onchange="filterDeals()">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label>Search:</label>
                     <input type="text" class="search-input" id="searchInput" placeholder="Search deals..." onkeyup="filterDeals()">
                 </div>
@@ -532,7 +538,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="dealStatus">Deal Status*</label>
-                            <select class="form-control" id="dealStatus" required>
+                            <select class="form-control" id="dealStatus" required onchange="toggleDateWon()">
                                 <option value="">Select Status</option>
                                 <option value="Open">Open</option>
                                 <option value="Won">Won</option>
@@ -563,6 +569,12 @@
                     <div class="form-group">
                         <label for="dealActual">Deal Actual $</label>
                         <input type="number" class="form-control" id="dealActual" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="form-group" id="dateWonGroup" style="display: none;">
+                        <label for="dateWon">Date Won</label>
+                        <input type="date" class="form-control" id="dateWon" onchange="calculateFinancialYear()">
+                        <small class="text-muted">Financial Year: <span id="financialYearDisplay">-</span></small>
                     </div>
                     
                     <div class="form-group">

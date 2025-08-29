@@ -121,10 +121,42 @@ async function loadDeals() {
         allDeals = await response.json();
         renderDeals();
         updateStatistics();
+        updateFinancialYearFilter();
     } catch (error) {
         console.error('Error loading deals:', error);
         showNotification('Error loading deals', 'error');
     }
+}
+
+function updateFinancialYearFilter() {
+    const fyFilter = document.getElementById('fyFilter');
+    if (!fyFilter) return;
+    
+    // Get unique financial years from deals
+    const financialYears = new Set();
+    allDeals.forEach(deal => {
+        if (deal.financial_year) {
+            financialYears.add(deal.financial_year);
+        }
+    });
+    
+    // Sort FYs
+    const sortedFYs = Array.from(financialYears).sort();
+    
+    // Save current selection
+    const currentValue = fyFilter.value;
+    
+    // Rebuild options
+    fyFilter.innerHTML = '<option value="">All</option>';
+    sortedFYs.forEach(fy => {
+        const option = document.createElement('option');
+        option.value = fy;
+        option.textContent = fy;
+        fyFilter.appendChild(option);
+    });
+    
+    // Restore selection
+    fyFilter.value = currentValue;
 }
 
 function renderDeals(deals = null) {
@@ -136,13 +168,18 @@ function renderDeals(deals = null) {
         return;
     }
     
-    tbody.innerHTML = dealsToRender.map(deal => `
+    tbody.innerHTML = dealsToRender.map(deal => {
+        const statusBadge = deal.dealStatus === 'Won' && deal.financial_year 
+            ? `<span class="status-badge status-${(deal.dealStatus || 'open').toLowerCase()}">${deal.dealStatus} (${deal.financial_year})</span>`
+            : `<span class="status-badge status-${(deal.dealStatus || 'open').toLowerCase()}">${deal.dealStatus || ''}</span>`;
+        
+        return `
         <tr onclick="editDeal('${deal.id}')">
             <td>${deal.salesforceId || ''}</td>
             <td>${deal.customerName || ''}</td>
             <td>${deal.customerType || ''}</td>
             <td>${deal.dealType || ''}</td>
-            <td><span class="status-badge status-${(deal.dealStatus || 'open').toLowerCase()}">${deal.dealStatus || ''}</span></td>
+            <td>${statusBadge}</td>
             <td>${deal.csmLocation || ''}</td>
             <td>${deal.csmAllocation ? deal.csmAllocation + '%' : ''}</td>
             <td>${formatCurrency(deal.dealForecast)}</td>
@@ -161,7 +198,7 @@ function renderDeals(deals = null) {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 function updateStatistics() {
@@ -195,6 +232,7 @@ function filterDeals() {
     const statusFilter = document.getElementById('statusFilter').value;
     const typeFilter = document.getElementById('typeFilter').value;
     const customerTypeFilter = document.getElementById('customerTypeFilter').value;
+    const fyFilter = document.getElementById('fyFilter').value;
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
     let filteredDeals = allDeals;
@@ -211,6 +249,10 @@ function filterDeals() {
         filteredDeals = filteredDeals.filter(d => d.customerType === customerTypeFilter);
     }
     
+    if (fyFilter) {
+        filteredDeals = filteredDeals.filter(d => d.financial_year === fyFilter);
+    }
+    
     if (searchTerm) {
         filteredDeals = filteredDeals.filter(d => 
             (d.salesforceId && d.salesforceId.toLowerCase().includes(searchTerm)) ||
@@ -222,11 +264,53 @@ function filterDeals() {
     renderDeals(filteredDeals);
 }
 
+function toggleDateWon() {
+    const status = document.getElementById('dealStatus').value;
+    const dateWonGroup = document.getElementById('dateWonGroup');
+    
+    if (status === 'Won') {
+        dateWonGroup.style.display = 'block';
+        // If no date set, default to today
+        if (!document.getElementById('dateWon').value) {
+            document.getElementById('dateWon').value = new Date().toISOString().split('T')[0];
+            calculateFinancialYear();
+        }
+    } else {
+        dateWonGroup.style.display = 'none';
+        document.getElementById('dateWon').value = '';
+        document.getElementById('financialYearDisplay').textContent = '-';
+    }
+}
+
+function calculateFinancialYear() {
+    const dateWon = document.getElementById('dateWon').value;
+    if (!dateWon) {
+        document.getElementById('financialYearDisplay').textContent = '-';
+        return;
+    }
+    
+    const date = new Date(dateWon);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+    
+    // If July or later, it's the next FY
+    let fyYear;
+    if (month >= 7) {
+        fyYear = year + 1;
+    } else {
+        fyYear = year;
+    }
+    
+    const fy = `FY${String(fyYear).slice(-2)}`;
+    document.getElementById('financialYearDisplay').textContent = fy;
+}
+
 function openDealModal() {
     currentDealId = null;
     document.getElementById('modalTitle').textContent = 'New Deal';
     document.getElementById('dealForm').reset();
     document.getElementById('notesSection').style.display = 'none';
+    document.getElementById('dateWonGroup').style.display = 'none';
     
     // Clear rich text editors
     if (dealSummaryEditor) {
@@ -260,6 +344,18 @@ async function editDeal(dealId) {
     document.getElementById('csmAllocation').value = deal.csmAllocation || '';
     document.getElementById('dealForecast').value = deal.dealForecast || '';
     document.getElementById('dealActual').value = deal.dealActual || '';
+    
+    // Handle date_won field
+    if (deal.date_won) {
+        document.getElementById('dateWon').value = deal.date_won;
+        calculateFinancialYear();
+    } else {
+        document.getElementById('dateWon').value = '';
+        document.getElementById('financialYearDisplay').textContent = '-';
+    }
+    
+    // Show/hide date won field based on status
+    toggleDateWon();
     
     // Set rich text editor content
     if (dealSummaryEditor) {
@@ -333,6 +429,11 @@ async function saveDeal() {
         dealActual: document.getElementById('dealActual').value,
         dealSummary: dealSummaryContent === '<p><br></p>' ? '' : dealSummaryContent
     };
+    
+    // Add date_won if status is Won
+    if (dealData.dealStatus === 'Won') {
+        dealData.date_won = document.getElementById('dateWon').value || new Date().toISOString().split('T')[0];
+    }
     
     // Validate required fields
     if (!dealData.salesforceId || !dealData.customerName || !dealData.customerType || 
