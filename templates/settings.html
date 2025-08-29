@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/sidebar.css">
     <link rel="stylesheet" href="/static/css/quick-actions.css">
+    <link rel="stylesheet" href="/static/css/sync.css">
     <style>
         .settings-sections {
             margin-top: 20px;
@@ -372,6 +373,101 @@
                     </div>
                     <button id="addTemplateBtn" class="btn btn-primary">Add Template</button>
                     <span class="save-indicator" id="templateSaveIndicator">✓ Template saved</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FTP Sync Section -->
+        <div class="settings-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3>🔄 FTP Sync Configuration</h3>
+                <span class="collapse-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <form id="syncSettingsForm">
+                    <div class="settings-subsection">
+                        <h4>User Settings</h4>
+                        <div class="form-group">
+                            <label for="syncUserId">Your User ID *</label>
+                            <input type="text" id="syncUserId" placeholder="e.g., john" required>
+                            <small>Unique identifier for your deals (e.g., your name)</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="syncTeamIds">Team Member IDs</label>
+                            <input type="text" id="syncTeamIds" placeholder="e.g., john, sarah, mike">
+                            <small>Comma-separated list of all team member IDs</small>
+                        </div>
+                    </div>
+
+                    <div class="settings-subsection">
+                        <h4>FTP Connection</h4>
+                        <div class="form-group">
+                            <label for="ftpHost">FTP Host *</label>
+                            <input type="text" id="ftpHost" placeholder="ftp.example.com" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ftpPort">Port</label>
+                                <input type="number" id="ftpPort" value="21">
+                            </div>
+                            <div class="form-group">
+                                <label for="ftpUsername">Username *</label>
+                                <input type="text" id="ftpUsername" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ftpPassword">Password</label>
+                            <input type="password" id="ftpPassword" placeholder="Leave blank to keep existing">
+                            <small>Password is encrypted and stored locally</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="ftpRemoteDir">Remote Directory</label>
+                            <input type="text" id="ftpRemoteDir" value="/shared/taskmanager/deals/">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="ftpUseTls" checked> Use FTPS (Secure FTP)
+                            </label>
+                            <small>Recommended - Most FTP servers require TLS/SSL</small>
+                        </div>
+                    </div>
+
+                    <div class="settings-subsection">
+                        <h4>Sync Settings</h4>
+                        <div class="form-group">
+                            <label for="syncConflictStrategy">Conflict Resolution</label>
+                            <select id="syncConflictStrategy">
+                                <option value="newest_wins">Newest Wins (Recommended)</option>
+                                <option value="merge_all">Merge All Fields</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="syncKeepDays">Keep Files For (days)</label>
+                                <input type="number" id="syncKeepDays" value="7" min="1" max="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="syncAutoInterval">Auto-Sync Interval (seconds)</label>
+                                <input type="number" id="syncAutoInterval" value="300" min="60">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Sync Settings</button>
+                        <button type="button" id="testFtpBtn" class="btn btn-secondary">Test FTP Connection</button>
+                        <span class="save-indicator" id="syncSaveIndicator">✓ Settings saved</span>
+                    </div>
+                </form>
+
+                <!-- Sync Log Viewer -->
+                <div class="settings-subsection" style="margin-top: 30px;">
+                    <h4>Sync Activity Log 
+                        <button id="refreshSyncLogBtn" class="btn btn-sm" style="margin-left: 10px;">🔄 Refresh</button>
+                    </h4>
+                    <div id="syncLogContainer" class="sync-log-container">
+                        <!-- Sync log will be loaded here -->
+                    </div>
                 </div>
             </div>
         </div>

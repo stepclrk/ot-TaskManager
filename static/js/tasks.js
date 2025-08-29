@@ -430,7 +430,48 @@ function showAddTaskModal() {
         descriptionField.value = '';
     }
     
-    document.getElementById('taskModal').style.display = 'block';
+    const modal = document.getElementById('taskModal');
+    if (modal) {
+        console.log('Showing task modal');
+        modal.style.display = 'block';
+        
+        // Verify modal is actually visible
+        console.log('Modal display style after setting:', window.getComputedStyle(modal).display);
+        console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
+        console.log('Modal z-index:', window.getComputedStyle(modal).zIndex);
+        
+        // Check modal content
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            console.log('Modal content found, display:', window.getComputedStyle(modalContent).display);
+            console.log('Modal content visibility:', window.getComputedStyle(modalContent).visibility);
+        } else {
+            console.error('Modal content not found!');
+        }
+        
+        // Check if details tab is visible
+        const detailsTab = document.getElementById('detailsTab');
+        if (detailsTab) {
+            console.log('Details tab found, classes:', detailsTab.className);
+            console.log('Details tab display style:', window.getComputedStyle(detailsTab).display);
+            
+            // Check if form is visible
+            const taskForm = document.getElementById('taskForm');
+            if (taskForm) {
+                console.log('Task form found, display:', window.getComputedStyle(taskForm).display);
+                // Check a specific input
+                const titleInput = document.getElementById('title');
+                if (titleInput) {
+                    console.log('Title input value:', titleInput.value);
+                    console.log('Title input display:', window.getComputedStyle(titleInput).display);
+                }
+            }
+        } else {
+            console.error('Details tab not found!');
+        }
+    } else {
+        console.error('Task modal not found!');
+    }
     
     // Update AI button visibility
     const generateFollowUpBtn = document.getElementById('generateFollowUpBtn');
@@ -457,8 +498,16 @@ function handleTaskClick(event, taskId) {
 }
 
 function editTask(taskId) {
+    console.log('editTask called with taskId:', taskId);
     currentTask = allTasks.find(t => t.id === taskId);
-    if (!currentTask) return;
+    if (!currentTask) {
+        console.error('Task not found:', taskId);
+        alert('Task not found!');
+        return;
+    }
+    console.log('Found task:', currentTask);
+    
+    try {
     
     // Update AI button visibility
     const generateFollowUpBtn = document.getElementById('generateFollowUpBtn');
@@ -475,10 +524,25 @@ function editTask(taskId) {
         generateSummaryBtn.style.display = window.canGenerateSummary ? 'inline-block' : 'none'; // Show for existing tasks
     }
     
-    document.getElementById('modalTitle').textContent = 'Edit Task';
-    document.getElementById('taskId').value = currentTask.id;
-    document.getElementById('title').value = currentTask.title;
-    document.getElementById('customerName').value = currentTask.customer_name || '';
+    // Check if form elements exist
+    const modalTitle = document.getElementById('modalTitle');
+    const taskIdField = document.getElementById('taskId');
+    const titleField = document.getElementById('title');
+    const customerField = document.getElementById('customerName');
+    
+    if (!modalTitle || !taskIdField || !titleField || !customerField) {
+        console.error('Missing form elements:', {
+            modalTitle: !!modalTitle,
+            taskId: !!taskIdField,
+            title: !!titleField,
+            customerName: !!customerField
+        });
+    }
+    
+    if (modalTitle) modalTitle.textContent = 'Edit Task';
+    if (taskIdField) taskIdField.value = currentTask.id;
+    if (titleField) titleField.value = currentTask.title;
+    if (customerField) customerField.value = currentTask.customer_name || '';
     
     // Set description in both the hidden field and the editor
     const descriptionValue = currentTask.description || '';
@@ -535,7 +599,53 @@ function editTask(taskId) {
     document.getElementById('taskObjective').value = currentTask.topic_id || '';
     document.getElementById('taskProject').value = currentTask.project_id || '';
     
-    document.getElementById('taskModal').style.display = 'block';
+    const modal = document.getElementById('taskModal');
+    if (modal) {
+        console.log('Showing task modal');
+        modal.style.display = 'block';
+        
+        // Verify modal is actually visible
+        console.log('Modal display style after setting:', window.getComputedStyle(modal).display);
+        console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
+        console.log('Modal z-index:', window.getComputedStyle(modal).zIndex);
+        
+        // Check modal content
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            console.log('Modal content found, display:', window.getComputedStyle(modalContent).display);
+            console.log('Modal content visibility:', window.getComputedStyle(modalContent).visibility);
+        } else {
+            console.error('Modal content not found!');
+        }
+        
+        // Check if details tab is visible
+        const detailsTab = document.getElementById('detailsTab');
+        if (detailsTab) {
+            console.log('Details tab found, classes:', detailsTab.className);
+            console.log('Details tab display style:', window.getComputedStyle(detailsTab).display);
+            
+            // Check if form is visible
+            const taskForm = document.getElementById('taskForm');
+            if (taskForm) {
+                console.log('Task form found, display:', window.getComputedStyle(taskForm).display);
+                // Check a specific input
+                const titleInput = document.getElementById('title');
+                if (titleInput) {
+                    console.log('Title input value:', titleInput.value);
+                    console.log('Title input display:', window.getComputedStyle(titleInput).display);
+                }
+            }
+        } else {
+            console.error('Details tab not found!');
+        }
+    } else {
+        console.error('Task modal not found!');
+    }
+    
+    } catch (error) {
+        console.error('Error in editTask:', error);
+        alert('Error loading task: ' + error.message);
+    }
 }
 
 async function saveTask(e) {

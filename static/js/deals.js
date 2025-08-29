@@ -1,7 +1,10 @@
 let allDeals = [];
 let currentDealId = null;
+let currentUser = null;
 let dealSummaryEditor = null;
 let noteEditor = null;
+let autoSyncInterval = null;
+let hiddenDeals = [];
 let dealConfig = {
     dealCustomerTypes: ['New Customer', 'Existing Customer'],
     dealTypes: ['BNCE', 'BNCF', 'Advisory', 'RTS'],
@@ -10,31 +13,54 @@ let dealConfig = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug: Check if modal exists
+    const modal = document.getElementById('dealModal');
+    if (!modal) {
+        console.error('CRITICAL: Deal modal not found in DOM!');
+        console.error('Check if deals.html template is loading correctly');
+    } else {
+        console.log('Deal modal found in DOM');
+    }
+    
+    loadHiddenDeals();
     loadConfiguration();
     loadDeals();
     initializeEditors();
+    initializeSyncUI();
+    startAutoSync();
     
     // Listen for configuration updates
     window.addEventListener('configUpdated', loadConfiguration);
+    
+    // Check sync status on load
+    checkSyncStatus();
 });
 
 function initializeEditors() {
     // Initialize Deal Summary editor
-    if (document.getElementById('dealSummaryEditor')) {
-        dealSummaryEditor = new Quill('#dealSummaryEditor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['blockquote', 'code-block'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['link'],
-                    ['clean']
-                ]
-            },
-            placeholder: 'Enter deal summary...'
-        });
+    const editorElement = document.getElementById('dealSummaryEditor');
+    if (editorElement && !dealSummaryEditor) {
+        try {
+            dealSummaryEditor = new Quill('#dealSummaryEditor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['link'],
+                        ['clean']
+                    ]
+                },
+                placeholder: 'Enter deal summary...'
+            });
+            console.log('Deal summary editor initialized successfully');
+        } catch (err) {
+            console.error('Failed to initialize Quill editor:', err);
+        }
+    } else if (dealSummaryEditor) {
+        console.log('Deal summary editor already initialized');
     }
     
     // Initialize Notes editor
@@ -118,7 +144,17 @@ function updateSelectOptions(selectId, options, placeholder = 'All') {
 async function loadDeals() {
     try {
         const response = await fetch('/api/deals');
-        allDeals = await response.json();
+        const data = await response.json();
+        
+        // Handle new response format with current_user
+        if (data.deals) {
+            allDeals = data.deals;
+            currentUser = data.current_user;
+        } else {
+            // Fallback for old format
+            allDeals = data;
+        }
+        
         renderDeals();
         updateStatistics();
         updateFinancialYearFilter();
@@ -160,7 +196,11 @@ function updateFinancialYearFilter() {
 }
 
 function renderDeals(deals = null) {
-    const dealsToRender = deals || allDeals;
+    let dealsToRender = deals || allDeals;
+    
+    // Filter out hidden deals
+    dealsToRender = dealsToRender.filter(deal => !hiddenDeals.includes(deal.id));
+    
     const tbody = document.getElementById('dealsTableBody');
     
     if (dealsToRender.length === 0) {
@@ -173,9 +213,34 @@ function renderDeals(deals = null) {
             ? `<span class="status-badge status-${(deal.dealStatus || 'open').toLowerCase()}">${deal.dealStatus} (${deal.financial_year})</span>`
             : `<span class="status-badge status-${(deal.dealStatus || 'open').toLowerCase()}">${deal.dealStatus || ''}</span>`;
         
+        // Check if the current user owns this deal
+        const isOwned = !deal.owned_by || deal.owned_by === currentUser;
+        const ownerBadge = !isOwned ? `<span class="owner-badge" title="Created by ${deal.owned_by}">👤 ${deal.owned_by}</span>` : '';
+        const rowClass = isOwned ? '' : 'read-only-deal';
+        
+        // Check for unread comments
+        const comments = deal.comments || [];
+        const unreadCount = isOwned ? 
+            comments.filter(c => !c.read).length : 
+            0; // Only show unread count for owned deals
+        const unreadBadge = unreadCount > 0 ? 
+            `<span class="unread-badge" title="${unreadCount} unread comment${unreadCount > 1 ? 's' : ''}">💬 ${unreadCount}</span>` : 
+            '';
+        
+        // Debug logging
+        if (deal.owned_by === 'doerte') {
+            console.log('Doerte deal:', {
+                dealId: deal.id,
+                owned_by: deal.owned_by,
+                currentUser: currentUser,
+                isOwned: isOwned
+            });
+        }
+        
+        // Use data attributes instead of inline onclick to avoid quote escaping issues
         return `
-        <tr onclick="editDeal('${deal.id}')">
-            <td>${deal.salesforceId || ''}</td>
+        <tr class="${rowClass} deal-row" data-deal-id="${deal.id}" data-is-owned="${isOwned}">
+            <td>${deal.salesforceId || ''} ${ownerBadge} ${unreadBadge}</td>
             <td>${deal.customerName || ''}</td>
             <td>${deal.customerType || ''}</td>
             <td>${deal.dealType || ''}</td>
@@ -186,19 +251,114 @@ function renderDeals(deals = null) {
             <td>${formatCurrency(deal.dealActual)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn-icon" onclick="event.stopPropagation(); editDeal('${deal.id}')" title="Edit">
-                        ✏️
-                    </button>
-                    <button class="btn-icon" onclick="event.stopPropagation(); copyDealToClipboard('${deal.id}')" title="Copy Deal Info">
+                    ${isOwned ? `
+                        <button class="btn-icon btn-edit" data-deal-id="${deal.id}" title="Edit">
+                            ✏️
+                        </button>
+                    ` : `
+                        <button class="btn-icon btn-view" data-deal-id="${deal.id}" title="View (Read-only)">
+                            👁️
+                        </button>
+                    `}
+                    <button class="btn-icon btn-copy" data-deal-id="${deal.id}" title="Copy Deal Info">
                         📋
                     </button>
-                    <button class="btn-icon" onclick="event.stopPropagation(); deleteDeal('${deal.id}')" title="Delete">
-                        🗑️
-                    </button>
+                    ${isOwned ? `
+                        <button class="btn-icon btn-delete" data-deal-id="${deal.id}" title="Delete">
+                            🗑️
+                        </button>
+                    ` : `
+                        <button class="btn-icon btn-hide" data-deal-id="${deal.id}" title="Hide from my view">
+                            🚫
+                        </button>
+                    `}
                 </div>
             </td>
         </tr>
     `}).join('');
+    
+    // Add event listeners after rendering
+    attachDealEventListeners();
+}
+
+function loadHiddenDeals() {
+    const stored = localStorage.getItem('hiddenDeals');
+    if (stored) {
+        hiddenDeals = JSON.parse(stored);
+        console.log(`Loaded ${hiddenDeals.length} hidden deals`);
+    }
+}
+
+function saveHiddenDeals() {
+    localStorage.setItem('hiddenDeals', JSON.stringify(hiddenDeals));
+}
+
+function hideDeal(dealId) {
+    if (!hiddenDeals.includes(dealId)) {
+        hiddenDeals.push(dealId);
+        saveHiddenDeals();
+        loadDeals(); // Reload to update display
+        showNotification('Deal hidden from view. It will reappear if updated.', 'info');
+    }
+}
+
+function attachDealEventListeners() {
+    // Row click handlers
+    document.querySelectorAll('.deal-row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't trigger if clicking on a button
+            if (e.target.closest('.action-buttons')) return;
+            
+            const dealId = this.dataset.dealId;
+            const isOwned = this.dataset.isOwned === 'true';
+            
+            if (isOwned) {
+                editDeal(dealId);
+            } else {
+                viewDeal(dealId);
+            }
+        });
+    });
+    
+    // Edit button handlers
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            editDeal(this.dataset.dealId);
+        });
+    });
+    
+    // View button handlers
+    document.querySelectorAll('.btn-view').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            viewDeal(this.dataset.dealId);
+        });
+    });
+    
+    // Copy button handlers
+    document.querySelectorAll('.btn-copy').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            copyDealToClipboard(this.dataset.dealId);
+        });
+    });
+    
+    // Delete button handlers
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteDeal(this.dataset.dealId);
+        });
+    });
+    
+    // Hide button handlers
+    document.querySelectorAll('.btn-hide').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            hideDeal(this.dataset.dealId);
+        });
+    });
 }
 
 function updateStatistics() {
@@ -305,6 +465,83 @@ function calculateFinancialYear() {
     document.getElementById('financialYearDisplay').textContent = fy;
 }
 
+function switchTab(tabName) {
+    console.log('Switching to tab:', tabName);
+    
+    // Remove active class from all tabs and buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Hide all tab contents in the deal modal specifically
+    document.querySelectorAll('#dealModal .tab-content').forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+    });
+    
+    // Add active class to selected tab
+    if (tabName === 'details') {
+        const btn = document.querySelector('.tab-btn[onclick="switchTab(\'details\')"]');
+        if (btn) btn.classList.add('active');
+        const tabContent = document.getElementById('tabDetails');
+        if (tabContent) {
+            tabContent.classList.add('active');
+            tabContent.style.display = 'block';
+        }
+    } else if (tabName === 'comments') {
+        const btn = document.querySelector('.tab-btn[onclick*="comments"]');
+        if (btn) btn.classList.add('active');
+        const tabContent = document.getElementById('tabComments');
+        if (tabContent) {
+            tabContent.classList.add('active');
+            tabContent.style.display = 'block';
+        }
+        
+        // Load comments when switching to tab
+        if (currentDealId) {
+            loadComments(currentDealId);
+        }
+    } else if (tabName === 'metadata') {
+        const btn = document.querySelector('.tab-btn[onclick="switchTab(\'metadata\')"]');
+        if (btn) btn.classList.add('active');
+        const tabContent = document.getElementById('tabMetadata');
+        if (tabContent) {
+            tabContent.classList.add('active');
+            tabContent.style.display = 'block';
+        }
+    }
+}
+
+function populateMetadata(deal) {
+    // Format dates for display
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+    
+    // Ownership info
+    document.getElementById('metaOwner').textContent = deal.owned_by || deal.created_by || '-';
+    document.getElementById('metaCreatedBy').textContent = deal.created_by || '-';
+    
+    // Timestamps
+    document.getElementById('metaCreatedAt').textContent = formatDate(deal.created_at);
+    document.getElementById('metaUpdatedAt').textContent = formatDate(deal.updated_at);
+    
+    // Sync information
+    const syncMeta = deal.sync_metadata || {};
+    document.getElementById('metaLastSynced').textContent = formatDate(syncMeta.last_synced);
+    document.getElementById('metaSyncedBy').textContent = syncMeta.synced_by || '-';
+    document.getElementById('metaImportedFrom').textContent = syncMeta.imported_from || syncMeta.merged_from || '-';
+    
+    // Deal ID
+    document.getElementById('metaDealId').textContent = deal.id || '-';
+}
+
 function openDealModal() {
     currentDealId = null;
     document.getElementById('modalTitle').textContent = 'New Deal';
@@ -320,19 +557,231 @@ function openDealModal() {
         noteEditor.setText('');
     }
     
-    document.getElementById('dealModal').style.display = 'block';
+    // Reset to first tab and ensure others are hidden
+    switchTab('details');
+    // Extra safety - force hide non-active tabs
+    document.getElementById('tabComments').style.display = 'none';
+    document.getElementById('tabMetadata').style.display = 'none';
+    
+    // Clear metadata for new deal
+    document.getElementById('metaOwner').textContent = currentUser || 'Current User';
+    document.getElementById('metaCreatedBy').textContent = currentUser || 'Current User';
+    document.getElementById('metaCreatedAt').textContent = 'Not yet created';
+    document.getElementById('metaUpdatedAt').textContent = 'Not yet created';
+    document.getElementById('metaLastSynced').textContent = '-';
+    document.getElementById('metaSyncedBy').textContent = '-';
+    document.getElementById('metaImportedFrom').textContent = '-';
+    document.getElementById('metaDealId').textContent = 'Will be generated on save';
+    
+    const modal = document.getElementById('dealModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Ensure editor is initialized after modal is shown
+        setTimeout(() => {
+            if (!dealSummaryEditor) {
+                initializeEditors();
+            }
+        }, 100);
+    } else {
+        console.error('Deal modal element not found');
+        showNotification('Error: Cannot open deal modal', 'error');
+    }
 }
 
 function closeDealModal() {
-    document.getElementById('dealModal').style.display = 'none';
+    const modal = document.getElementById('dealModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
     currentDealId = null;
+    
+    // Re-enable form fields and editor when closing (for next use)
+    const formFields = document.querySelectorAll('#dealForm input, #dealForm select, #dealForm textarea');
+    formFields.forEach(field => field.disabled = false);
+    
+    // Re-enable rich text editor
+    if (dealSummaryEditor) {
+        dealSummaryEditor.enable();
+    }
+    if (noteEditor) {
+        noteEditor.enable();
+    }
+    
+    // Show save button
+    const saveBtn = document.getElementById('saveDealBtn');
+    if (saveBtn) saveBtn.style.display = 'inline-block';
+    
+    // Note: noteForm doesn't exist in current HTML, skipping
 }
 
-async function editDeal(dealId) {
+async function viewDeal(dealId) {
+    console.log('viewDeal called with:', dealId);
     currentDealId = dealId;
     const deal = allDeals.find(d => d.id === dealId);
     
-    if (!deal) return;
+    if (!deal) {
+        console.error('Deal not found:', dealId);
+        showNotification('Deal not found', 'error');
+        return;
+    }
+    
+    console.log('Viewing deal:', {
+        id: deal.id,
+        owned_by: deal.owned_by,
+        currentUser: currentUser
+    });
+    
+    // Check if modal exists
+    const modal = document.getElementById('dealModal');
+    if (!modal) {
+        console.error('Deal modal not found');
+        showNotification('Error: Modal not found', 'error');
+        return;
+    }
+    
+    // Set modal to read-only mode
+    document.getElementById('modalTitle').textContent = `View Deal (Created by ${deal.owned_by || 'unknown'})`;
+    
+    // Populate form fields
+    document.getElementById('salesforceId').value = deal.salesforceId || '';
+    document.getElementById('customerName').value = deal.customerName || '';
+    document.getElementById('customerType').value = deal.customerType || '';
+    document.getElementById('dealType').value = deal.dealType || '';
+    document.getElementById('dealStatus').value = deal.dealStatus || '';
+    document.getElementById('csmLocation').value = deal.csmLocation || '';
+    document.getElementById('csmAllocation').value = deal.csmAllocation || '';
+    document.getElementById('dealForecast').value = deal.dealForecast || '';
+    document.getElementById('dealActual').value = deal.dealActual || '';
+    
+    // Populate metadata tab
+    populateMetadata(deal);
+    
+    // Disable all form fields
+    const formFields = document.querySelectorAll('#dealForm input, #dealForm select, #dealForm textarea');
+    formFields.forEach(field => field.disabled = true);
+    
+    // Hide save button, show close button only
+    const saveBtn = document.getElementById('saveDealBtn');
+    if (saveBtn) {
+        saveBtn.style.display = 'none';
+    }
+    
+    // Handle date_won field
+    if (deal.date_won) {
+        document.getElementById('dateWon').value = deal.date_won;
+        calculateFinancialYear();
+    } else {
+        document.getElementById('dateWon').value = '';
+        document.getElementById('financialYearDisplay').textContent = '-';
+    }
+    
+    // Show/hide date won field based on status
+    toggleDateWon();
+    
+    // Set rich text editor content (read-only)
+    if (dealSummaryEditor) {
+        try {
+            if (deal.dealSummary) {
+                if (deal.dealSummary.includes('<') && deal.dealSummary.includes('>')) {
+                    dealSummaryEditor.root.innerHTML = deal.dealSummary;
+                } else {
+                    dealSummaryEditor.setText(deal.dealSummary);
+                }
+            } else {
+                dealSummaryEditor.setText('');
+            }
+            dealSummaryEditor.disable();
+        } catch (err) {
+            console.error('Error setting deal summary:', err);
+            // Try to reinitialize the editor if it failed
+            initializeEditors();
+            if (dealSummaryEditor && deal.dealSummary) {
+                dealSummaryEditor.root.innerHTML = deal.dealSummary || '';
+                dealSummaryEditor.disable();
+            }
+        }
+    } else {
+        console.warn('Deal summary editor not initialized');
+        // Try to initialize it now
+        initializeEditors();
+    }
+    
+    // Show notes section in read-only mode
+    document.getElementById('notesSection').style.display = 'block';
+    // Note: noteForm doesn't exist in current HTML
+    renderNotes(deal.notes || []);
+    
+    // Reset to first tab and ensure others are hidden
+    switchTab('details');
+    // Extra safety - force hide non-active tabs
+    document.getElementById('tabComments').style.display = 'none';
+    document.getElementById('tabMetadata').style.display = 'none';
+    
+    // Load and display comments
+    loadComments(dealId);
+    
+    // Show comment form for non-owned deals (allow commenting on others' deals)
+    const addCommentForm = document.getElementById('addCommentForm');
+    if (addCommentForm) {
+        addCommentForm.style.display = 'block';
+    }
+    
+    // Use the modal variable that was already declared earlier in the function
+    if (modal) {
+        modal.style.display = 'block';
+        // Ensure editor is initialized after modal is shown
+        setTimeout(() => {
+            if (!dealSummaryEditor) {
+                initializeEditors();
+            }
+        }, 100);
+    } else {
+        console.error('Deal modal element not found');
+        showNotification('Error: Cannot open deal modal', 'error');
+    }
+}
+
+async function editDeal(dealId) {
+    console.log('editDeal called with:', dealId);
+    currentDealId = dealId;
+    const deal = allDeals.find(d => d.id === dealId);
+    
+    if (!deal) {
+        console.error('Deal not found:', dealId);
+        showNotification('Deal not found', 'error');
+        return;
+    }
+    
+    // Check if modal exists
+    const modal = document.getElementById('dealModal');
+    if (!modal) {
+        console.error('Deal modal not found');
+        showNotification('Error: Modal not found', 'error');
+        return;
+    }
+    
+    console.log('Editing deal:', {
+        id: deal.id,
+        owned_by: deal.owned_by,
+        currentUser: currentUser,
+        willRedirectToView: deal.owned_by && deal.owned_by !== currentUser
+    });
+    
+    // Check ownership
+    if (deal.owned_by && deal.owned_by !== currentUser) {
+        // If not owned, show in view-only mode
+        console.log('Redirecting to view mode - not owned by current user');
+        viewDeal(dealId);
+        return;
+    }
+    
+    // Re-enable all form fields for editing
+    const formFields = document.querySelectorAll('#dealForm input, #dealForm select, #dealForm textarea');
+    formFields.forEach(field => field.disabled = false);
+    
+    // Show save button
+    const saveBtn = document.getElementById('saveDealBtn');
+    if (saveBtn) saveBtn.style.display = 'inline-block';
     
     document.getElementById('modalTitle').textContent = 'Edit Deal';
     document.getElementById('salesforceId').value = deal.salesforceId || '';
@@ -344,6 +793,9 @@ async function editDeal(dealId) {
     document.getElementById('csmAllocation').value = deal.csmAllocation || '';
     document.getElementById('dealForecast').value = deal.dealForecast || '';
     document.getElementById('dealActual').value = deal.dealActual || '';
+    
+    // Populate metadata tab
+    populateMetadata(deal);
     
     // Handle date_won field
     if (deal.date_won) {
@@ -359,28 +811,176 @@ async function editDeal(dealId) {
     
     // Set rich text editor content
     if (dealSummaryEditor) {
-        if (deal.dealSummary) {
-            // Check if it's HTML or plain text
-            if (deal.dealSummary.includes('<') && deal.dealSummary.includes('>')) {
-                dealSummaryEditor.root.innerHTML = deal.dealSummary;
+        try {
+            dealSummaryEditor.enable(); // Ensure editor is enabled for editing
+            if (deal.dealSummary) {
+                // Check if it's HTML or plain text
+                if (deal.dealSummary.includes('<') && deal.dealSummary.includes('>')) {
+                    dealSummaryEditor.root.innerHTML = deal.dealSummary;
+                } else {
+                    dealSummaryEditor.setText(deal.dealSummary);
+                }
             } else {
-                dealSummaryEditor.setText(deal.dealSummary);
+                dealSummaryEditor.setText('');
             }
-        } else {
-            dealSummaryEditor.setText('');
+        } catch (err) {
+            console.error('Error setting deal summary:', err);
+            // Try to reinitialize the editor if it failed
+            initializeEditors();
+            if (dealSummaryEditor && deal.dealSummary) {
+                dealSummaryEditor.root.innerHTML = deal.dealSummary || '';
+            }
         }
+    } else {
+        console.warn('Deal summary editor not initialized');
+        // Try to initialize it now
+        initializeEditors();
     }
     
     // Clear note editor
     if (noteEditor) {
+        noteEditor.enable(); // Ensure editor is enabled for editing
         noteEditor.setText('');
     }
     
     // Show notes section for existing deals
     document.getElementById('notesSection').style.display = 'block';
+    // Note: noteForm doesn't exist in current HTML
     renderNotes(deal.notes || []);
     
-    document.getElementById('dealModal').style.display = 'block';
+    // Reset to first tab and ensure others are hidden
+    switchTab('details');
+    // Extra safety - force hide non-active tabs
+    document.getElementById('tabComments').style.display = 'none';
+    document.getElementById('tabMetadata').style.display = 'none';
+    
+    // Load and display comments
+    loadComments(dealId);
+    
+    // Hide comment form for owned deals (can't comment on own deals)
+    const addCommentForm = document.getElementById('addCommentForm');
+    if (addCommentForm) {
+        addCommentForm.style.display = 'none';
+    }
+    
+    // Use the modal variable that was already declared earlier in the function
+    if (modal) {
+        modal.style.display = 'block';
+        // Ensure editor is initialized after modal is shown
+        setTimeout(() => {
+            if (!dealSummaryEditor) {
+                initializeEditors();
+            }
+        }, 100);
+    } else {
+        console.error('Deal modal element not found');
+        showNotification('Error: Cannot open deal modal', 'error');
+    }
+}
+
+async function loadComments(dealId) {
+    try {
+        const response = await fetch(`/api/deals/${dealId}/comments`);
+        const comments = await response.json();
+        renderComments(comments);
+        updateCommentBadge(comments);
+    } catch (error) {
+        console.error('Error loading comments:', error);
+    }
+}
+
+function renderComments(comments) {
+    const commentsList = document.getElementById('commentsList');
+    
+    if (!comments || comments.length === 0) {
+        commentsList.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+        return;
+    }
+    
+    commentsList.innerHTML = comments.map(comment => {
+        const isUnread = !comment.read;
+        const commentClass = isUnread ? 'comment-item unread' : 'comment-item';
+        const unreadIndicator = isUnread ? '<span class="unread-indicator">NEW</span>' : '';
+        
+        return `
+            <div class="${commentClass}" data-comment-id="${comment.id}">
+                <div class="comment-header">
+                    <strong>${comment.author}</strong>
+                    ${unreadIndicator}
+                    <span class="comment-date">${formatCommentDate(comment.timestamp)}</span>
+                </div>
+                <div class="comment-text">${escapeHtml(comment.text || '')}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateCommentBadge(comments) {
+    const badge = document.getElementById('commentsBadge');
+    const unreadCount = comments.filter(c => !c.read).length;
+    
+    if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+async function addComment() {
+    const commentText = document.getElementById('commentText').value.trim();
+    
+    if (!commentText) {
+        alert('Please enter a comment');
+        return;
+    }
+    
+    if (!currentDealId) {
+        console.error('No deal selected');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/deals/${currentDealId}/comments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text: commentText })
+        });
+        
+        if (response.ok) {
+            document.getElementById('commentText').value = '';
+            loadComments(currentDealId);
+            showNotification('Comment added successfully', 'success');
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Failed to add comment', 'error');
+        }
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        showNotification('Error adding comment', 'error');
+    }
+}
+
+function formatCommentDate(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
 }
 
 function renderNotes(notes) {
@@ -706,4 +1306,410 @@ async function copyDealToClipboard(dealId) {
         }
         document.body.removeChild(textarea);
     }
+}
+
+// ========= FTP SYNC FUNCTIONALITY =========
+
+let syncConfig = null;
+let syncStatus = {
+    lastSync: null,
+    syncing: false,
+    configured: false
+};
+
+async function startAutoSync() {
+    // Clear any existing interval
+    if (autoSyncInterval) {
+        clearInterval(autoSyncInterval);
+    }
+    
+    try {
+        // Get sync configuration
+        const response = await fetch('/api/sync/config');
+        const config = await response.json();
+        
+        if (config.sync_enabled && config.sync_settings?.auto_sync_interval) {
+            const intervalMs = config.sync_settings.auto_sync_interval * 1000; // Convert seconds to milliseconds
+            
+            console.log(`Starting auto-sync with interval: ${config.sync_settings.auto_sync_interval} seconds`);
+            
+            // Set up the interval
+            autoSyncInterval = setInterval(async () => {
+                console.log('Running auto-sync...');
+                await performAutoSync();
+            }, intervalMs);
+            
+            // Also run immediately after a short delay
+            setTimeout(() => performAutoSync(), 5000); // Wait 5 seconds after page load
+        } else {
+            console.log('Auto-sync is disabled or not configured');
+        }
+    } catch (error) {
+        console.error('Error starting auto-sync:', error);
+    }
+}
+
+async function performAutoSync() {
+    try {
+        console.log('Performing auto-sync...');
+        const response = await fetch('/api/sync/auto', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Auto-sync completed:', result);
+            
+            // If deals were updated, reload them
+            if (result.new_deals > 0 || result.updated_deals > 0 || result.deleted_deals > 0) {
+                console.log('Deals were updated, reloading...');
+                
+                // Clear hidden deals for updated deals (they might have new content)
+                if (result.updated_deals > 0) {
+                    clearUpdatedFromHidden();
+                }
+                
+                await loadDeals();
+                showNotification(`Auto-sync: ${result.new_deals} new, ${result.updated_deals} updated, ${result.deleted_deals} deleted`, 'success');
+            }
+        } else {
+            console.error('Auto-sync failed:', await response.text());
+        }
+    } catch (error) {
+        console.error('Error during auto-sync:', error);
+    }
+}
+
+function clearUpdatedFromHidden() {
+    // This will be called after sync to potentially unhide updated deals
+    // For now, we keep them hidden unless manually unhidden
+    // Could be enhanced to track update timestamps
+}
+
+function initializeSyncUI() {
+    // Add sync controls to the page header
+    const pageHeader = document.querySelector('.page-header');
+    if (pageHeader) {
+        // Create sync status indicator
+        const syncContainer = document.createElement('div');
+        syncContainer.className = 'sync-container';
+        syncContainer.innerHTML = `
+            <div class="sync-status-indicator">
+                <span class="sync-icon" id="syncIcon">🔄</span>
+                <span class="sync-text" id="syncText">Not configured</span>
+                <span class="sync-time" id="syncTime"></span>
+            </div>
+            <div class="sync-actions">
+                <button class="btn btn-sm btn-sync" id="syncNowBtn" onclick="performSync()" disabled>
+                    <span class="sync-btn-icon">🔄</span> Sync Now
+                </button>
+                <button class="btn btn-sm btn-config" onclick="openSyncConfig()">
+                    ⚙️ Configure
+                </button>
+            </div>
+        `;
+        
+        // Insert before the search section or at the end of header
+        const searchSection = pageHeader.querySelector('.search-section');
+        if (searchSection) {
+            pageHeader.insertBefore(syncContainer, searchSection);
+        } else {
+            pageHeader.appendChild(syncContainer);
+        }
+    }
+    
+    // Load sync configuration
+    loadSyncConfig();
+}
+
+async function loadSyncConfig() {
+    try {
+        const response = await fetch('/api/sync/config');
+        if (response.ok) {
+            syncConfig = await response.json();
+            updateSyncUI();
+            
+            // Enable sync button if configured
+            const syncBtn = document.getElementById('syncNowBtn');
+            if (syncBtn && syncConfig.ftp_config?.host) {
+                syncBtn.disabled = false;
+                syncStatus.configured = true;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading sync config:', error);
+    }
+}
+
+async function checkSyncStatus() {
+    try {
+        const response = await fetch('/api/sync/status');
+        if (response.ok) {
+            const status = await response.json();
+            syncStatus.configured = status.configured;
+            syncStatus.lastSync = status.last_sync;
+            updateSyncUI();
+        }
+    } catch (error) {
+        console.error('Error checking sync status:', error);
+    }
+}
+
+function updateSyncUI() {
+    const syncIcon = document.getElementById('syncIcon');
+    const syncText = document.getElementById('syncText');
+    const syncTime = document.getElementById('syncTime');
+    const syncBtn = document.getElementById('syncNowBtn');
+    
+    if (!syncIcon || !syncText) return;
+    
+    if (syncStatus.syncing) {
+        syncIcon.className = 'sync-icon syncing';
+        syncIcon.textContent = '⏳';
+        syncText.textContent = 'Syncing...';
+        if (syncBtn) syncBtn.disabled = true;
+    } else if (syncStatus.configured) {
+        syncIcon.className = 'sync-icon ready';
+        syncIcon.textContent = '✅';
+        syncText.textContent = 'Ready to sync';
+        if (syncBtn) syncBtn.disabled = false;
+        
+        if (syncStatus.lastSync && syncTime) {
+            const lastSyncDate = new Date(syncStatus.lastSync);
+            const timeAgo = getTimeAgo(lastSyncDate);
+            syncTime.textContent = `Last sync: ${timeAgo}`;
+        }
+    } else {
+        syncIcon.className = 'sync-icon not-configured';
+        syncIcon.textContent = '❌';
+        syncText.textContent = 'Not configured';
+        if (syncBtn) syncBtn.disabled = true;
+    }
+}
+
+async function performSync() {
+    if (syncStatus.syncing) return;
+    
+    syncStatus.syncing = true;
+    updateSyncUI();
+    
+    try {
+        // Perform automatic sync (upload then download)
+        const response = await fetch('/api/sync/auto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            
+            // Show sync report
+            let message = `Sync complete! Uploaded ${result.uploaded} deals.`;
+            if (result.report.new_deals > 0) {
+                message += ` Added ${result.report.new_deals} new deals.`;
+            }
+            if (result.report.updated_deals > 0) {
+                message += ` Updated ${result.report.updated_deals} deals.`;
+            }
+            if (result.report.conflicts && result.report.conflicts.length > 0) {
+                message += ` ${result.report.conflicts.length} conflicts detected.`;
+            }
+            
+            showNotification(message, 'success');
+            
+            // Update sync status
+            syncStatus.lastSync = result.timestamp;
+            
+            // Reload deals to show merged data
+            await loadDeals();
+            
+        } else {
+            const error = await response.json();
+            showNotification('Sync failed: ' + (error.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        console.error('Sync error:', error);
+        showNotification('Sync failed: ' + error.message, 'error');
+    } finally {
+        syncStatus.syncing = false;
+        updateSyncUI();
+    }
+}
+
+function openSyncConfig() {
+    // Create modal for sync configuration
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <h2>FTP Sync Configuration</h2>
+            <form id="syncConfigForm">
+                <div class="form-section">
+                    <h3>User Settings</h3>
+                    <div class="form-group">
+                        <label for="userId">Your User ID *</label>
+                        <input type="text" id="userId" placeholder="e.g., john" required>
+                        <small>Unique identifier for your deals</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="teamIds">Team Member IDs</label>
+                        <input type="text" id="teamIds" placeholder="e.g., john, sarah, mike">
+                        <small>Comma-separated list of team member IDs</small>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>FTP Settings</h3>
+                    <div class="form-group">
+                        <label for="ftpHost">FTP Host *</label>
+                        <input type="text" id="ftpHost" placeholder="ftp.example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ftpPort">Port</label>
+                        <input type="number" id="ftpPort" value="21">
+                    </div>
+                    <div class="form-group">
+                        <label for="ftpUsername">Username *</label>
+                        <input type="text" id="ftpUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ftpPassword">Password</label>
+                        <input type="password" id="ftpPassword">
+                        <small>Leave blank to keep existing password</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="ftpDir">Remote Directory</label>
+                        <input type="text" id="ftpDir" value="/shared/taskmanager/deals/">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="ftpTls" checked> Use FTPS (Secure FTP)
+                        </label>
+                        <small>Recommended - Most FTP servers require TLS/SSL</small>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Sync Settings</h3>
+                    <div class="form-group">
+                        <label for="conflictStrategy">Conflict Resolution</label>
+                        <select id="conflictStrategy">
+                            <option value="newest_wins">Newest Wins (Recommended)</option>
+                            <option value="merge_all">Merge All Fields</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="keepDays">Keep Files For (days)</label>
+                        <input type="number" id="keepDays" value="7" min="1" max="30">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button type="button" class="btn btn-test" onclick="testFTPConnection()">Test Connection</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Load existing config
+    if (syncConfig) {
+        document.getElementById('userId').value = syncConfig.user_id || '';
+        document.getElementById('teamIds').value = (syncConfig.team_ids || []).join(', ');
+        document.getElementById('ftpHost').value = syncConfig.ftp_config?.host || '';
+        document.getElementById('ftpPort').value = syncConfig.ftp_config?.port || 21;
+        document.getElementById('ftpUsername').value = syncConfig.ftp_config?.username || '';
+        document.getElementById('ftpDir').value = syncConfig.ftp_config?.remote_dir || '/shared/taskmanager/deals/';
+        document.getElementById('ftpTls').checked = syncConfig.ftp_config?.use_tls !== false; // Default to true
+        document.getElementById('conflictStrategy').value = syncConfig.sync_settings?.conflict_strategy || 'newest_wins';
+        document.getElementById('keepDays').value = syncConfig.sync_settings?.keep_days || 7;
+    }
+    
+    // Handle form submission
+    document.getElementById('syncConfigForm').onsubmit = async (e) => {
+        e.preventDefault();
+        await saveSyncConfig();
+    };
+}
+
+async function saveSyncConfig() {
+    const config = {
+        user_id: document.getElementById('userId').value,
+        team_ids: document.getElementById('teamIds').value.split(',').map(id => id.trim()).filter(id => id),
+        sync_enabled: true,
+        sync_mode: 'ftp',
+        ftp_config: {
+            host: document.getElementById('ftpHost').value,
+            port: parseInt(document.getElementById('ftpPort').value),
+            username: document.getElementById('ftpUsername').value,
+            password: document.getElementById('ftpPassword').value,
+            remote_dir: document.getElementById('ftpDir').value,
+            use_tls: document.getElementById('ftpTls').checked
+        },
+        sync_settings: {
+            conflict_strategy: document.getElementById('conflictStrategy').value,
+            keep_days: parseInt(document.getElementById('keepDays').value),
+            auto_sync_interval: 300,
+            upload_on_change: true
+        }
+    };
+    
+    try {
+        const response = await fetch('/api/sync/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+        
+        if (response.ok) {
+            showNotification('Sync configuration saved!', 'success');
+            document.querySelector('.modal').remove();
+            
+            // Reload config and update UI
+            await loadSyncConfig();
+            await checkSyncStatus();
+        } else {
+            const error = await response.json();
+            showNotification('Failed to save configuration: ' + error.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error saving config:', error);
+        showNotification('Failed to save configuration', 'error');
+    }
+}
+
+async function testFTPConnection() {
+    // Save config first, then try to upload
+    await saveSyncConfig();
+    
+    try {
+        const response = await fetch('/api/sync/upload', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            showNotification('FTP connection successful!', 'success');
+        } else {
+            const error = await response.json();
+            showNotification('FTP connection failed: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showNotification('FTP connection test failed', 'error');
+    }
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+    if (seconds < 2592000) return Math.floor(seconds / 86400) + ' days ago';
+    
+    return date.toLocaleDateString();
 }

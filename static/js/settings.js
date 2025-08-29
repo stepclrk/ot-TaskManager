@@ -66,10 +66,15 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
     loadConfig();
     loadTemplates();
+    loadSyncConfig();
+    loadSyncLog();
     
     document.getElementById('apiSettingsForm').addEventListener('submit', saveApiSettings);
     document.getElementById('notificationSettingsForm').addEventListener('submit', saveNotificationSettings);
     document.getElementById('testApiKeyBtn').addEventListener('click', testApiKey);
+    document.getElementById('syncSettingsForm').addEventListener('submit', saveSyncSettings);
+    document.getElementById('testFtpBtn').addEventListener('click', testFtpConnection);
+    document.getElementById('refreshSyncLogBtn').addEventListener('click', loadSyncLog);
     
     // AI Provider selection handler
     document.getElementById('aiProvider').addEventListener('change', handleAiProviderChange);
@@ -589,4 +594,151 @@ async function removeTemplate(index) {
         console.error('Error removing template:', error);
         showNotification('Error removing template', 'error');
     }
+}
+
+// ========= FTP SYNC CONFIGURATION =========
+
+let syncConfig = null;
+
+async function loadSyncConfig() {
+    try {
+        const response = await fetch('/api/sync/config');
+        if (response.ok) {
+            syncConfig = await response.json();
+            displaySyncConfig();
+        }
+    } catch (error) {
+        console.error('Error loading sync config:', error);
+    }
+}
+
+function displaySyncConfig() {
+    if (!syncConfig) return;
+    
+    document.getElementById('syncUserId').value = syncConfig.user_id || '';
+    document.getElementById('syncTeamIds').value = (syncConfig.team_ids || []).join(', ');
+    document.getElementById('ftpHost').value = syncConfig.ftp_config?.host || '';
+    document.getElementById('ftpPort').value = syncConfig.ftp_config?.port || 21;
+    document.getElementById('ftpUsername').value = syncConfig.ftp_config?.username || '';
+    document.getElementById('ftpRemoteDir').value = syncConfig.ftp_config?.remote_dir || '/shared/taskmanager/deals/';
+    document.getElementById('ftpUseTls').checked = syncConfig.ftp_config?.use_tls !== false;
+    document.getElementById('syncConflictStrategy').value = syncConfig.sync_settings?.conflict_strategy || 'newest_wins';
+    document.getElementById('syncKeepDays').value = syncConfig.sync_settings?.keep_days || 7;
+    document.getElementById('syncAutoInterval').value = syncConfig.sync_settings?.auto_sync_interval || 300;
+}
+
+async function saveSyncSettings(event) {
+    event.preventDefault();
+    
+    const config = {
+        user_id: document.getElementById('syncUserId').value,
+        team_ids: document.getElementById('syncTeamIds').value.split(',').map(id => id.trim()).filter(id => id),
+        sync_enabled: true,
+        sync_mode: 'ftp',
+        ftp_config: {
+            host: document.getElementById('ftpHost').value,
+            port: parseInt(document.getElementById('ftpPort').value),
+            username: document.getElementById('ftpUsername').value,
+            password: document.getElementById('ftpPassword').value,
+            remote_dir: document.getElementById('ftpRemoteDir').value,
+            use_tls: document.getElementById('ftpUseTls').checked
+        },
+        sync_settings: {
+            conflict_strategy: document.getElementById('syncConflictStrategy').value,
+            keep_days: parseInt(document.getElementById('syncKeepDays').value),
+            auto_sync_interval: parseInt(document.getElementById('syncAutoInterval').value),
+            upload_on_change: true
+        }
+    };
+    
+    try {
+        const response = await fetch('/api/sync/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+        
+        if (response.ok) {
+            showNotification('Sync settings saved successfully!', 'success');
+            showSaveIndicator('syncSaveIndicator');
+        } else {
+            const error = await response.json();
+            showNotification('Failed to save sync settings: ' + error.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error saving sync settings:', error);
+        showNotification('Failed to save sync settings', 'error');
+    }
+}
+
+async function testFtpConnection() {
+    // Save settings first
+    await saveSyncSettings(new Event('submit'));
+    
+    try {
+        const response = await fetch('/api/sync/upload', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            showNotification('FTP connection successful! Test file uploaded.', 'success');
+        } else {
+            const error = await response.json();
+            showNotification('FTP connection failed: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showNotification('FTP connection test failed', 'error');
+    }
+}
+
+// ========= SYNC LOG VIEWER =========
+
+async function loadSyncLog() {
+    try {
+        const response = await fetch('/api/sync/status');
+        if (response.ok) {
+            const status = await response.json();
+            displaySyncLog(status);
+        }
+    } catch (error) {
+        console.error('Error loading sync log:', error);
+    }
+}
+
+function displaySyncLog(status) {
+    const logContainer = document.getElementById('syncLogContainer');
+    if (!logContainer) return;
+    
+    let html = '<div class="sync-log-header">';
+    html += `<p><strong>User ID:</strong> ${status.user_id || 'Not configured'}</p>`;
+    html += `<p><strong>Team Members:</strong> ${(status.team_members || []).join(', ') || 'None'}</p>`;
+    html += `<p><strong>Last Sync:</strong> ${status.last_sync ? new Date(status.last_sync).toLocaleString() : 'Never'}</p>`;
+    html += '</div>';
+    
+    if (status.sync_history && status.sync_history.length > 0) {
+        html += '<div class="sync-log-entries">';
+        html += '<h4>Recent Sync Activity</h4>';
+        html += '<table class="sync-log-table">';
+        html += '<thead><tr><th>Time</th><th>Action</th><th>User</th><th>Deals</th><th>File</th></tr></thead>';
+        html += '<tbody>';
+        
+        status.sync_history.reverse().forEach(entry => {
+            const time = new Date(entry.timestamp).toLocaleString();
+            const actionClass = entry.action === 'upload' ? 'upload' : 'download';
+            html += `<tr class="sync-${actionClass}">`;
+            html += `<td>${time}</td>`;
+            html += `<td><span class="sync-action-badge ${actionClass}">${entry.action}</span></td>`;
+            html += `<td>${entry.user_id}</td>`;
+            html += `<td>${entry.deal_count || 0}</td>`;
+            html += `<td class="sync-filename">${entry.filename || '-'}</td>`;
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        html += '</div>';
+    } else {
+        html += '<div class="sync-log-empty">No sync activity yet</div>';
+    }
+    
+    logContainer.innerHTML = html;
 }

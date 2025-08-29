@@ -141,6 +141,8 @@ async function initializeEnhancedFeatures() {
         
         // Reset tabs to default (Details tab)
         resetTabs();
+        // Re-setup tab switching to ensure event listeners are attached
+        setupTabSwitching();
         
         // Show template selector for new tasks
         document.getElementById('templateSelector').style.display = 'block';
@@ -166,14 +168,26 @@ async function initializeEnhancedFeatures() {
         // Hide template selector for existing tasks
         document.getElementById('templateSelector').style.display = 'none';
         
-        // Now load the enhanced data for this specific task
-        // Set flag to indicate we're loading
-        isLoadingEnhancedData = true;
-        window.isLoadingEnhancedData = true;
-        loadEnhancedTaskData(taskId);
-        
-        // Reset tabs to default
-        resetTabs();
+        // Ensure tabs are properly reset and first tab is visible
+        setTimeout(() => {
+            resetTabs();
+            // Re-setup tab switching to ensure event listeners are attached
+            setupTabSwitching();
+            
+            // Force the details tab to be visible
+            const detailsTab = document.getElementById('detailsTab');
+            if (detailsTab) {
+                detailsTab.classList.add('active');
+                detailsTab.style.display = 'block';
+                console.log('Forced details tab to be visible');
+            }
+            
+            // Now load the enhanced data for this specific task
+            // Set flag to indicate we're loading
+            isLoadingEnhancedData = true;
+            window.isLoadingEnhancedData = true;
+            loadEnhancedTaskData(taskId);
+        }, 50);
     };
     
     // Override save task to include enhanced fields
@@ -314,9 +328,21 @@ function initializeQuillEditor() {
 }
 
 function setupTabSwitching() {
+    // Remove any existing listeners first
     document.querySelectorAll('.tab-btn').forEach(button => {
-        button.addEventListener('click', function() {
+        // Clone to remove all event listeners
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+    });
+    
+    // Now add fresh listeners
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
             const tabName = this.dataset.tab;
+            console.log('Tab clicked:', tabName);
             
             // Update active button
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -327,20 +353,43 @@ function setupTabSwitching() {
             // Update active panel
             document.querySelectorAll('.tab-panel').forEach(panel => {
                 panel.classList.remove('active');
+                panel.style.display = 'none';
             });
-            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            const targetTab = document.getElementById(tabName + 'Tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+                targetTab.style.display = 'block';
+                console.log('Activated tab:', tabName + 'Tab');
+            } else {
+                console.error('Tab panel not found:', tabName + 'Tab');
+            }
         });
     });
+    console.log('Tab switching setup complete, attached to', document.querySelectorAll('.tab-btn').length, 'buttons');
 }
 
 function resetTabs() {
     // Reset to first tab
     document.querySelectorAll('.tab-btn').forEach((btn, index) => {
-        btn.classList.toggle('active', index === 0);
+        if (index === 0) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
     });
+    
     document.querySelectorAll('.tab-panel').forEach((panel, index) => {
-        panel.classList.toggle('active', index === 0);
+        if (index === 0) {
+            panel.classList.add('active');
+            panel.style.display = 'block';
+        } else {
+            panel.classList.remove('active');
+            panel.style.display = 'none';
+        }
     });
+    
+    console.log('Tabs reset to default (Details tab)');
 }
 
 function setupFileUpload() {

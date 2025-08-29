@@ -261,7 +261,10 @@ async function loadDashboard() {
         
         // Fetch deals statistics
         const dealsResponse = await fetch('/api/deals');
-        const deals = await dealsResponse.json();
+        const dealsData = await dealsResponse.json();
+        
+        // Handle new response format with current_user
+        const deals = Array.isArray(dealsData) ? dealsData : (dealsData.deals || []);
         const totalDealsCount = deals.length;
         const openDealsCount = deals.filter(d => d.dealStatus === 'Open').length;
         const wonDealsCount = deals.filter(d => d.dealStatus === 'Won').length;

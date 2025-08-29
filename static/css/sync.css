@@ -1,0 +1,431 @@
+/* FTP Sync UI Styles */
+
+.sync-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sync-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.sync-icon {
+    font-size: 1.4rem;
+    transition: all 0.3s ease;
+}
+
+.sync-icon.syncing {
+    animation: spin 1s linear infinite;
+}
+
+.sync-icon.ready {
+    color: #28a745;
+}
+
+.sync-icon.not-configured {
+    color: #dc3545;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.sync-text {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.sync-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.sync-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-sync, .btn-config, .btn-test {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-sync {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-sync:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+.btn-sync:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-config {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-config:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.btn-test {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-test:hover {
+    background: #138496;
+}
+
+/* Sync Configuration Modal Styles */
+.form-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.form-group input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Sync Status in Deal Cards */
+.deal-sync-info {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.deal-sync-info .sync-user {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Sync Report Notification */
+.sync-report {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    max-width: 400px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.sync-report h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.sync-report-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.sync-stat {
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.sync-stat-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.sync-stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+/* Conflict Indicator */
+.sync-conflict {
+    margin-top: 10px;
+    padding: 8px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #856404;
+}
+
+.sync-conflict-count {
+    font-weight: bold;
+    color: #ff6b6b;
+}
+
+/* Loading States */
+.sync-loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 2px solid #667eea;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+}
+
+/* Sync Log Viewer Styles */
+.sync-log-container {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.sync-log-header {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.sync-log-header p {
+    margin: 5px 0;
+    color: #495057;
+}
+
+.sync-log-header strong {
+    color: #2c3e50;
+    margin-right: 10px;
+}
+
+.sync-log-entries {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.sync-log-entries h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+}
+
+.sync-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.sync-log-table th {
+    background: #f8f9fa;
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.sync-log-table td {
+    padding: 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.sync-log-table tr:hover {
+    background: #f8f9fa;
+}
+
+.sync-action-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sync-action-badge.upload {
+    background: #d4edda;
+    color: #155724;
+}
+
+.sync-action-badge.download {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.sync-filename {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #6c757d;
+    word-break: break-all;
+}
+
+.sync-log-empty {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+tr.sync-upload {
+    border-left: 3px solid #28a745;
+}
+
+tr.sync-download {
+    border-left: 3px solid #007bff;
+}
+
+/* Settings Page Styles */
+.settings-subsection {
+    margin-bottom: 25px;
+}
+
+.settings-subsection h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sync-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .sync-status-indicator {
+        margin-bottom: 10px;
+    }
+    
+    .sync-actions {
+        justify-content: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions button {
+        width: 100%;
+    }
+}

@@ -11,6 +11,7 @@ from ai_helper import call_ai_api
 from werkzeug.utils import secure_filename
 import shutil
 import difflib
+from ftp_sync import FTPSyncManager
 
 app = Flask(__name__)
 CORS(app)
@@ -1374,7 +1375,13 @@ def delete_project(project_id):
 @app.route('/api/deals', methods=['GET'])
 def get_deals():
     deals = load_deals()
-    return jsonify(deals)
+    # Add current user info to response
+    settings = load_settings()
+    current_user = settings.get('user_id', 'unknown')
+    return jsonify({
+        'deals': deals,
+        'current_user': current_user
+    })
 
 @app.route('/api/deals', methods=['POST'])
 def create_deal():
@@ -1382,6 +1389,12 @@ def create_deal():
     deal['id'] = str(uuid.uuid4())
     deal['created_at'] = datetime.now().isoformat()
     deal['updated_at'] = datetime.now().isoformat()
+    
+    # Get current user from settings
+    settings = load_settings()
+    current_user = settings.get('user_id', 'unknown')
+    deal['created_by'] = current_user
+    deal['owned_by'] = current_user  # Owner is the creator
     
     # Initialize notes array if not provided
     if 'notes' not in deal:
@@ -1412,12 +1425,22 @@ def get_deal(deal_id):
 def update_deal(deal_id):
     deal_data = request.json
     deals = load_deals()
+    settings = load_settings()
+    current_user = settings.get('user_id', 'unknown')
+    
     for i, deal in enumerate(deals):
         if deal['id'] == deal_id:
+            # Check ownership - only allow updates if user owns the deal
+            if deal.get('owned_by') and deal.get('owned_by') != current_user:
+                return jsonify({'error': 'You can only edit deals you created'}), 403
+            
             # Preserve original data
             deal_data['id'] = deal_id
             deal_data['created_at'] = deal.get('created_at', datetime.now().isoformat())
+            deal_data['created_by'] = deal.get('created_by', current_user)
+            deal_data['owned_by'] = deal.get('owned_by', current_user)
             deal_data['updated_at'] = datetime.now().isoformat()
+            deal_data['updated_by'] = current_user
             
             # Preserve notes if not in update
             if 'notes' not in deal_data:
@@ -1467,6 +1490,74 @@ def delete_deal_note(deal_id, note_id):
     
     return jsonify({'error': 'Deal or note not found'}), 404
 
+@app.route('/api/deals/<deal_id>/comments', methods=['GET', 'POST'])
+def handle_deal_comments(deal_id):
+    deals = load_deals()
+    settings = load_settings()
+    current_user = settings.get('user_id', 'unknown')
+    
+    for i, deal in enumerate(deals):
+        if deal['id'] == deal_id:
+            if request.method == 'GET':
+                # Get comments and mark as read if owned by current user
+                comments = deal.get('comments', [])
+                
+                # Mark comments as read if the current user owns the deal
+                if deal.get('owned_by') == current_user:
+                    unread_before = any(not c.get('read', False) for c in comments)
+                    for comment in comments:
+                        if not comment.get('read', False):
+                            comment['read'] = True
+                            comment['read_at'] = datetime.now().isoformat()
+                    
+                    # Save if we marked any as read
+                    if unread_before:
+                        deals[i] = deal
+                        save_deals(deals)
+                
+                return jsonify(comments)
+            
+            elif request.method == 'POST':
+                comment = request.json
+                comment['id'] = str(uuid.uuid4())
+                comment['author'] = current_user
+                comment['timestamp'] = datetime.now().isoformat()
+                comment['read'] = False  # New comments are unread
+                
+                if 'comments' not in deal:
+                    deal['comments'] = []
+                
+                deal['comments'].append(comment)
+                deals[i] = deal
+                save_deals(deals)
+                return jsonify(comment)
+    
+    return jsonify({'error': 'Deal not found'}), 404
+
+@app.route('/api/deals/<deal_id>/comments/<comment_id>/read', methods=['POST'])
+def mark_comment_read(deal_id, comment_id):
+    deals = load_deals()
+    settings = load_settings()
+    current_user = settings.get('user_id', 'unknown')
+    
+    for i, deal in enumerate(deals):
+        if deal['id'] == deal_id:
+            # Only the deal owner can mark comments as read
+            if deal.get('owned_by') != current_user:
+                return jsonify({'error': 'Only the deal owner can mark comments as read'}), 403
+            
+            for comment in deal.get('comments', []):
+                if comment.get('id') == comment_id:
+                    comment['read'] = True
+                    comment['read_at'] = datetime.now().isoformat()
+                    deals[i] = deal
+                    save_deals(deals)
+                    return jsonify({'success': True})
+            
+            return jsonify({'error': 'Comment not found'}), 404
+    
+    return jsonify({'error': 'Deal not found'}), 404
+
 @app.route('/api/deals/<deal_id>', methods=['DELETE'])
 def delete_deal(deal_id):
     deals = load_deals()
@@ -1478,6 +1569,184 @@ def delete_deal(deal_id):
         return jsonify({'success': True})
     
     return jsonify({'error': 'Deal not found'}), 404
+
+# FTP Sync endpoints
+@app.route('/api/sync/upload', methods=['POST'])
+def sync_upload_deals():
+    """Manually trigger upload of current deals to FTP"""
+    try:
+        settings = load_settings()
+        sync_manager = FTPSyncManager(settings)
+        
+        deals = load_deals()
+        success = sync_manager.upload_deals(deals)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Successfully uploaded {len(deals)} deals',
+                'deal_count': len(deals),
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to upload deals to FTP. Check server logs for details.'
+            }), 500
+            
+    except Exception as e:
+        error_msg = str(e)
+        # Provide helpful error messages for common FTP issues
+        if '421' in error_msg and 'TLS' in error_msg:
+            error_msg = "FTP server requires TLS/SSL. Please enable 'Use FTPS' in the configuration."
+        elif '530' in error_msg:
+            error_msg = "FTP login failed. Please check your username and password."
+        elif 'Connection refused' in error_msg:
+            error_msg = "Connection refused. Please check the FTP host and port settings."
+        elif 'timeout' in error_msg.lower():
+            error_msg = "Connection timeout. Please check if the FTP server is accessible."
+        
+        return jsonify({
+            'success': False,
+            'error': error_msg
+        }), 500
+
+@app.route('/api/sync/download', methods=['POST'])
+def sync_download_deals():
+    """Manually trigger download and merge of deals from FTP"""
+    try:
+        settings = load_settings()
+        sync_manager = FTPSyncManager(settings)
+        
+        current_deals = load_deals()
+        merged_deals, sync_report = sync_manager.download_and_merge_deals(current_deals)
+        
+        # Save merged deals
+        save_deals(merged_deals)
+        
+        return jsonify({
+            'success': True,
+            'report': sync_report,
+            'total_deals': len(merged_deals),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/sync/status', methods=['GET'])
+def get_sync_status():
+    """Get current sync status and statistics"""
+    try:
+        settings = load_settings()
+        sync_manager = FTPSyncManager(settings)
+        status = sync_manager.get_sync_status()
+        
+        return jsonify(status)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'configured': False
+        }), 500
+
+@app.route('/api/sync/auto', methods=['POST'])
+def sync_auto():
+    """Perform automatic sync (upload then download)"""
+    try:
+        settings = load_settings()
+        sync_manager = FTPSyncManager(settings)
+        
+        # First upload current deals
+        deals = load_deals()
+        upload_success = sync_manager.upload_deals(deals)
+        
+        if not upload_success:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to upload deals'
+            }), 500
+        
+        # Then download and merge
+        merged_deals, sync_report = sync_manager.download_and_merge_deals(deals)
+        save_deals(merged_deals)
+        
+        return jsonify({
+            'success': True,
+            'uploaded': len(deals),
+            'report': sync_report,
+            'total_deals': len(merged_deals),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/sync/config', methods=['GET'])
+def get_sync_config():
+    """Get sync configuration"""
+    settings = load_settings()
+    
+    # Don't send password to frontend
+    safe_config = {
+        'user_id': settings.get('user_id', ''),
+        'team_ids': settings.get('team_ids', []),
+        'sync_enabled': settings.get('sync_enabled', False),
+        'sync_mode': settings.get('sync_mode', 'ftp'),
+        'ftp_config': {
+            'host': settings.get('ftp_config', {}).get('host', ''),
+            'port': settings.get('ftp_config', {}).get('port', 21),
+            'username': settings.get('ftp_config', {}).get('username', ''),
+            'remote_dir': settings.get('ftp_config', {}).get('remote_dir', '/'),
+            'use_tls': settings.get('ftp_config', {}).get('use_tls', False)
+        },
+        'sync_settings': settings.get('sync_settings', {
+            'auto_sync_interval': 300,
+            'upload_on_change': True,
+            'keep_days': 7,
+            'conflict_strategy': 'newest_wins'
+        })
+    }
+    
+    return jsonify(safe_config)
+
+@app.route('/api/sync/config', methods=['POST'])
+def update_sync_config():
+    """Update sync configuration"""
+    config = request.json
+    settings = load_settings()
+    
+    # Update settings with new config
+    settings['user_id'] = config.get('user_id', settings.get('user_id', ''))
+    settings['team_ids'] = config.get('team_ids', settings.get('team_ids', []))
+    settings['sync_enabled'] = config.get('sync_enabled', False)
+    settings['sync_mode'] = config.get('sync_mode', 'ftp')
+    
+    # Update FTP config (preserve password if not provided)
+    if 'ftp_config' not in settings:
+        settings['ftp_config'] = {}
+    
+    new_ftp = config.get('ftp_config', {})
+    settings['ftp_config']['host'] = new_ftp.get('host', '')
+    settings['ftp_config']['port'] = new_ftp.get('port', 21)
+    settings['ftp_config']['username'] = new_ftp.get('username', '')
+    if new_ftp.get('password'):  # Only update password if provided
+        settings['ftp_config']['password'] = new_ftp['password']
+    settings['ftp_config']['remote_dir'] = new_ftp.get('remote_dir', '/')
+    settings['ftp_config']['use_tls'] = new_ftp.get('use_tls', False)
+    
+    # Update sync settings
+    settings['sync_settings'] = config.get('sync_settings', settings.get('sync_settings', {}))
+    
+    save_settings(settings)
+    
+    return jsonify({'success': True, 'message': 'Sync configuration updated'})
 
 # Comments endpoints
 @app.route('/api/tasks/<task_id>/comments', methods=['POST'])

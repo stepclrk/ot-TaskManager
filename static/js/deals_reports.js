@@ -1,4 +1,5 @@
 // Deals Report Functions
+// Note: allDeals and currentUser are already declared in reports.js
 let dealConfig = {
     dealCustomerTypes: ['New Customer', 'Existing Customer'],
     dealTypes: ['BNCE', 'BNCF', 'Advisory', 'RTS'],
@@ -7,6 +8,7 @@ let dealConfig = {
 };
 
 // Load configuration when page loads
+// Note: Deals are already loaded by reports.js
 document.addEventListener('DOMContentLoaded', function() {
     loadDealConfiguration();
 });
@@ -85,6 +87,15 @@ function formatCurrency(amount) {
 }
 
 async function generateDealsReport() {
+    // Check if allDeals is available (should be loaded by reports.js)
+    if (!allDeals || !Array.isArray(allDeals)) {
+        console.error('Deals data not available - may still be loading');
+        if (typeof showNotification === 'function') {
+            showNotification('Please wait for data to load and try again', 'error');
+        }
+        return;
+    }
+    
     const statusFilter = document.getElementById('dealStatus').value;
     const typeFilter = document.getElementById('dealType').value;
     const customerTypeFilter = document.getElementById('customerType').value;

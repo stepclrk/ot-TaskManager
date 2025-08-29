@@ -1,1 +1,85 @@
-[]
+[
+  {
+    "salesforceId": "3131eee31321",
+    "customerName": "eeeee",
+    "customerType": "New Customer",
+    "dealType": "BNCF",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "",
+    "dealForecast": "",
+    "dealActual": "",
+    "dealSummary": "",
+    "id": "c2ea7f2e-3aad-452c-af41-ca4005c27900",
+    "created_at": "2025-08-29T15:12:38.483496",
+    "updated_at": "2025-08-29T15:12:38.483509",
+    "created_by": "doerte",
+    "owned_by": "doerte",
+    "notes": [],
+    "sync_metadata": {
+      "last_synced": "2025-08-29T18:30:03.966790",
+      "synced_by": "demo",
+      "imported_from": "deals_doerte_20250829_162239.json",
+      "imported_at": "2025-08-29T16:23:27.222880",
+      "last_merged": "2025-08-29T16:14:54.263614",
+      "merged_from": "deals_stephen_20250829_154147.json"
+    },
+    "comments": [
+      {
+        "text": "dgfhdgfhdhgdh",
+        "id": "c3851344-9f6e-4f10-a784-e5830702fd16",
+        "author": "stephen",
+        "timestamp": "2025-08-29T16:07:05.614000",
+        "read": false
+      }
+    ]
+  },
+  {
+    "salesforceId": "test",
+    "customerName": "test",
+    "customerType": "New Customer",
+    "dealType": "BNCE",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "50",
+    "dealForecast": "1000000.00",
+    "dealActual": "1000000.00",
+    "dealSummary": "<p>Test deal with Andy's awesome piece of poo machine</p>",
+    "id": "152d75db-937e-4cc2-8d21-f03aa97ed1b9",
+    "created_at": "2025-08-29T17:10:34.044979",
+    "updated_at": "2025-08-29T17:10:34.044979",
+    "created_by": "andy",
+    "owned_by": "andy",
+    "notes": [],
+    "sync_metadata": {
+      "last_synced": "2025-08-29T18:30:03.966795",
+      "synced_by": "demo",
+      "imported_from": "deals_andy_20250829_171232.json",
+      "imported_at": "2025-08-29T17:25:54.068314"
+    }
+  },
+  {
+    "salesforceId": "sdfg",
+    "customerName": "sdfg",
+    "customerType": "New Customer",
+    "dealType": "Advisory",
+    "dealStatus": "Won",
+    "csmLocation": "Offshore",
+    "csmAllocation": "",
+    "dealForecast": "",
+    "dealActual": "",
+    "dealSummary": "",
+    "date_won": "2025-08-29",
+    "id": "3a115024-8cc2-482d-9c4c-b6964fd2a8d7",
+    "created_at": "2025-08-29T18:29:53.562034",
+    "updated_at": "2025-08-29T18:29:53.562042",
+    "created_by": "demo",
+    "owned_by": "demo",
+    "notes": [],
+    "financial_year": "FY26",
+    "sync_metadata": {
+      "last_synced": "2025-08-29T18:30:03.966796",
+      "synced_by": "demo"
+    }
+  }
+]

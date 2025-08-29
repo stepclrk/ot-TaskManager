@@ -4,6 +4,7 @@ let allTasks = [];
 let allObjectives = [];
 let allTopics = [];
 let allDeals = [];
+let currentUser = null;
 let progressChart = null;
 let statusChart = null;
 let typeChart = null;
@@ -34,7 +35,16 @@ async function loadInitialData() {
         
         // Load deals
         const dealsResponse = await fetch('/api/deals');
-        allDeals = await dealsResponse.json();
+        const dealsData = await dealsResponse.json();
+        
+        // Handle new response format with current_user
+        if (dealsData.deals) {
+            allDeals = dealsData.deals;
+            currentUser = dealsData.current_user;
+        } else {
+            // Fallback for old format
+            allDeals = dealsData;
+        }
     } catch (error) {
         console.error('Error loading data:', error);
     }

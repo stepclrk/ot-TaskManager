@@ -2,5 +2,27 @@
   "api_key": "",
   "notifications_enabled": true,
   "check_interval": 60,
-  "ai_provider": "none"
+  "ai_provider": "none",
+  "user_id": "demo",
+  "team_ids": [
+    "andy",
+    "doerte",
+    "stephen"
+  ],
+  "sync_enabled": true,
+  "sync_mode": "ftp",
+  "ftp_config": {
+    "host": "ftp.howfen.net",
+    "port": 21,
+    "username": "flokr_ot_deals@flokr.io",
+    "password": "$&oywvGZVclj}4qoJy",
+    "remote_dir": "/",
+    "use_tls": true
+  },
+  "sync_settings": {
+    "conflict_strategy": "newest_wins",
+    "keep_days": 7,
+    "auto_sync_interval": 60,
+    "upload_on_change": true
+  }
 }

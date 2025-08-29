@@ -4,6 +4,260 @@
     box-sizing: border-box;
 }
 
+/* Deal ownership styles */
+.read-only-deal {
+    background-color: #f8f9fa !important;
+    opacity: 0.9;
+}
+
+.read-only-deal:hover {
+    background-color: #e9ecef !important;
+    cursor: pointer;
+}
+
+.owner-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #6c757d;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+.read-only-indicator {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #ffc107;
+    color: #212529;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-left: 10px;
+    font-weight: 500;
+}
+
+/* Tab styles for deal modal */
+.tab-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    color: #333;
+}
+
+.tab-btn.active {
+    color: #2c3e50;
+    font-weight: 600;
+    border-bottom-color: #3498db;
+}
+
+/* Tab content for deals modal */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Specific fix for task modal - wrapper div always visible */
+#taskModal .tab-content {
+    display: block !important;  /* Task modal wrapper always visible since panels control visibility */
+}
+
+/* Tab panel styles for task modal */
+.tab-panel {
+    display: none;
+    padding: 20px 0;
+}
+
+.tab-panel.active {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Ensure task form is visible */
+#taskForm {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Metadata tab styles */
+.metadata-info {
+    padding: 10px 0;
+}
+
+.info-section {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.info-section h4 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 16px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+}
+
+.info-row {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row label {
+    font-weight: 600;
+    color: #495057;
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.info-row span {
+    color: #212529;
+    word-break: break-all;
+}
+
+/* Comments styles */
+.comments-section {
+    padding: 10px 0;
+}
+
+.comments-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.comment-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+.comment-item.unread {
+    background: #fff9e6;
+    border-color: #ffc107;
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2);
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.comment-header strong {
+    color: #2c3e50;
+}
+
+.comment-date {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-left: auto;
+}
+
+.comment-text {
+    color: #333;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.unread-indicator {
+    background: #ffc107;
+    color: #212529;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.no-comments {
+    text-align: center;
+    color: #6c757d;
+    padding: 20px;
+}
+
+.add-comment-form {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.add-comment-form h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+/* Unread badge in deals table */
+.unread-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #ff6b6b;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 8px;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 107, 107, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+}
+
+/* Tab badge for comments */
+.tab-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #ff6b6b;
+    color: white;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    margin-left: 5px;
+    min-width: 18px;
+    text-align: center;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     background: #f5f7fa;
@@ -976,6 +1230,21 @@ body {
     max-height: 85vh;
     overflow-y: auto;
     position: relative;
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Specific fix for task modal content */
+#taskModal .modal-content {
+    max-width: 900px;
+    display: block !important;
+    visibility: visible !important;
+}
+
+#taskModal .modal-content.large-modal {
+    max-width: 900px;
+    display: block !important;
+    visibility: visible !important;
 }
 
 .close {
