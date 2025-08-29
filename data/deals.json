@@ -20,5 +20,21 @@
         "timestamp": "2025-08-28T13:56:58.364614"
       }
     ]
+  },
+  {
+    "salesforceId": "dfgh",
+    "customerName": "dfgh",
+    "customerType": "Existing Customer",
+    "dealType": "BNCE",
+    "dealStatus": "Open",
+    "csmLocation": "Offshore",
+    "csmAllocation": "",
+    "dealForecast": "",
+    "dealActual": "",
+    "dealSummary": "",
+    "id": "e879d62b-e7ef-41cd-aba8-453b47eba73f",
+    "created_at": "2025-08-29T10:47:02.416420",
+    "updated_at": "2025-08-29T10:47:02.416434",
+    "notes": []
   }
 ]

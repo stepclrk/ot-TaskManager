@@ -1,11 +1,11 @@
 :root {
     --sidebar-width: 220px;
     --sidebar-collapsed-width: 60px;
-    --sidebar-bg: #2c3e50;
-    --sidebar-hover: rgba(255,255,255,0.1);
-    --sidebar-active: rgba(52, 152, 219, 0.3);
-    --sidebar-text: #ecf0f1;
-    --sidebar-icon: #bdc3c7;
+    --sidebar-bg: #093994;
+    --sidebar-hover: rgba(255,255,255,0.15);
+    --sidebar-active: rgba(255, 255, 255, 0.2);
+    --sidebar-text: #ffffff;
+    --sidebar-icon: rgba(255, 255, 255, 0.9);
     --transition-speed: 0.3s;
 }
 
@@ -87,9 +87,9 @@
     border: none;
     color: white;
     padding: 0.75rem;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(9, 57, 148, 0.3);
 }
 
 .hamburger span {
@@ -137,7 +137,7 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: #3498db;
+    background: #ffffff;
 }
 
 .nav-icon {
