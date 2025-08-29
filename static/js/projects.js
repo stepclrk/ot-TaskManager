@@ -117,6 +117,14 @@ function applyFilters() {
     renderProjects();
 }
 
+function stripHtmlTags(html) {
+    // Create a temporary div element
+    const temp = document.createElement('div');
+    temp.innerHTML = html || '';
+    // Return the text content, which automatically strips HTML tags
+    return temp.textContent || temp.innerText || '';
+}
+
 function renderProjects() {
     const grid = document.getElementById('projectsGrid');
     
@@ -137,6 +145,17 @@ function renderProjects() {
         const openTasks = project.open_tasks || 0;
         const completedTasks = project.completed_tasks || 0;
         
+        // Calculate progress percentage
+        const progress = taskCount > 0 ? Math.round((completedTasks / taskCount) * 100) : 0;
+        
+        // Determine progress color class
+        let progressClass = 'low';
+        if (progress >= 70) progressClass = 'high';
+        else if (progress >= 40) progressClass = 'medium';
+        
+        // Strip HTML tags from description
+        const cleanDescription = stripHtmlTags(project.description || 'No description provided');
+        
         return `
             <div class="project-card" onclick="navigateToWorkspace('${project.id}')">
                 <div class="project-header">
@@ -145,37 +164,57 @@ function renderProjects() {
                 </div>
                 
                 <div class="project-description">
-                    ${project.description || ''}
+                    ${escapeHtml(cleanDescription)}
+                </div>
+                
+                <!-- Progress Section -->
+                <div class="project-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Progress</span>
+                        <span class="progress-value">${progress}%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar ${progressClass}" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+                
+                <!-- Task Statistics -->
+                <div class="task-stats-row">
+                    <div class="task-stat-item">
+                        <span class="task-stat-label">Total</span>
+                        <span class="task-stat-value total">${taskCount}</span>
+                    </div>
+                    <div class="task-stat-item">
+                        <span class="task-stat-label">Open</span>
+                        <span class="task-stat-value open">${openTasks}</span>
+                    </div>
+                    <div class="task-stat-item">
+                        <span class="task-stat-label">Done</span>
+                        <span class="task-stat-value completed">${completedTasks}</span>
+                    </div>
                 </div>
                 
                 <div class="project-meta">
                     <div class="project-date">
-                        📅 ${targetDate}
+                        <span class="icon">📅</span>
+                        ${targetDate}
                     </div>
                     <div class="project-stats">
-                        <div class="stat-item">
-                            <span class="stat-icon">📋</span>
-                            <span class="stat-count">${taskCount}</span>
-                        </div>
-                        <div class="stat-item" title="Open tasks">
-                            <span class="stat-icon">📂</span>
-                            <span class="stat-count">${openTasks}</span>
-                        </div>
-                        <div class="stat-item" title="Completed tasks">
-                            <span class="stat-icon">✅</span>
-                            <span class="stat-count">${completedTasks}</span>
-                        </div>
+                        ${project.owner ? `
+                            <div class="stat-item">
+                                <span class="stat-icon">👤</span>
+                                <span class="stat-count">${escapeHtml(project.owner)}</span>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
                 
-                <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 5px;">
-                    <button class="btn btn-small" onclick="event.stopPropagation(); editProject('${project.id}')" 
-                            style="padding: 5px 10px; font-size: 0.85em;">
-                        Edit
+                <div class="project-actions">
+                    <button class="action-btn edit-btn" onclick="event.stopPropagation(); editProject('${project.id}')" title="Edit Project">
+                        ✏️ Edit
                     </button>
-                    <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteProject('${project.id}')" 
-                            style="padding: 5px 10px; font-size: 0.85em; background: #e74c3c; color: white; border: none;">
-                        Delete
+                    <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteProject('${project.id}')" title="Delete Project">
+                        🗑️ Delete
                     </button>
                 </div>
             </div>

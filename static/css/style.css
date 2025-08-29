@@ -724,6 +724,23 @@ body {
     box-shadow: 0 2px 5px rgba(155, 89, 182, 0.3);
 }
 
+.copy-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 0.3rem 0.5rem !important;
+    font-size: 1.1rem !important;
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-btn:hover {
+    background-color: #5a6268;
+    transform: scale(1.05);
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);
+}
+
 .kanban-board {
     display: flex;
     gap: 1rem;

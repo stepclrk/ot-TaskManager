@@ -103,6 +103,14 @@ function applyFilters() {
     renderObjectives();
 }
 
+function stripHtmlTags(html) {
+    // Create a temporary div element
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    // Return the text content, which automatically strips HTML tags
+    return temp.textContent || temp.innerText || '';
+}
+
 function renderObjectives() {
     const grid = document.getElementById('objectivesContainer');
     
@@ -125,14 +133,25 @@ function renderObjectives() {
         const statusClass = `status-${objective.status.toLowerCase().replace(' ', '-')}`;
         const targetDate = objective.target_date ? new Date(objective.target_date).toLocaleDateString() : 'No target date';
         const taskCount = objective.task_count || 0;
+        const openTasks = objective.open_tasks || 0;
+        const completedTasks = objective.completed_tasks || 0;
         const okrScore = Math.round((objective.okr_score || 0) * 100);
         const confidence = Math.round((objective.confidence || 0) * 100);
         const keyResultsCount = objective.key_results ? objective.key_results.length : 0;
         
-        // Determine score color
+        // Calculate progress percentage
+        const progress = taskCount > 0 ? Math.round((completedTasks / taskCount) * 100) : 0;
+        
+        // Determine score color classes
         let scoreClass = 'score-low';
-        if (okrScore >= 70) scoreClass = 'score-high';
-        else if (okrScore >= 40) scoreClass = 'score-medium';
+        let progressClass = 'low';
+        if (okrScore >= 70) {
+            scoreClass = 'score-high';
+            progressClass = 'high';
+        } else if (okrScore >= 40) {
+            scoreClass = 'score-medium';
+            progressClass = 'medium';
+        }
         
         // Type badge
         const typeClass = objective.objective_type === 'committed' ? 'type-committed' : 'type-aspirational';
@@ -145,46 +164,63 @@ function renderObjectives() {
                     <span class="objective-status ${statusClass}">${objective.status}</span>
                 </div>
                 
-                <div style="margin: 5px 0;">
+                <div style="margin: 12px 0; display: flex; align-items: center; gap: 8px;">
                     <span class="objective-type-badge ${typeClass}">${typeLabel}</span>
-                    <span style="margin-left: 10px; color: #666; font-size: 0.9em;">${objective.period || 'Q1'}</span>
+                    <span style="color: #64748b; font-size: 0.875rem; font-weight: 500;">
+                        ${objective.period || 'Q1 2025'}
+                    </span>
                 </div>
                 
                 <div class="objective-description">
-                    ${escapeHtml(objective.description || 'No description')}
+                    ${escapeHtml(stripHtmlTags(objective.description || 'No description provided'))}
                 </div>
                 
-                <div style="margin: 10px 0;">
-                    <span class="okr-score ${scoreClass}">OKR Score: ${okrScore}%</span>
-                    <span class="confidence-indicator" style="margin-left: 10px;">
-                        🎯 Confidence: ${confidence}%
-                    </span>
+                <!-- Progress Section -->
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">PROGRESS</span>
+                        <span style="font-size: 0.875rem; font-weight: 700; color: #1e293b;">${progress}%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar ${progressClass}" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+                
+                <!-- Metrics Row -->
+                <div class="metrics-row">
+                    <div class="metric-item">
+                        <div class="metric-label">OKR Score</div>
+                        <div class="metric-value ${scoreClass}">${okrScore}%</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Confidence</div>
+                        <div class="metric-value">${confidence}%</div>
+                    </div>
                 </div>
                 
                 <div class="objective-meta">
                     <div class="objective-date">
-                        📅 ${targetDate}
+                        <span class="icon">📅</span>
+                        ${targetDate}
                     </div>
                     <div class="objective-stats">
                         <div class="stat-item">
                             <span class="stat-icon">🎯</span>
                             <span class="stat-count">${keyResultsCount} KRs</span>
                         </div>
-                        <div class="stat-item" title="Tasks">
+                        <div class="stat-item" title="${openTasks} open, ${completedTasks} completed">
                             <span class="stat-icon">📋</span>
                             <span class="stat-count">${taskCount} Tasks</span>
                         </div>
                     </div>
                 </div>
                 
-                <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 5px;">
-                    <button class="btn btn-small" onclick="event.stopPropagation(); editObjective('${objective.id}')" 
-                            style="padding: 5px 10px; font-size: 0.85em;">
-                        Edit
+                <div class="objective-actions">
+                    <button class="action-btn edit-btn" onclick="event.stopPropagation(); editObjective('${objective.id}')">
+                        ✏️ Edit
                     </button>
-                    <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteObjective('${objective.id}')" 
-                            style="padding: 5px 10px; font-size: 0.85em; background: #e74c3c; color: white; border: none;">
-                        Delete
+                    <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteObjective('${objective.id}')">
+                        🗑️ Delete
                     </button>
                 </div>
             </div>

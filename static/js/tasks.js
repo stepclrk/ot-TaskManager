@@ -326,6 +326,7 @@ function renderListView(tasks, container) {
                     </div>
                 </div>
                 <div class="task-actions" onclick="event.stopPropagation()">
+                    <button class="copy-btn" onclick="copyTaskToClipboard('${task.id}')" title="Copy task details to clipboard">📋</button>
                     <button class="edit-btn" onclick="editTask('${task.id}')">Edit</button>
                     <button class="followup-btn" onclick="generateTaskFollowUp('${task.id}')">Follow-up</button>
                     <button class="delete-btn" onclick="deleteTask('${task.id}')">Delete</button>
@@ -1306,4 +1307,237 @@ function copySummary() {
     } else {
         alert('Please generate a summary first');
     }
+}
+
+// Convert HTML to readable plain text
+function htmlToPlainText(html) {
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Replace <br> and </p> with newlines before extracting text
+    tempDiv.innerHTML = tempDiv.innerHTML
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<p[^>]*>/gi, '')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<div[^>]*>/gi, '');
+    
+    // Handle lists
+    const lists = tempDiv.querySelectorAll('ul, ol');
+    lists.forEach(list => {
+        const items = list.querySelectorAll('li');
+        let listText = '';
+        items.forEach((item, index) => {
+            const bullet = list.tagName === 'OL' ? `${index + 1}. ` : '• ';
+            listText += bullet + item.textContent.trim() + '\n';
+        });
+        const textNode = document.createTextNode(listText);
+        list.parentNode.replaceChild(textNode, list);
+    });
+    
+    // Handle blockquotes
+    const blockquotes = tempDiv.querySelectorAll('blockquote');
+    blockquotes.forEach(quote => {
+        const quoteText = '> ' + quote.textContent.trim().replace(/\n/g, '\n> ');
+        const textNode = document.createTextNode(quoteText);
+        quote.parentNode.replaceChild(textNode, quote);
+    });
+    
+    // Handle headers
+    const headers = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headers.forEach(header => {
+        const level = parseInt(header.tagName.charAt(1));
+        const prefix = '#'.repeat(level) + ' ';
+        const headerText = '\n' + prefix + header.textContent.trim() + '\n';
+        const textNode = document.createTextNode(headerText);
+        header.parentNode.replaceChild(textNode, header);
+    });
+    
+    // Handle code blocks
+    const codeBlocks = tempDiv.querySelectorAll('pre, code');
+    codeBlocks.forEach(code => {
+        const codeText = '\n```\n' + code.textContent + '\n```\n';
+        const textNode = document.createTextNode(codeText);
+        code.parentNode.replaceChild(textNode, code);
+    });
+    
+    // Get the final text content
+    let text = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Clean up excessive whitespace
+    text = text
+        .replace(/\n{3,}/g, '\n\n')  // Replace 3+ newlines with 2
+        .replace(/^\s+|\s+$/g, '')   // Trim start and end
+        .replace(/[ \t]+/g, ' ');     // Replace multiple spaces/tabs with single space
+    
+    return text;
+}
+
+// Copy task to clipboard with all details
+async function copyTaskToClipboard(taskId) {
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    // Format task details as structured text
+    let taskText = `=== TASK DETAILS ===\n\n`;
+    taskText += `Title: ${task.title}\n`;
+    taskText += `Customer: ${task.customer_name || 'N/A'}\n`;
+    taskText += `Status: ${task.status}\n`;
+    taskText += `Priority: ${task.priority}\n`;
+    taskText += `Category: ${task.category || 'N/A'}\n`;
+    taskText += `Created: ${new Date(task.created_at).toLocaleString()}\n`;
+    taskText += `Last Updated: ${new Date(task.updated_at).toLocaleString()}\n`;
+    
+    if (task.follow_up_date) {
+        taskText += `Follow-up Date: ${new Date(task.follow_up_date).toLocaleDateString()}\n`;
+    }
+    
+    if (task.assigned_to) {
+        taskText += `Assigned To: ${task.assigned_to}\n`;
+    }
+    
+    // Add objective/project info
+    if (task.topic_id && topics) {
+        const topic = topics.find(t => t.id === task.topic_id);
+        if (topic) {
+            taskText += `Objective: ${topic.title}\n`;
+        }
+    }
+    
+    if (task.project_id && projects) {
+        const project = projects.find(p => p.id === task.project_id);
+        if (project) {
+            taskText += `Project: ${project.title}\n`;
+        }
+    }
+    
+    // Tags
+    if (task.tags) {
+        taskText += `Tags: ${task.tags}\n`;
+    }
+    
+    // Description
+    taskText += `\n=== DESCRIPTION ===\n`;
+    if (task.description) {
+        // Convert HTML to readable plain text
+        taskText += htmlToPlainText(task.description) + '\n';
+    } else {
+        taskText += 'No description provided\n';
+    }
+    
+    // Dependencies
+    if (task.dependencies && task.dependencies.length > 0) {
+        taskText += `\n=== DEPENDENCIES ===\n`;
+        for (const depId of task.dependencies) {
+            const depTask = allTasks.find(t => t.id === depId);
+            if (depTask) {
+                taskText += `• ${depTask.title} (${depTask.status})\n`;
+            }
+        }
+    }
+    
+    // Comments
+    if (task.comments && task.comments.length > 0) {
+        taskText += `\n=== COMMENTS (${task.comments.length}) ===\n`;
+        task.comments.forEach(comment => {
+            const commentDate = new Date(comment.timestamp).toLocaleString();
+            taskText += `\n[${commentDate}] ${comment.author || 'Unknown'}:\n`;
+            // Handle HTML in comments
+            const commentText = comment.text.includes('<') && comment.text.includes('>') 
+                ? htmlToPlainText(comment.text) 
+                : comment.text;
+            taskText += `${commentText}\n`;
+        });
+    }
+    
+    // History
+    if (task.history && task.history.length > 0) {
+        taskText += `\n=== HISTORY (${task.history.length} entries) ===\n`;
+        task.history.forEach(entry => {
+            const historyDate = new Date(entry.timestamp).toLocaleString();
+            taskText += `\n[${historyDate}] ${entry.user || 'System'}:\n`;
+            taskText += `${entry.action}\n`;
+            if (entry.changes) {
+                taskText += `Changes: ${JSON.stringify(entry.changes, null, 2)}\n`;
+            }
+        });
+    }
+    
+    // Attachments
+    if (task.attachments && task.attachments.length > 0) {
+        taskText += `\n=== ATTACHMENTS (${task.attachments.length}) ===\n`;
+        task.attachments.forEach(attachment => {
+            taskText += `• ${attachment.filename} (${formatFileSize(attachment.size)})\n`;
+        });
+    }
+    
+    // AI Summary if available
+    if (task.ai_summary) {
+        taskText += `\n=== AI SUMMARY ===\n`;
+        taskText += task.ai_summary + '\n';
+        if (task.ai_summary_timestamp) {
+            taskText += `Generated: ${new Date(task.ai_summary_timestamp).toLocaleString()}\n`;
+        }
+    }
+    
+    // Copy to clipboard
+    try {
+        await navigator.clipboard.writeText(taskText);
+        
+        // Show success feedback
+        showCopyNotification(`Task "${task.title}" copied to clipboard!`);
+    } catch (err) {
+        console.error('Failed to copy task:', err);
+        alert('Failed to copy task to clipboard. Please try again.');
+    }
+}
+
+// Show copy notification
+function showCopyNotification(message) {
+    // Remove any existing notification
+    const existingNotification = document.querySelector('.copy-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'copy-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: #27ae60;
+        color: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    notification.innerHTML = `
+        <span style="font-size: 1.2em;">📋</span>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
