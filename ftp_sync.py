@@ -533,12 +533,14 @@ class FTPSyncManager:
         return merged
     
     def _cleanup_old_files(self):
-        """Remove old sync files from FTP based on keep_days setting"""
+        """Keep only the 10 most recent sync files per user"""
         try:
-            keep_days = self.sync_settings.get('keep_days', 7)
-            cutoff_date = datetime.now() - timedelta(days=keep_days)
+            max_files_per_user = 10  # Maximum number of sync files to keep per user
             
             files = self.ftp.nlst()
+            
+            # Get all sync files for the current user
+            user_files = []
             for filename in files:
                 if filename.startswith(f'deals_{self.user_id}_'):
                     # Parse timestamp from filename
@@ -548,12 +550,22 @@ class FTPSyncManager:
                             date_str = parts[2]
                             time_str = parts[3] if len(parts) > 3 else '000000'
                             file_date = datetime.strptime(f"{date_str}_{time_str}", '%Y%m%d_%H%M%S')
-                            
-                            if file_date < cutoff_date:
-                                self.ftp.delete(filename)
-                                logger.info(f"Deleted old sync file: {filename}")
+                            user_files.append((filename, file_date))
                     except Exception as e:
                         logger.warning(f"Could not parse date from filename {filename}: {e}")
+            
+            # Sort by date (newest first)
+            user_files.sort(key=lambda x: x[1], reverse=True)
+            
+            # Delete files beyond the limit
+            if len(user_files) > max_files_per_user:
+                files_to_delete = user_files[max_files_per_user:]
+                for filename, file_date in files_to_delete:
+                    try:
+                        self.ftp.delete(filename)
+                        logger.info(f"Deleted old sync file (keeping only {max_files_per_user} most recent): {filename}")
+                    except Exception as e:
+                        logger.error(f"Failed to delete {filename}: {e}")
                         
         except Exception as e:
             logger.error(f"Error during cleanup: {str(e)}")

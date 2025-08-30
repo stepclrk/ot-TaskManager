@@ -3,5 +3,30 @@
     "deal_id": "e7375bab-a50d-4dbc-bd71-592da78755f3",
     "deleted_by": "demo",
     "deleted_at": "2025-08-30T09:00:09.824558"
+  },
+  {
+    "deal_id": "e7375bab-a50d-4dbc-bd71-592da78755f3",
+    "deleted_by": "demo",
+    "deleted_at": "2025-08-30T15:00:51.373027"
+  },
+  {
+    "deal_id": "c4316b78-9e3b-44a2-8f65-7156976fc13a",
+    "deleted_by": "stephen",
+    "deleted_at": "2025-08-30T15:03:32.550328"
+  },
+  {
+    "deal_id": "e7375bab-a50d-4dbc-bd71-592da78755f3",
+    "deleted_by": "demo",
+    "deleted_at": "2025-08-30T15:05:20.201595"
+  },
+  {
+    "deal_id": "2a444d72-a0ae-49be-8abc-7b5f5a7bc746",
+    "deleted_by": "demo",
+    "deleted_at": "2025-08-30T15:05:22.383898"
+  },
+  {
+    "deal_id": "bcafca66-88dd-46de-9fbe-cb6744be3891",
+    "deleted_by": "demo",
+    "deleted_at": "2025-08-30T15:05:24.554318"
   }
 ]
