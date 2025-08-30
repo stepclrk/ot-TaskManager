@@ -1561,14 +1561,133 @@ def mark_comment_read(deal_id, comment_id):
 @app.route('/api/deals/<deal_id>', methods=['DELETE'])
 def delete_deal(deal_id):
     deals = load_deals()
-    original_length = len(deals)
+    settings = load_settings()
+    
+    # Find the deal to get ownership info
+    deal_to_delete = None
+    for deal in deals:
+        if deal['id'] == deal_id:
+            deal_to_delete = deal
+            break
+    
+    if not deal_to_delete:
+        return jsonify({'error': 'Deal not found'}), 404
+    
+    # Remove the deal from the list
     deals = [d for d in deals if d['id'] != deal_id]
+    save_deals(deals)
     
-    if len(deals) < original_length:
-        save_deals(deals)
-        return jsonify({'success': True})
+    # Track the deletion for sync purposes
+    try:
+        # Always track deletions, regardless of sync_enabled status
+        # This ensures deletions are respected even if sync is enabled later
+        deleted_deals_file = os.path.join('data', 'deleted_deals.json')
+        deleted_deals = []
+        
+        # Load existing deletions
+        if os.path.exists(deleted_deals_file):
+            try:
+                with open(deleted_deals_file, 'r') as f:
+                    deleted_deals = json.load(f)
+            except:
+                pass
+        
+        # Add this deletion
+        user_id = deal_to_delete.get('owned_by', settings.get('user_id', 'unknown'))
+        deleted_deals.append({
+            'deal_id': deal_id,
+            'deleted_by': user_id,
+            'deleted_at': datetime.now().isoformat()
+        })
+        
+        # Keep only deletions from last 30 days
+        from datetime import timedelta
+        cutoff = datetime.now() - timedelta(days=30)
+        deleted_deals = [d for d in deleted_deals 
+                        if datetime.fromisoformat(d['deleted_at']) > cutoff]
+        
+        # Save the updated list
+        with open(deleted_deals_file, 'w') as f:
+            json.dump(deleted_deals, f, indent=2)
+            
+        app.logger.info(f"Tracked deletion of deal {deal_id} by {user_id}")
+    except Exception as e:
+        app.logger.error(f"Error tracking deal deletion: {str(e)}")
     
-    return jsonify({'error': 'Deal not found'}), 404
+    return jsonify({'success': True})
+
+# Funny Comments endpoints
+@app.route('/api/funny-comments', methods=['GET'])
+def get_funny_comments():
+    """Get funny comments for the character mascot"""
+    try:
+        # Try to load from local file first
+        comments_file = os.path.join('data', 'funny_comments.json')
+        if os.path.exists(comments_file):
+            with open(comments_file, 'r') as f:
+                data = json.load(f)
+                return jsonify(data)
+        else:
+            # Return default comments if file doesn't exist
+            return jsonify({
+                'comments': [
+                    {
+                        'id': '1',
+                        'text': 'Hello! I\'m Tasky, your friendly task assistant!',
+                        'category': 'greeting',
+                        'mood': 'cheerful'
+                    }
+                ],
+                'settings': {
+                    'min_interval_minutes': 10,
+                    'max_interval_minutes': 30,
+                    'character_name': 'Tasky',
+                    'character_emoji': '🤖'
+                }
+            })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/funny-comments/sync', methods=['POST'])
+def sync_funny_comments():
+    """Download funny comments from FTP if available"""
+    try:
+        settings = load_settings()
+        if not settings.get('sync_enabled'):
+            return jsonify({'success': False, 'message': 'Sync not enabled'}), 400
+            
+        sync_manager = FTPSyncManager(settings)
+        
+        # Try to download funny_comments.json from FTP
+        if sync_manager.connect():
+            try:
+                # Download the file
+                remote_file = 'funny_comments.json'
+                local_file = os.path.join('data', 'funny_comments.json')
+                
+                sync_manager.ftp.retrbinary(f'RETR {remote_file}', 
+                                          open(local_file, 'wb').write)
+                sync_manager.disconnect()
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Funny comments synced successfully'
+                })
+            except Exception as e:
+                sync_manager.disconnect()
+                # File might not exist on FTP yet, not a critical error
+                return jsonify({
+                    'success': False,
+                    'message': f'Comments file not found on FTP: {str(e)}'
+                }), 404
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Could not connect to FTP server'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # FTP Sync endpoints
 @app.route('/api/sync/upload', methods=['POST'])

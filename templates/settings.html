@@ -305,6 +305,54 @@
                 </div>
             </div>
 
+            <!-- Funny Character Section -->
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3>🤖 Tasky Character Settings</h3>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <form id="characterSettingsForm">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="characterEnabled" checked>
+                            Enable Tasky (Funny Character Assistant)
+                        </label>
+                        <small>Show occasional fun comments and encouragement</small>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="characterSoundEnabled">
+                            Enable Sound Effects
+                        </label>
+                        <small>Play subtle sounds when character appears</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="characterFrequency">Appearance Frequency</label>
+                        <select id="characterFrequency">
+                            <option value="frequent">Frequent (5-15 minutes)</option>
+                            <option value="normal" selected>Normal (10-30 minutes)</option>
+                            <option value="rare">Rare (30-60 minutes)</option>
+                        </select>
+                        <small>How often should Tasky appear with comments?</small>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="testCharacterBtn" class="btn btn-secondary">Test Character</button>
+                        <button type="button" id="syncCommentsBtn" class="btn btn-secondary">Sync Comments from FTP</button>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button type="submit" class="btn btn-primary">Save Character Settings</button>
+                        <span class="save-indicator" id="characterSaveIndicator">✓ Saved</span>
+                    </div>
+                </form>
+                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                    <small>
+                        Tasky will appear randomly with fun facts, jokes, and motivational messages. 
+                        Comments are synced from the team FTP server so everyone gets the same jokes!
+                        You can dismiss Tasky anytime by clicking the X button.
+                    </small>
+                </div>
+            </div>
+
             <!-- Deal Configuration Section -->
             <div class="section-header" onclick="toggleSection(this)">
                 <h3>💼 Deal Configuration</h3>
@@ -489,5 +537,6 @@
     <script src="/static/js/sidebar.js"></script>
     <script src="/static/js/settings.js"></script>
     <script src="/static/js/quick-actions.js"></script>
+    <script src="/static/js/funny_character.js"></script>
 </body>
 </html>

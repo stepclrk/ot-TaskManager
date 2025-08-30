@@ -179,6 +179,7 @@ class FTPSyncManager:
                 'user_id': self.user_id,
                 'timestamp': datetime.now().isoformat(),
                 'active_deal_ids': [d['id'] for d in deals_data if d.get('owned_by') == self.user_id],
+                'deleted_deals': self._get_deleted_deals(),  # Track deleted deals with timestamps
                 'deals': deals_data
             }
             
@@ -269,11 +270,13 @@ class FTPSyncManager:
                         remote_deals = remote_data['deals']
                         remote_user = remote_data.get('user_id')
                         active_deal_ids = remote_data.get('active_deal_ids', [])
+                        remote_deleted_deals = remote_data.get('deleted_deals', [])
                     else:
                         # Old format - just a list of deals
                         remote_deals = remote_data
                         remote_user = None
                         active_deal_ids = None
+                        remote_deleted_deals = []
                     
                     # Merge deals
                     current_deals, merge_stats = self._merge_deals(
@@ -281,7 +284,8 @@ class FTPSyncManager:
                         remote_deals,
                         filename,
                         remote_user,
-                        active_deal_ids
+                        active_deal_ids,
+                        remote_deleted_deals
                     )
                     
                     # Update sync report
@@ -312,7 +316,8 @@ class FTPSyncManager:
             self.disconnect()
     
     def _merge_deals(self, local_deals: List[Dict], remote_deals: List[Dict], source_file: str, 
-                     remote_user: str = None, active_deal_ids: List[str] = None) -> Tuple[List[Dict], Dict]:
+                     remote_user: str = None, active_deal_ids: List[str] = None,
+                     remote_deleted_deals: List[Dict] = None) -> Tuple[List[Dict], Dict]:
         """
         Merge remote deals with local deals and handle deletions
         
@@ -322,16 +327,35 @@ class FTPSyncManager:
             source_file: Name of the source file
             remote_user: User ID who created the sync file
             active_deal_ids: List of deal IDs that are still active for the remote user
+            remote_deleted_deals: List of deals deleted by the remote user
             
         Returns:
             Tuple of (merged_deals, merge_statistics)
         """
-        merge_stats = {'new': 0, 'updated': 0, 'deleted': 0, 'conflicts': []}
+        merge_stats = {'new': 0, 'updated': 0, 'deleted': 0, 'conflicts': [], 'skipped_deleted': 0}
         local_deals_dict = {deal['id']: deal for deal in local_deals}
+        
+        # Get local deleted deals list
+        local_deleted_deals = self._get_deleted_deals()
+        local_deleted_ids = {d['deal_id'] for d in local_deleted_deals}
+        
+        # Also track remote deleted deals
+        if remote_deleted_deals:
+            for deleted_deal in remote_deleted_deals:
+                if deleted_deal['deal_id'] not in local_deleted_ids:
+                    # Track this deletion locally too
+                    self._save_deleted_deal(deleted_deal['deal_id'], deleted_deal['deleted_by'])
+                    local_deleted_ids.add(deleted_deal['deal_id'])
         
         for remote_deal in remote_deals:
             deal_id = remote_deal.get('id')
             if not deal_id:
+                continue
+            
+            # Skip if this deal has been deleted locally
+            if deal_id in local_deleted_ids:
+                merge_stats['skipped_deleted'] += 1
+                logger.info(f"Skipping deal {deal_id} - marked as deleted")
                 continue
             
             if deal_id not in local_deals_dict:
@@ -378,10 +402,13 @@ class FTPSyncManager:
             deals_to_remove = []
             for deal in local_deals:
                 if (deal.get('owned_by') == remote_user and 
-                    deal['id'] not in active_deal_ids):
+                    deal['id'] not in active_deal_ids and
+                    deal['id'] not in local_deleted_ids):  # Don't remove if already tracked as deleted
                     # This deal was deleted by the remote user
                     deals_to_remove.append(deal['id'])
                     merge_stats['deleted'] += 1
+                    # Track this deletion
+                    self._save_deleted_deal(deal['id'], remote_user)
                     logger.info(f"Removing deleted deal: {deal.get('customerName', 'Unknown')} (owned by {remote_user})")
             
             # Remove the deleted deals
@@ -595,6 +622,39 @@ class FTPSyncManager:
         os.makedirs('data', exist_ok=True)
         with open(synced_files_path, 'w') as f:
             json.dump(list(filtered), f, indent=2)
+    
+    def _get_deleted_deals(self) -> List[Dict]:
+        """Get list of deleted deals with timestamps"""
+        deleted_deals_file = os.path.join('data', 'deleted_deals.json')
+        if os.path.exists(deleted_deals_file):
+            try:
+                with open(deleted_deals_file, 'r') as f:
+                    return json.load(f)
+            except:
+                pass
+        return []
+    
+    def _save_deleted_deal(self, deal_id: str, user_id: str):
+        """Save a deleted deal to the tracking file"""
+        deleted_deals_file = os.path.join('data', 'deleted_deals.json')
+        deleted_deals = self._get_deleted_deals()
+        
+        # Add the new deletion
+        deleted_deals.append({
+            'deal_id': deal_id,
+            'deleted_by': user_id,
+            'deleted_at': datetime.now().isoformat()
+        })
+        
+        # Keep only deletions from last 30 days
+        cutoff = datetime.now() - timedelta(days=30)
+        deleted_deals = [d for d in deleted_deals 
+                        if datetime.fromisoformat(d['deleted_at']) > cutoff]
+        
+        # Save the updated list
+        os.makedirs('data', exist_ok=True)
+        with open(deleted_deals_file, 'w') as f:
+            json.dump(deleted_deals, f, indent=2)
     
     def get_sync_status(self) -> Dict:
         """Get current sync status and statistics"""

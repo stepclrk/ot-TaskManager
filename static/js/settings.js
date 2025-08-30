@@ -14,11 +14,15 @@ function showNotification(message, type = 'info') {
     // Show animation
     setTimeout(() => notification.classList.add('show'), 10);
     
-    // Remove after 3 seconds
+    // Remove after 6 seconds
     setTimeout(() => {
         notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                notification.remove();
+            }
+        }, 300);
+    }, 6000);
 }
 
 function showSaveIndicator(indicatorId) {
@@ -92,6 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addCsmLocationBtn').addEventListener('click', () => addItem('csmLocations'));
     
     document.getElementById('addTemplateBtn').addEventListener('click', addTemplate);
+    
+    // Character settings
+    initializeCharacterSettings();
     
     document.getElementById('saveAllBtn').addEventListener('click', saveAllConfig);
     document.getElementById('resetBtn').addEventListener('click', resetToDefaults);
@@ -741,4 +748,81 @@ function displaySyncLog(status) {
     }
     
     logContainer.innerHTML = html;
+}
+
+// Character Settings Functions
+function initializeCharacterSettings() {
+    // Load saved preferences
+    const prefs = JSON.parse(localStorage.getItem('characterPreferences') || '{}');
+    
+    // Set form values
+    document.getElementById('characterEnabled').checked = prefs.enabled !== false;
+    document.getElementById('characterSoundEnabled').checked = prefs.soundEnabled === true;
+    
+    // Set frequency
+    if (prefs.frequency) {
+        document.getElementById('characterFrequency').value = prefs.frequency;
+    }
+    
+    // Add event listeners
+    document.getElementById('characterSettingsForm').addEventListener('submit', saveCharacterSettings);
+    document.getElementById('testCharacterBtn').addEventListener('click', testCharacter);
+    document.getElementById('syncCommentsBtn').addEventListener('click', syncFunnyComments);
+}
+
+async function saveCharacterSettings(e) {
+    e.preventDefault();
+    
+    const prefs = {
+        enabled: document.getElementById('characterEnabled').checked,
+        soundEnabled: document.getElementById('characterSoundEnabled').checked,
+        frequency: document.getElementById('characterFrequency').value
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('characterPreferences', JSON.stringify(prefs));
+    
+    // Apply settings immediately
+    if (window.funnyCharacter) {
+        if (prefs.enabled) {
+            window.funnyCharacter.enable();
+        } else {
+            window.funnyCharacter.disable();
+        }
+    }
+    
+    showSaveIndicator('characterSaveIndicator');
+    showNotification('Character settings saved!', 'success');
+}
+
+function testCharacter() {
+    // Show the character immediately for testing
+    if (window.funnyCharacter) {
+        window.funnyCharacter.show(null, false);
+    } else {
+        showNotification('Character not loaded yet. Please refresh the page.', 'warning');
+    }
+}
+
+async function syncFunnyComments() {
+    try {
+        const response = await fetch('/api/funny-comments/sync', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            showNotification('Funny comments synced from FTP!', 'success');
+            // Reload comments in character
+            if (window.funnyCharacter) {
+                window.funnyCharacter.reload();
+            }
+        } else if (response.status === 404) {
+            showNotification('No funny comments file found on FTP', 'info');
+        } else {
+            showNotification('Failed to sync funny comments', 'error');
+        }
+    } catch (error) {
+        console.error('Error syncing funny comments:', error);
+        showNotification('Error syncing funny comments', 'error');
+    }
 }

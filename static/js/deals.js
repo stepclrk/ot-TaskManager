@@ -1188,13 +1188,15 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(notification);
     
-    // Remove notification after 3 seconds
+    // Remove notification after 6 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
         }, 300);
-    }, 3000);
+    }, 6000);
 }
 
 // Add animation styles

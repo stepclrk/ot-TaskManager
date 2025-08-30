@@ -1,103 +1,5 @@
 [
   {
-    "timestamp": "2025-08-29T14:41:41.638063",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_144141.json",
-    "user_id": "stephen",
-    "deal_count": 0
-  },
-  {
-    "timestamp": "2025-08-29T14:42:35.524077",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_144235.json",
-    "user_id": "stephen",
-    "deal_count": 0
-  },
-  {
-    "timestamp": "2025-08-29T14:43:48.160021",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_144347.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
-    "timestamp": "2025-08-29T14:44:54.889103",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_144454.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
-    "timestamp": "2025-08-29T14:54:36.894630",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_145436.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
-    "timestamp": "2025-08-29T14:55:08.948724",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_145508.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
-    "timestamp": "2025-08-29T15:09:58.149900",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_150957.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
-    "timestamp": "2025-08-29T15:10:41.417482",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_151040.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
-    "timestamp": "2025-08-29T15:11:19.241003",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_151118.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
-    "timestamp": "2025-08-29T15:13:49.791365",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_151349.json",
-    "user_id": "stephen",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T15:26:22.449195",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_152621.json",
-    "user_id": "stephen",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T15:28:25.086335",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_152824.json",
-    "user_id": "stephen",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T15:33:10.712603",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_153310.json",
-    "user_id": "stephen",
-    "deal_count": 0
-  },
-  {
-    "timestamp": "2025-08-29T15:37:50.810454",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_153750.json",
-    "user_id": "stephen",
-    "deal_count": 1
-  },
-  {
     "timestamp": "2025-08-29T15:40:47.764193",
     "action": "upload",
     "filename": "deals_stephen_20250829_154047.json",
@@ -397,5 +299,404 @@
     "filename": "deals_demo_20250829_183003.json",
     "user_id": "demo",
     "deal_count": 3
+  },
+  {
+    "timestamp": "2025-08-30T07:30:13.646459",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073013.json",
+    "user_id": "demo",
+    "deal_count": 3
+  },
+  {
+    "timestamp": "2025-08-30T07:30:16.456535",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073016.json",
+    "user_id": "demo",
+    "deal_count": 3
+  },
+  {
+    "timestamp": "2025-08-30T07:31:11.586842",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073111.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:35:49.849736",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073549.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:35:52.249690",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073551.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:35:56.644201",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073556.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:36:20.632882",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073620.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:36:22.815644",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073622.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:36:25.988302",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073625.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:36:29.106036",
+    "action": "upload",
+    "filename": "deals_demo_20250830_073628.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:42:28.774070",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074228.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:42:55.023538",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074254.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:43:57.657098",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074357.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:45:17.212345",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074516.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:45:46.868079",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074546.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T07:47:24.613261",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074724.json",
+    "user_id": "demo",
+    "deal_count": 3
+  },
+  {
+    "timestamp": "2025-08-30T07:47:47.390842",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074746.json",
+    "user_id": "demo",
+    "deal_count": 3
+  },
+  {
+    "timestamp": "2025-08-30T07:49:37.933212",
+    "action": "upload",
+    "filename": "deals_demo_20250830_074937.json",
+    "user_id": "demo",
+    "deal_count": 3
+  },
+  {
+    "timestamp": "2025-08-30T07:51:13.290574",
+    "action": "upload",
+    "filename": "deals_demo_20250830_075112.json",
+    "user_id": "demo",
+    "deal_count": 3
+  },
+  {
+    "timestamp": "2025-08-30T07:51:29.526110",
+    "action": "upload",
+    "filename": "deals_demo_20250830_075129.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T07:55:05.937876",
+    "action": "upload",
+    "filename": "deals_demo_20250830_075505.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T07:55:45.398839",
+    "action": "upload",
+    "filename": "deals_demo_20250830_075544.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T07:55:51.324801",
+    "action": "upload",
+    "filename": "deals_demo_20250830_075550.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:18:33.551696",
+    "action": "upload",
+    "filename": "deals_demo_20250830_081833.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:18:57.290038",
+    "action": "upload",
+    "filename": "deals_demo_20250830_081856.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:19:01.728445",
+    "action": "upload",
+    "filename": "deals_demo_20250830_081901.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:19:40.574796",
+    "action": "upload",
+    "filename": "deals_demo_20250830_081940.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:21:43.508018",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082143.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:27:12.682422",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082712.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:27:35.417519",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082734.json",
+    "user_id": "demo",
+    "deal_count": 6
+  },
+  {
+    "timestamp": "2025-08-30T08:27:38.622005",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082738.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:27:51.628712",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082751.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:28:35.931866",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082835.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:28:43.202030",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082842.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:28:46.403163",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082845.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:29:14.911393",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082914.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:29:30.402571",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082930.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:29:31.913335",
+    "action": "upload",
+    "filename": "deals_demo_20250830_082931.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:30:49.960341",
+    "action": "upload",
+    "filename": "deals_demo_20250830_083049.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:30:59.682474",
+    "action": "upload",
+    "filename": "deals_demo_20250830_083059.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:45:35.021654",
+    "action": "upload",
+    "filename": "deals_demo_20250830_084534.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:45:44.897092",
+    "action": "upload",
+    "filename": "deals_demo_20250830_084544.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:46:47.773275",
+    "action": "upload",
+    "filename": "deals_demo_20250830_084647.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:46:58.065044",
+    "action": "upload",
+    "filename": "deals_demo_20250830_084657.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:47:37.233744",
+    "action": "upload",
+    "filename": "deals_demo_20250830_084736.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:51:50.948264",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085150.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:52:02.316932",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085201.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:52:03.811423",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085203.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:52:09.517804",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085209.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:52:13.045883",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085212.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:52:37.081392",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085236.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:55:57.568375",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085557.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:56:11.488373",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085611.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:56:49.437995",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085649.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:57:16.702047",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085716.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-30T08:57:23.721089",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085723.json",
+    "user_id": "demo",
+    "deal_count": 5
+  },
+  {
+    "timestamp": "2025-08-30T08:58:45.459915",
+    "action": "upload",
+    "filename": "deals_demo_20250830_085845.json",
+    "user_id": "demo",
+    "deal_count": 5
   }
 ]

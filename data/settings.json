@@ -22,7 +22,7 @@
   "sync_settings": {
     "conflict_strategy": "newest_wins",
     "keep_days": 7,
-    "auto_sync_interval": 60,
+    "auto_sync_interval": 1500,
     "upload_on_change": true
   }
 }

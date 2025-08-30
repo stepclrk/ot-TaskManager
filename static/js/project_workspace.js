@@ -497,8 +497,12 @@ function showNotification(message, type = 'info') {
     
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                notification.remove();
+            }
+        }, 300);
+    }, 6000);
 }
 
 function escapeHtml(text) {

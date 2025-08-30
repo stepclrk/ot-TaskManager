@@ -1636,11 +1636,15 @@ function showCopyNotification(message) {
     
     document.body.appendChild(notification);
     
-    // Remove after 3 seconds
+    // Remove after 6 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                notification.remove();
+            }
+        }, 300);
+    }, 6000);
 }
 
 // Helper function to format file size

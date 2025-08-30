@@ -1,38 +1,101 @@
 [
   {
-    "salesforceId": "3131eee31321",
-    "customerName": "eeeee",
+    "salesforceId": "006dO000002sURN",
+    "customerName": "Lloyds Bank (Scottish Widows)",
     "customerType": "New Customer",
-    "dealType": "BNCF",
+    "dealType": "BNCE",
     "dealStatus": "Open",
     "csmLocation": "Onshore",
-    "csmAllocation": "",
-    "dealForecast": "",
+    "csmAllocation": "15",
+    "dealForecast": "600340.94",
     "dealActual": "",
-    "dealSummary": "",
-    "id": "c2ea7f2e-3aad-452c-af41-ca4005c27900",
-    "created_at": "2025-08-29T15:12:38.483496",
-    "updated_at": "2025-08-29T15:12:38.483509",
-    "created_by": "doerte",
-    "owned_by": "doerte",
-    "notes": [],
-    "sync_metadata": {
-      "last_synced": "2025-08-29T18:30:03.966790",
-      "synced_by": "demo",
-      "imported_from": "deals_doerte_20250829_162239.json",
-      "imported_at": "2025-08-29T16:23:27.222880",
-      "last_merged": "2025-08-29T16:14:54.263614",
-      "merged_from": "deals_stephen_20250829_154147.json"
-    },
-    "comments": [
+    "dealSummary": "<p><strong>Scope: EasyLink (FTS) Replacement Solution, Client is new customer, Buy/Sell-side program,</strong></p><p><br></p><p><strong>If the client chooses full P2P mapping, then:</strong></p><p><strong>All P2P Maps: 0 maps (0 base, 0 clone, 0 complex, 0 FS Complex), Sales Assumption,</strong></p><p><strong>Forms (IWF 0, TG4E 0)</strong></p><p><br></p><p><strong>1 Total TPs, 0 existing TPs (0 direct, 0 VAN), 1 new TPs (1 direct, 0 VAN),</strong></p><p><strong>AT with 1 TPs, Schedule:&nbsp;Project Duration in wks (SI/CL/Total): 7/0/9, Start Date: Not Specified, End Date: Not Specified,&nbsp;Resource Allocation:&nbsp;All resources within recommended guidelines.</strong></p><p><br></p><p><strong>Notes:</strong></p><p><strong>- Receive files from Lloyds using SFTP and sending these files on to a FTS Gateway (EasyLink legacy service that runs out of OT data center (Slough)).</strong></p><p><strong>- Customer backend connections: SFTP connection (Lloyds acting as SFTP client, OT to be SFTP Server)</strong></p><p><strong>- Create an MS platform</strong></p><p><strong>- Set-up an sFTP connection to Lloyds back</strong></p><p><strong>- Implement a Passthru flow</strong></p><p><strong>- Send files to external Easylink service \u2018FTS Gateway\u2019</strong></p><p><strong>- FTS Gateway will handle the delivery of the files to external partner</strong></p><p><strong>- Average monthly KC: 1000000</strong></p><p><strong>- 1 go live event</strong></p><p><br></p><p><strong>Assumptions:</strong></p><p><strong>- All FTS Gateway-related configurations are out of scope for this SRQ and are quoted separately by the remaining EasyLink support team&nbsp;</strong></p>",
+    "id": "c1adfbb9-a1af-412d-b216-8dfa66ae7d50",
+    "created_at": "2025-08-28T14:50:30.283614",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "updated_at": "2025-08-29T16:51:39.184363",
+    "updated_by": "stephen",
+    "notes": [
       {
-        "text": "dgfhdgfhdhgdh",
-        "id": "c3851344-9f6e-4f10-a784-e5830702fd16",
-        "author": "stephen",
-        "timestamp": "2025-08-29T16:07:05.614000",
-        "read": false
+        "text": "<p>Discussion was had today on the cost and support of the FTS setups.  Currently we do not charge anything on the easylink FTS Gateway when something needs to be setup, the ask from sales was could this continue.</p><p><br></p><p>In order to understand this a few points are noted</p><p><br></p><ul><li>No action needed on TG MS side as all data is sent to easylink FTS gateway via a single SFTP mailbox</li><li>Support is John Skouros, Darren Ellis and Suzzane Ekford and this will continue and need to determine how to push a request to this team if / when required</li><li>CSM overhead to manage this process</li><li>Platform availability does not cover Easylink FTS, and will be called out in the SOF (confirmed by Sven)</li><li>Support do not offer resolution time on Easylink FTS and will be called out in the SOF (confirmed by Sven)</li><li>Swami confirmed no TG effort needed</li></ul><p><br></p><p>Larger concerns exist on the long term platform as this is a very old solution which has no technical solution knowledge for any changes and support is limited to 3 individuals.</p>",
+        "id": "ba400604-1db0-4271-b733-a04185daf119",
+        "timestamp": "2025-08-28T14:56:51.274095"
       }
-    ]
+    ],
+    "sync_metadata": {
+      "last_synced": "2025-08-30T08:58:45.095873",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250830_011818.json",
+      "imported_at": "2025-08-30T07:30:17.132227"
+    }
+  },
+  {
+    "salesforceId": "006dO000004UYd3",
+    "customerName": "OBI",
+    "customerType": "New Customer",
+    "dealType": "BNCE",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "10",
+    "dealForecast": "429000",
+    "dealActual": "",
+    "dealSummary": "<p>     Scope: BBI - e-Invoicing DE Solution, Client is new customer, Buy/Sell-side program,</p><p> </p><p> If the client chooses full P2P mapping, then:</p><p> All P2P Maps: 24 maps (0 base, 0 clone, 24 complex, 0 FS Complex), Sales Assumption,</p><p> Forms (IWF 0, TG4E 0)</p><p> </p><p> Request to Hire: (x ContractOnshore_Hire, y ContractOffshore_Hire, z ContractNearshore_Hire, x CAPOnshore_Hire, y CAPOffshore_Hire, z CAPNearshore_Hire)</p><p> </p><p> 2 Total TPs, 0 existing TPs (0 direct, 0 VAN), 2 new TPs (2 direct, 0 VAN),</p><p> AT with 10 TPs, Schedule:&nbsp;Project Duration in wks (SI/CL/Total): 20/0/22, Start Date: Not Specified, End Date: Not Specified,&nbsp;Resource Allocation:&nbsp;All resources within recommended guidelines.</p><p> </p><p> Notes:</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;New TG Customer with project for eInvoicing Germany, sending e-Invoices in ZugFeRD + Xrechnung via eMail and PEPPOL</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;ZUGFeRD format invoices to be sent via SMTP Relay using common mailbox approach</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;XRechnung CII &amp; PEPPOL Bis3 UBL to be sent using PEPPOL common mailbox feature</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Inbound is out of scope</p><p> </p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Reduced EMEA CSM allocation approved by Steve C at five percent (5%) offshore.&nbsp;Note that if this reduced option is applied then request for German speaking CSM is rejected as OT cannot provide German speaking offshore CSM resource</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Sales request a CSM allocation option at ten percent (10%) onshore, see separate EE</p><p> &nbsp;</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Eight (8) new customer backend connection, SFTP (Server) per Sales assumption</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) LENS User Group</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Twenty five (25) divisiosn of divisional security</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Two (2) transaction type : Invoice and Credit Note outbound</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Correlation included for all twenty four (24) maps</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;ERC not included, assumption is Customer will be mandate ready</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Customer will not be able to provide 30 days of test data</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Forty percent (40%) map reduction applied on assumption of Non-EDI TP AIC Mandate Deals with use of Biz (not AI) mapping per Deb Russell</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Direct Connects sales assumption :&nbsp;</p><p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 25 x PEPPOL Customer IDs for Germany, assumption OT will utilise the Global/common PEPPOL approach </p><p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- PEPPOL schematron validation for one (1) format (Germany) (PS effort per Bastien in Other Needs)</p><p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 1 x generic STMP email mailbox (Germany) to send invoices PDF to TP via SMTP Relay</p><p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- One (1) x SMTP relay to configure (1 per country) on outbound emails. the outgoing email will appear to have been sent by customer email account (PS effort in Other Needs)</p><p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Email template will not be customised, per Nell no additional PS effort needed for this requirement</p><p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Email bouncebacks/send failures will be handled by client as they will not be received by OT</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Remote kickoff</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Project Manager &amp; Delivery Manager requested to be English and German speaking.&nbsp;OT will endeavor to provide German speaking resources.&nbsp;In the event that German speaking resources shall not be readily available, we reserve the right to deploy English speaking until such time that a resource becomes available</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Average monthly KC: 1,500,000</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) Go-live</p><p> </p><p> &nbsp;&nbsp;-&nbsp;&nbsp;BNS is requested to be both German and English speaking</p><p> </p><p> &nbsp;AIC -&nbsp;Domestic, Germany</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Twenty five (25) Customer legal entity profile - In Other Needs per AIC estimation calculator</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Three (3) unique input AIC invoice formats</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Three (3) AIC Map in scope (in separate EE)</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Two (2) eBiller TP (1 profile ZUGFeRD eMail &amp; 1 profile Xrechnung PEPPOL)</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;eBiller Invoices Sent per Month - Unsigned : 150,000</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;AIC consultant for 16 hrs per country per SOP, to be exercised during project</p><p> </p><p> &nbsp;Additional</p><p> - OT will not integrate any individual TPs</p><p> &nbsp;</p><p>                  </p>",
+    "id": "88cfc96e-086b-4342-a8f0-3e0898d838f8",
+    "created_at": "2025-08-28T15:17:56.095499",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "updated_at": "2025-08-29T16:51:52.809704",
+    "updated_by": "stephen",
+    "notes": [
+      {
+        "text": "<p>Sales requested a reduced CSM and so approved a 5% Offshore on the 26th August</p>",
+        "id": "48f02fc6-d031-4bc8-804f-7016a919a06c",
+        "timestamp": "2025-08-28T15:18:51.754260"
+      },
+      {
+        "text": "<p>28th August, sales have asked for optional 10% Onshore.</p>",
+        "id": "d491af8b-5a16-4775-babf-dcd832445a79",
+        "timestamp": "2025-08-28T15:19:20.195315"
+      }
+    ],
+    "sync_metadata": {
+      "last_synced": "2025-08-30T08:58:45.095889",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250830_011818.json",
+      "imported_at": "2025-08-30T07:30:17.133237"
+    }
+  },
+  {
+    "salesforceId": "006J5000002Vdga",
+    "customerName": "Feilo Sylvania",
+    "customerType": "Existing Customer",
+    "dealType": "eInvoicing",
+    "dealStatus": "Open",
+    "csmLocation": "",
+    "csmAllocation": "",
+    "dealForecast": "291001.08",
+    "dealActual": "",
+    "dealSummary": "<p>         Scope: Belgium e-Invoicing Solution, Client is existing MS - GXS (after Sept 1, 2016) customer, Buy/Sell-side program,</p><p> </p><p> If the client chooses full P2P mapping, then:</p><p> All P2P Maps: 4 maps (0 base, 0 clone, 4 complex, 0 FS Complex), Sales Assumption,</p><p> Forms (IWF 0, TG4E 0)</p><p> </p><p> Request to Hire: (x ContractOnshore_Hire, y ContractOffshore_Hire, z ContractNearshore_Hire, x CAPOnshore_Hire, y CAPOffshore_Hire, z CAPNearshore_Hire)</p><p> </p><p> 2 Total TPs, 0 existing TPs (0 direct, 0 VAN), 2 new TPs (2 direct, 0 VAN),</p><p> AT with 2 TPs, Schedule:&nbsp;Project Duration in wks (SI/CL/Total): 18/0/20, Start Date: Not Specified, End Date: Not Specified,&nbsp;Resource Allocation:&nbsp;All resources within recommended guidelines.</p><p> </p><p> Notes:</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Existing Customer adding Belgian mandate support&nbsp;</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Deal desk to include the BN Advisory services form into the P&amp;L - Timeline of three (3) weeks (reduced from ERC of five (5) weeks per SOP) included into this Implementation gantt </p><p> &nbsp;&nbsp;-&nbsp;&nbsp;No (0) incremental EMEA CSM added, (Customer has a 15% onshore allocation)</p><p> </p><p> \u2022&nbsp;PCR-14430: Belgium 2026 Mandate&nbsp;(25.4 release, October 2025)</p><p> </p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Project to commence no later than 18 August 2025 to meet requested final GL so Production traffic ready for January 1, 2026 </p><p> SALES TO RESET CUSTOMER EXPECTATION ON MEETING THE MANDATE DEADLINE, project will miss the deadline and will be delivered by OT on best endevours</p><p> </p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) new AS2 backend connection</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) new division of divisional security</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) new LENS User Group to be configured</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) transaction types : Peppol invoices</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Correlation included for two (2) complex maps</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;ERC included for the outbound mapping</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Forty percent (40%) map reduction applied on assumption of eInvoice deal with use of Biz (not AI) mapping on Customer's existing TG env.</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Direct Connects sales assumption :&nbsp;</p><p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 2 x PEPPOL connection for Belgium using the common mailbox feature</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Average monthly KC: 33,750</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) Go-live requested</p><p> &nbsp;</p><p> &nbsp;AIC -&nbsp;Domestic - Belgium</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;Two (2) Customer legal entity profile - In Other Needs per AIC estimation calculator</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) unique input AIC invoice format</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) AIC Map&nbsp;(in separate EE)&nbsp;</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) eBuyer TP (generic profile)</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;eBuyer Invoices Rec per Month - unsigned : 100</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;One (1) eBiller TP (generic profile)</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;eBiller Invoices Sent per Month - unsigned : 1,250</p><p> &nbsp;&nbsp;-&nbsp;&nbsp;AIC consultant for 16 hrs per country per SOP, to be exercised during project</p><p> </p><p> Additional</p><p> - OT will not integrate any individual TPs</p><p> </p><p>                  </p>",
+    "id": "5955567f-1707-4834-8c5b-7b987622dc3f",
+    "created_at": "2025-08-29T12:35:55.029946",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "updated_at": "2025-08-29T16:52:00.239494",
+    "updated_by": "stephen",
+    "notes": [
+      {
+        "text": "<p>Approved No incremental CSM on this deal</p>",
+        "id": "8a839b1a-9c00-40bd-88d2-4537e1029a3d",
+        "timestamp": "2025-08-29T12:40:27.865023"
+      }
+    ],
+    "sync_metadata": {
+      "last_synced": "2025-08-30T08:58:45.095891",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250830_011818.json",
+      "imported_at": "2025-08-30T07:30:17.133420"
+    }
   },
   {
     "salesforceId": "test",
@@ -52,34 +115,45 @@
     "owned_by": "andy",
     "notes": [],
     "sync_metadata": {
-      "last_synced": "2025-08-29T18:30:03.966795",
+      "last_synced": "2025-08-30T08:58:45.095892",
       "synced_by": "demo",
-      "imported_from": "deals_andy_20250829_171232.json",
-      "imported_at": "2025-08-29T17:25:54.068314"
-    }
+      "imported_from": "deals_stephen_20250830_081825.json",
+      "imported_at": "2025-08-30T08:18:34.283762"
+    },
+    "comments": [
+      {
+        "text": "This is a comments from Steve",
+        "id": "68ca4376-73c2-4721-b690-0fa6973a924b",
+        "author": "stephen",
+        "timestamp": "2025-08-29T18:38:16.304283",
+        "read": false
+      }
+    ]
   },
   {
-    "salesforceId": "sdfg",
-    "customerName": "sdfg",
+    "salesforceId": "SF-67890",
+    "customerName": "someone",
     "customerType": "New Customer",
     "dealType": "Advisory",
     "dealStatus": "Won",
-    "csmLocation": "Offshore",
+    "csmLocation": "",
     "csmAllocation": "",
     "dealForecast": "",
     "dealActual": "",
     "dealSummary": "",
-    "date_won": "2025-08-29",
-    "id": "3a115024-8cc2-482d-9c4c-b6964fd2a8d7",
-    "created_at": "2025-08-29T18:29:53.562034",
-    "updated_at": "2025-08-29T18:29:53.562042",
+    "date_won": "2025-08-30",
+    "id": "e7375bab-a50d-4dbc-bd71-592da78755f3",
+    "created_at": "2025-08-30T08:56:08.582008",
+    "updated_at": "2025-08-30T08:56:08.582022",
     "created_by": "demo",
     "owned_by": "demo",
     "notes": [],
     "financial_year": "FY26",
     "sync_metadata": {
-      "last_synced": "2025-08-29T18:30:03.966796",
-      "synced_by": "demo"
+      "last_synced": "2025-08-30T08:58:45.095893",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250830_085702.json",
+      "imported_at": "2025-08-30T08:57:17.370989"
     }
   }
 ]

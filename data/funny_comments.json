@@ -1,0 +1,131 @@
+{
+  "comments": [
+    {
+      "id": "1",
+      "text": "Did you know? The first computer bug was an actual bug - a moth trapped in a relay!",
+      "category": "tech_facts",
+      "mood": "cheerful"
+    },
+    {
+      "id": "2",
+      "text": "Coffee: because adulting is hard!",
+      "category": "motivation",
+      "mood": "supportive"
+    },
+    {
+      "id": "3",
+      "text": "That task list isn't going to complete itself... or is it?",
+      "category": "productivity",
+      "mood": "playful"
+    },
+    {
+      "id": "4",
+      "text": "Remember: To err is human, to blame it on a computer is even more so!",
+      "category": "tech_humor",
+      "mood": "funny"
+    },
+    {
+      "id": "5",
+      "text": "You've been staring at that screen for a while. I'm here if you need to talk... beep boop!",
+      "category": "wellness",
+      "mood": "caring"
+    },
+    {
+      "id": "6",
+      "text": "Fun fact: 'Debugging' got its name because Grace Hopper literally removed a bug from a computer!",
+      "category": "tech_facts",
+      "mood": "educational"
+    },
+    {
+      "id": "7",
+      "text": "I tried to complete a task once. It was a terrible experience. 0/10 would not recommend. Just kidding, you got this!",
+      "category": "motivation",
+      "mood": "playful"
+    },
+    {
+      "id": "8",
+      "text": "Knock knock! Who's there? Interrupting task bot! Interrupting task bot w-- BEEP BOOP!",
+      "category": "jokes",
+      "mood": "silly"
+    },
+    {
+      "id": "9",
+      "text": "If at first you don't succeed, call it version 1.0",
+      "category": "tech_humor",
+      "mood": "funny"
+    },
+    {
+      "id": "10",
+      "text": "Pro tip: The 'S' in 'IoT' stands for Security! Wait...",
+      "category": "tech_humor",
+      "mood": "sarcastic"
+    },
+    {
+      "id": "11",
+      "text": "I'm not saying your task list is long, but Santa's checking it twice just to be sure!",
+      "category": "productivity",
+      "mood": "playful"
+    },
+    {
+      "id": "12",
+      "text": "There are only 10 types of people: those who understand binary and those who don't!",
+      "category": "tech_humor",
+      "mood": "nerdy"
+    },
+    {
+      "id": "13",
+      "text": "Time for a stretch break! Your future self will thank you.",
+      "category": "wellness",
+      "mood": "caring"
+    },
+    {
+      "id": "14",
+      "text": "Achievement unlocked: Stared at screen for 30 minutes straight! Maybe time for that coffee?",
+      "category": "wellness",
+      "mood": "supportive"
+    },
+    {
+      "id": "15",
+      "text": "Why do programmers prefer dark mode? Because light attracts bugs!",
+      "category": "tech_humor",
+      "mood": "funny"
+    },
+    {
+      "id": "16",
+      "text": "Task management tip: If you can't see your tasks, they can't see you! *hides under desk*",
+      "category": "productivity",
+      "mood": "silly"
+    },
+    {
+      "id": "17",
+      "text": "Breaking news: Local task bot discovers humans need encouragement. You're doing great!",
+      "category": "motivation",
+      "mood": "supportive"
+    },
+    {
+      "id": "18",
+      "text": "I asked the computer for a byte to eat. It gave me 8 bits. I'm still hungry.",
+      "category": "tech_humor",
+      "mood": "punny"
+    },
+    {
+      "id": "19",
+      "text": "Roses are red, violets are blue, unexpected '{' on line 32",
+      "category": "tech_humor",
+      "mood": "nerdy"
+    },
+    {
+      "id": "20",
+      "text": "Remember: Every expert was once a beginner who didn't give up! Keep going!",
+      "category": "motivation",
+      "mood": "inspiring"
+    }
+  ],
+  "settings": {
+    "min_interval_minutes": 10,
+    "max_interval_minutes": 30,
+    "enabled_categories": ["tech_facts", "motivation", "productivity", "tech_humor", "wellness", "jokes"],
+    "character_name": "Tasky",
+    "character_emoji": ":)"
+  }
+}
