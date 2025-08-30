@@ -119,12 +119,78 @@
       "text": "Remember: Every expert was once a beginner who didn't give up! Keep going!",
       "category": "motivation",
       "mood": "inspiring"
+    },
+    {
+      "id": "21",
+      "text": "Workplace tip: DON'T SAY 'We need to have a significant, possibly life-changing discussion for which I will provide no context.' DO SAY: 'Quick chat?'",
+      "category": "workplace_humor",
+      "mood": "sarcastic"
+    },
+    {
+      "id": "22",
+      "text": "Corporate speak 101: DON'T SAY 'You're fired.' DO SAY: 'Your headcount has been reduced in line with our strategic priorities moving forward.'",
+      "category": "workplace_humor",
+      "mood": "sarcastic"
+    },
+    {
+      "id": "23",
+      "text": "When someone says 'Nice to e-meet you!' they really mean: 'I'm trying to numb the pain of my work, which is why I'm talking to you as if you are a child.'",
+      "category": "workplace_humor",
+      "mood": "funny"
+    },
+    {
+      "id": "24",
+      "text": "'I hope this email finds you well' actually means: 'You and your current wellbeing mean nothing to me.'",
+      "category": "workplace_humor",
+      "mood": "sarcastic"
+    },
+    {
+      "id": "25",
+      "text": "'Happy Friday!' translation: 'I am pretending to be nice. I could never be friends with you.'",
+      "category": "workplace_humor",
+      "mood": "playful"
+    },
+    {
+      "id": "26",
+      "text": "'Just checking to make sure you received my email?' = 'I know you received it. This is me passive-aggressively pretending email has stopped working after decades.'",
+      "category": "workplace_humor",
+      "mood": "sarcastic"
+    },
+    {
+      "id": "27",
+      "text": "'Reattaching for your convenience' means: 'Why didn't you open the attachment the first time, you absolute moron?!'",
+      "category": "workplace_humor",
+      "mood": "funny"
+    },
+    {
+      "id": "28",
+      "text": "Office translation: DON'T SAY 'I totally stuffed this up because I didn't read your email.' DO SAY: 'There may have been a miscommunication.'",
+      "category": "workplace_humor",
+      "mood": "sarcastic"
+    },
+    {
+      "id": "29",
+      "text": "Professional speak: DON'T SAY 'I read your email but forgot about it while planning my holiday.' DO SAY: 'I don't have the numbers in front of me.'",
+      "category": "workplace_humor",
+      "mood": "funny"
+    },
+    {
+      "id": "30",
+      "text": "Meeting speak: DON'T SAY 'I flirted with Jenny from Finance in the lift.' DO SAY: 'I had a cross-functional meeting with Finance, and there were a lot of moving parts.'",
+      "category": "workplace_humor",
+      "mood": "playful"
+    },
+    {
+      "id": "31",
+      "text": "The universal excuse: DON'T SAY 'I'm totally out of my depth and don't know what I'm doing.' DO SAY: 'There are a lot of moving parts.'",
+      "category": "workplace_humor",
+      "mood": "sarcastic"
     }
   ],
   "settings": {
     "min_interval_minutes": 10,
     "max_interval_minutes": 30,
-    "enabled_categories": ["tech_facts", "motivation", "productivity", "tech_humor", "wellness", "jokes"],
+    "enabled_categories": ["tech_facts", "motivation", "productivity", "tech_humor", "wellness", "jokes", "workplace_humor"],
     "character_name": "Tasky",
     "character_emoji": ":)"
   }
