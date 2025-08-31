@@ -1,12 +1,5 @@
 [
   {
-    "timestamp": "2025-08-29T16:23:26.304702",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_162325.json",
-    "user_id": "stephen",
-    "deal_count": 3
-  },
-  {
     "timestamp": "2025-08-29T16:23:55.572643",
     "action": "upload",
     "filename": "deals_stephen_20250829_162355.json",
@@ -696,6 +689,13 @@
     "timestamp": "2025-08-30T15:26:16.338288",
     "action": "upload",
     "filename": "deals_demo_20250830_152615.json",
+    "user_id": "demo",
+    "deal_count": 4
+  },
+  {
+    "timestamp": "2025-08-31T09:04:49.382814",
+    "action": "upload",
+    "filename": "deals_demo_20250831_090448.json",
     "user_id": "demo",
     "deal_count": 4
   }

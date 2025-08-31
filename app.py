@@ -2235,6 +2235,130 @@ Return ONLY the explanation text."""
     else:
         return jsonify({'error': result.get('error', 'Failed to enhance description')}), 500
 
+@app.route('/api/ai/chat', methods=['POST'])
+def ai_chat():
+    """Handle chat messages from Tasky AI Assistant"""
+    settings = load_settings()
+    
+    if not settings.get('api_key'):
+        return jsonify({'error': 'API key not configured'}), 400
+    
+    data = request.json
+    user_message = data.get('message', '')
+    context_type = data.get('context', 'task_assistant')
+    
+    if not user_message:
+        return jsonify({'error': 'No message provided'}), 400
+    
+    # Build context from all available data
+    tasks = load_tasks()
+    projects = load_projects()
+    objectives = load_objectives()
+    deals = load_deals()
+    
+    # Filter to active items
+    active_tasks = [t for t in tasks if t.get('status') not in ['Completed', 'Cancelled']]
+    active_projects = [p for p in projects if p.get('status') != 'Completed']
+    active_objectives = [o for o in objectives if o.get('status') != 'Completed']
+    active_deals = [d for d in deals if d.get('dealStatus') != 'Lost']
+    
+    # Count statistics
+    overdue_tasks = []
+    today_tasks = []
+    high_priority_tasks = []
+    
+    from datetime import datetime, date
+    today = date.today()
+    
+    for task in active_tasks:
+        if task.get('follow_up_date'):
+            try:
+                follow_up = datetime.fromisoformat(task['follow_up_date']).date()
+                if follow_up < today:
+                    overdue_tasks.append(task)
+                elif follow_up == today:
+                    today_tasks.append(task)
+            except:
+                pass
+        
+        if task.get('priority') in ['High', 'Critical']:
+            high_priority_tasks.append(task)
+    
+    # Build context for the AI
+    context = f"""You are Tasky AI, a helpful assistant for a task management system. 
+You have access to the following current data:
+
+**TASKS:**
+- Total active tasks: {len(active_tasks)}
+- Overdue tasks: {len(overdue_tasks)}
+- Due today: {len(today_tasks)}
+- High/Critical priority: {len(high_priority_tasks)}
+
+**PROJECTS:**
+- Active projects: {len(active_projects)}
+
+**OBJECTIVES (OKRs):**
+- Active objectives: {len(active_objectives)}
+
+**DEALS:**
+- Active deals: {len(active_deals)}
+- Total forecast value: ${sum(float(d.get('forecastLikely', 0)) for d in active_deals):,.2f}
+
+When answering questions:
+1. Be helpful and specific
+2. Reference actual data when possible
+3. Provide actionable insights
+4. Keep responses concise but informative
+5. Use formatting to make responses easy to read:
+   - Use **bold** for emphasis on important points
+   - Use bullet points (- ) for lists
+   - Use numbered lists (1. 2. 3.) for steps
+   - Use line breaks to separate different sections
+   - Use `code style` for specific task names or technical terms when appropriate
+
+User question: {user_message}
+
+Please provide a helpful, well-formatted response:"""
+    
+    # Add specific task details if the user is asking about them
+    if any(word in user_message.lower() for word in ['overdue', 'late', 'behind']):
+        if overdue_tasks:
+            context += "\n\n**Overdue tasks:**\n"
+            for task in overdue_tasks[:5]:  # Show max 5
+                context += f"- **{task['title']}** (Customer: {task.get('customer_name', 'N/A')})\n"
+    
+    if any(word in user_message.lower() for word in ['today', 'now', 'urgent']):
+        if today_tasks:
+            context += "\n\n**Tasks due today:**\n"
+            for task in today_tasks[:5]:
+                priority = task.get('priority', 'Normal')
+                priority_marker = "🔴" if priority == "Critical" else "🟡" if priority == "High" else ""
+                context += f"- **{task['title']}** {priority_marker} (Priority: {priority})\n"
+    
+    if any(word in user_message.lower() for word in ['project', 'projects']):
+        if active_projects:
+            context += "\n\n**Active projects:**\n"
+            for project in active_projects[:5]:
+                progress = project.get('progress', 0)
+                context += f"- **{project['name']}** - Progress: `{progress}%`\n"
+    
+    if any(word in user_message.lower() for word in ['deal', 'deals', 'sales']):
+        if active_deals:
+            context += "\n\n**Top deals by value:**\n"
+            sorted_deals = sorted(active_deals, key=lambda d: float(d.get('forecastLikely', 0)), reverse=True)
+            for deal in sorted_deals[:5]:
+                value = float(deal.get('forecastLikely', 0))
+                status = deal.get('dealStatus', 'Open')
+                context += f"- **{deal['customer_name']}**: `${value:,.2f}` ({status})\n"
+    
+    # Call the AI API
+    result = call_ai_api(settings, context, max_tokens=500)
+    
+    if result['success']:
+        return jsonify({'response': result['text']})
+    else:
+        return jsonify({'error': result.get('error', 'Failed to get AI response')}), 500
+
 @app.route('/api/ai/task-summary/<task_id>', methods=['POST'])
 def task_summary(task_id):
     """Generate executive or in-depth summary of a specific task"""
