@@ -272,6 +272,65 @@ function populateSelect(id, options) {
     ).join('');
 }
 
+function formatRelativeTime(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    
+    if (diffSecs < 60) {
+        return 'just now';
+    } else if (diffMins < 60) {
+        return diffMins === 1 ? '1 min ago' : `${diffMins} mins ago`;
+    } else if (diffHours < 24) {
+        return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    } else if (diffDays < 7) {
+        return diffDays === 1 ? 'yesterday' : `${diffDays} days ago`;
+    } else if (diffWeeks < 4) {
+        return diffWeeks === 1 ? 'last week' : `${diffWeeks} weeks ago`;
+    } else if (diffMonths < 12) {
+        return diffMonths === 1 ? 'last month' : `${diffMonths} months ago`;
+    } else {
+        const diffYears = Math.floor(diffMonths / 12);
+        return diffYears === 1 ? 'last year' : `${diffYears} years ago`;
+    }
+}
+
+function getTimeAgeClass(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 1) {
+        return 'time-recent'; // Green - very recent
+    } else if (diffDays <= 7) {
+        return 'time-normal'; // Default - this week
+    } else if (diffDays <= 30) {
+        return 'time-old'; // Yellow - getting old
+    } else {
+        return 'time-stale'; // Red - very old
+    }
+}
+
+function getLastUpdateTime(task) {
+    // Get the last update from history, excluding creation
+    if (task.history && task.history.length > 1) {
+        // Get the most recent history entry that's not the creation
+        const lastUpdate = task.history[task.history.length - 1];
+        return lastUpdate.timestamp;
+    }
+    return null; // No updates, only creation
+}
+
 async function loadTasks() {
     try {
         const response = await fetch('/api/tasks');
@@ -417,10 +476,28 @@ function renderListView(tasks, container) {
             topicName = topic ? topic.title : '';
         }
         
+        // Get time badges
+        const createdTime = formatRelativeTime(task.created_date);
+        const createdClass = getTimeAgeClass(task.created_date);
+        const lastUpdateTime = getLastUpdateTime(task);
+        const updatedTime = lastUpdateTime ? formatRelativeTime(lastUpdateTime) : null;
+        const updatedClass = lastUpdateTime ? getTimeAgeClass(lastUpdateTime) : '';
+        
         return `
             <div class="task-list-item ${className}" onclick="handleTaskClick(event, '${task.id}')">
                 <div class="task-info">
-                    <div class="task-title">${escapeHtml(task.title)}</div>
+                    <div class="task-title">
+                        ${escapeHtml(task.title)}
+                        <span class="time-badges">
+                            <span class="time-badge ${createdClass}" title="Created: ${new Date(task.created_date).toLocaleString()}">
+                                🕐 ${createdTime}
+                            </span>
+                            ${updatedTime && updatedTime !== createdTime ? 
+                                `<span class="time-badge ${updatedClass}" title="Updated: ${new Date(lastUpdateTime).toLocaleString()}">
+                                    ✏️ ${updatedTime}
+                                </span>` : ''}
+                        </span>
+                    </div>
                     <div class="task-meta">
                         Customer: ${escapeHtml(task.customer_name || 'N/A')} | 
                         Status: ${task.status} | 
@@ -485,6 +562,13 @@ function renderKanbanView(tasks, container, groupBy) {
                                 topicName = topic ? topic.title : '';
                             }
                             
+                            // Get time badges
+                            const createdTime = formatRelativeTime(task.created_date);
+                            const createdClass = getTimeAgeClass(task.created_date);
+                            const lastUpdateTime = getLastUpdateTime(task);
+                            const updatedTime = lastUpdateTime ? formatRelativeTime(lastUpdateTime) : null;
+                            const updatedClass = lastUpdateTime ? getTimeAgeClass(lastUpdateTime) : '';
+                            
                             return `
                                 <div class="kanban-card ${className}" 
                                      draggable="true" 
@@ -493,6 +577,15 @@ function renderKanbanView(tasks, container, groupBy) {
                                     <div class="drag-handle">⋮⋮</div>
                                     <div class="kanban-card-content" onclick="editTask('${task.id}')">
                                         <div class="kanban-card-title">${escapeHtml(task.title)}</div>
+                                        <div class="kanban-time-badges">
+                                            <span class="time-badge ${createdClass}" title="Created: ${new Date(task.created_date).toLocaleString()}">
+                                                🕐 ${createdTime}
+                                            </span>
+                                            ${updatedTime && updatedTime !== createdTime ? 
+                                                `<span class="time-badge ${updatedClass}" title="Updated: ${new Date(lastUpdateTime).toLocaleString()}">
+                                                    ✏️ ${updatedTime}
+                                                </span>` : ''}
+                                        </div>
                                         <div class="kanban-card-customer">${escapeHtml(task.customer_name || 'No customer')}</div>
                                         ${task.assigned_to ? `<div class="kanban-card-assigned" style="color: #28a745; font-size: 0.85em; margin-top: 3px;">👤 ${escapeHtml(task.assigned_to)}</div>` : ''}
                                         ${task.related_to ? `<div class="kanban-card-related" style="color: #6c757d; font-size: 0.85em; margin-top: 3px;">📎 About: ${escapeHtml(task.related_to)}</div>` : ''}

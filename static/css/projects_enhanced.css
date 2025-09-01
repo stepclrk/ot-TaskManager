@@ -550,21 +550,6 @@
     font-size: 0.875rem;
 }
 
-.gantt-popup .critical {
-    color: #dc3545;
-    font-weight: 600;
-}
-
-/* Critical Path Highlighting */
-.critical-task .bar {
-    fill: #dc3545 !important;
-}
-
-.critical-path .bar {
-    stroke: #dc3545;
-    stroke-width: 2px;
-}
-
 /* Board View */
 .board-view {
     display: flex;

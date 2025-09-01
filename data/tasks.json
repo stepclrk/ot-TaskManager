@@ -135,22 +135,52 @@
         "field": "follow_up_date",
         "old_value": "2025-08-19T10:00",
         "new_value": "2025-08-28T10:00"
+      },
+      {
+        "timestamp": "2025-09-01T21:10:17.124057",
+        "action": "comment_added",
+        "field": "comments",
+        "old_value": null,
+        "new_value": "<p>tryyu</p>"
+      },
+      {
+        "timestamp": "2025-09-01T21:10:17.795236",
+        "action": "modified",
+        "field": "related_to",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T21:10:17.795247",
+        "action": "modified",
+        "field": "task_type",
+        "old_value": null,
+        "new_value": "regular"
       }
     ],
-    "comments": [],
+    "comments": [
+      {
+        "text": "<p>tryyu</p>",
+        "author": "Current User",
+        "id": "0d3d22f5-911e-4929-8cf4-adb1b4bd46b9",
+        "timestamp": "2025-09-01T21:10:17.123211"
+      }
+    ],
     "attachments": [],
     "dependencies": [],
-    "blocks": []
+    "blocks": [],
+    "related_to": "",
+    "task_type": "regular"
   },
   {
     "title": "Database performance optimization",
     "customer_name": "TechStart Inc",
     "description": "Analyze slow queries, add necessary indexes, and optimize database schema for better performance. Current response times are averaging 3-5 seconds for complex queries.",
-    "category": "DevOps",
+    "category": "",
     "priority": "High",
     "follow_up_date": "2025-08-27T14:30",
     "status": "Open",
-    "assigned_to": "Mike Johnson",
+    "assigned_to": "Steve Clarke",
     "tags": "database,performance,optimization",
     "topic_id": null,
     "project_id": null,
@@ -163,12 +193,42 @@
         "field": "task",
         "old_value": null,
         "new_value": "Task created"
+      },
+      {
+        "timestamp": "2025-09-01T16:35:11.911895",
+        "action": "modified",
+        "field": "category",
+        "old_value": "DevOps",
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T16:35:11.911904",
+        "action": "modified",
+        "field": "assigned_to",
+        "old_value": "Mike Johnson",
+        "new_value": "Steve Clarke"
+      },
+      {
+        "timestamp": "2025-09-01T16:35:11.911906",
+        "action": "modified",
+        "field": "related_to",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T16:35:11.911910",
+        "action": "modified",
+        "field": "task_type",
+        "old_value": null,
+        "new_value": "regular"
       }
     ],
     "comments": [],
     "attachments": [],
     "dependencies": [],
-    "blocks": []
+    "blocks": [],
+    "related_to": "",
+    "task_type": "regular"
   },
   {
     "title": "Mobile app UI redesign",
@@ -380,8 +440,8 @@
     "category": "Development",
     "priority": "Medium",
     "follow_up_date": "2025-09-10T10:00",
-    "status": "Research",
-    "assigned_to": "Maria Garcia",
+    "status": "",
+    "assigned_to": "Steve Clarke",
     "tags": "ai,chatbot,customer-support",
     "topic_id": null,
     "project_id": null,
@@ -394,12 +454,42 @@
         "field": "task",
         "old_value": null,
         "new_value": "Task created"
+      },
+      {
+        "timestamp": "2025-09-01T16:35:21.277407",
+        "action": "modified",
+        "field": "status",
+        "old_value": "Research",
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T16:35:21.277416",
+        "action": "modified",
+        "field": "assigned_to",
+        "old_value": "Maria Garcia",
+        "new_value": "Steve Clarke"
+      },
+      {
+        "timestamp": "2025-09-01T16:35:21.277422",
+        "action": "modified",
+        "field": "related_to",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T16:35:21.277430",
+        "action": "modified",
+        "field": "task_type",
+        "old_value": null,
+        "new_value": "regular"
       }
     ],
     "comments": [],
     "attachments": [],
     "dependencies": [],
-    "blocks": []
+    "blocks": [],
+    "related_to": "",
+    "task_type": "regular"
   },
   {
     "title": "Performance monitoring dashboard",

@@ -269,13 +269,6 @@
     gap: 20px;
 }
 
-/* Critical Path Highlighting */
-.gantt-bar.critical-path {
-    fill: #dc3545 !important;
-    stroke: #a71d2a;
-    stroke-width: 2px;
-}
-
 .gantt-bar.milestone {
     fill: #6f42c1 !important;
     transform: rotate(45deg);

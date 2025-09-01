@@ -4,6 +4,15 @@ let filteredProjects = [];
 let projectQuillEditor = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if enhanced version is available (marked immediately when script loads)
+    if (window.projectManagerEnhanced) {
+        console.log('Enhanced project manager available, skipping basic initialization');
+        // Enhanced version will handle everything
+        return;
+    }
+    
+    // Fallback to basic version
+    console.log('Using basic project manager');
     loadProjects();
     setupEventListeners();
     initializeQuillEditor();

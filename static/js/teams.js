@@ -7,12 +7,14 @@ let departments = [];
 let currentTeam = null;
 let currentMember = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Load initial data
-    loadTeams();
-    loadMembers();
-    loadTasks();
-    loadDepartments();
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load initial data - wait for all data to load
+    await Promise.all([
+        loadTeams(),
+        loadMembers(),
+        loadTasks(),
+        loadDepartments()
+    ]);
     
     // Setup event listeners
     setupEventListeners();
@@ -25,16 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
             editMember(editMemberId);
         }, 500);
     }
+    
+    // Initial render - show members view (after all data is loaded)
+    renderMembers();
 });
 
 function setupEventListeners() {
-    // View switcher
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            switchView(this.dataset.view);
-        });
-    });
-    
     // Add buttons
     document.getElementById('addTeamBtn').addEventListener('click', showAddTeamModal);
     document.getElementById('addMemberBtn').addEventListener('click', showAddMemberModal);
@@ -66,35 +64,14 @@ function setupEventListeners() {
     });
 }
 
-function switchView(view) {
-    // Update buttons
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.view === view);
-    });
-    
-    // Update content
-    document.querySelectorAll('.view-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    document.getElementById(`${view}View`).classList.add('active');
-    
-    // Load appropriate content
-    if (view === 'teams') {
-        renderTeams();
-    } else if (view === 'members') {
-        renderMembers();
-    } else if (view === 'workload') {
-        renderWorkload();
-    }
-}
+// View switching removed - only members view exists
 
 // Data Loading Functions
 async function loadTeams() {
     try {
         const response = await fetch('/api/teams');
         teams = await response.json();
-        renderTeams();
+        // renderTeams() removed - only members view exists now
         updateStats();
     } catch (error) {
         console.error('Error loading teams:', error);
@@ -105,7 +82,7 @@ async function loadMembers() {
     try {
         const response = await fetch('/api/members');
         members = await response.json();
-        renderMembers();
+        // Don't render here - wait until all data is loaded
         updateStats();
     } catch (error) {
         console.error('Error loading members:', error);
@@ -117,6 +94,10 @@ async function loadTasks() {
         const response = await fetch('/api/tasks');
         tasks = await response.json();
         updateStats();
+        // Re-render members if they're already displayed to update task counts
+        if (document.getElementById('membersList').children.length > 0) {
+            renderMembers();
+        }
     } catch (error) {
         console.error('Error loading tasks:', error);
     }
@@ -133,97 +114,6 @@ async function loadDepartments() {
 }
 
 // Rendering Functions
-function renderTeams() {
-    const grid = document.getElementById('teamsGrid');
-    grid.innerHTML = '';
-    
-    if (teams.length === 0) {
-        grid.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-users" style="font-size: 3rem; color: #dee2e6; margin-bottom: 20px;"></i>
-                <h3>No teams yet</h3>
-                <p>Create your first team to get started</p>
-                <button class="btn btn-primary" onclick="showAddTeamModal()">
-                    <i class="fas fa-plus"></i> Create Team
-                </button>
-            </div>
-        `;
-        return;
-    }
-    
-    teams.forEach(team => {
-        const teamMembers = members.filter(m => 
-            m.team_ids && m.team_ids.includes(team.id)
-        );
-        
-        const teamTasks = tasks.filter(t => 
-            teamMembers.some(m => m.id === t.assigned_to_id)
-        );
-        
-        const openTasks = teamTasks.filter(t => 
-            t.status !== 'Completed' && t.status !== 'Closed'
-        ).length;
-        
-        const card = document.createElement('div');
-        card.className = 'team-card';
-        card.style.setProperty('--team-color', team.color || '#007bff');
-        
-        card.innerHTML = `
-            <div class="team-header">
-                <div class="team-info">
-                    <h3>${team.name}</h3>
-                    ${team.department ? `<span class="team-department">${team.department}</span>` : ''}
-                </div>
-                <div class="team-actions">
-                    <button onclick="editTeam('${team.id}')" title="Edit Team">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteTeam('${team.id}')" title="Delete Team">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="team-description">
-                ${team.description || 'No description provided'}
-            </div>
-            
-            <div class="team-members">
-                <h4>Team Members (${teamMembers.length})</h4>
-                <div class="member-avatars">
-                    ${teamMembers.slice(0, 5).map(member => `
-                        <div class="member-avatar" 
-                             style="background: ${member.avatar_color || generateColor()}" 
-                             title="${member.name}">
-                            ${getInitials(member.name)}
-                        </div>
-                    `).join('')}
-                    ${teamMembers.length > 5 ? `
-                        <div class="member-count">+${teamMembers.length - 5}</div>
-                    ` : ''}
-                </div>
-            </div>
-            
-            <div class="team-stats">
-                <div class="team-stat">
-                    <div class="team-stat-value">${openTasks}</div>
-                    <div class="team-stat-label">Active Tasks</div>
-                </div>
-                <div class="team-stat">
-                    <div class="team-stat-value">${calculateTeamCapacity(team.id)}%</div>
-                    <div class="team-stat-label">Capacity</div>
-                </div>
-                <div class="team-stat">
-                    <div class="team-stat-value">${team.lead_id ? '✓' : '—'}</div>
-                    <div class="team-stat-label">Team Lead</div>
-                </div>
-            </div>
-        `;
-        
-        grid.appendChild(card);
-    });
-}
-
 function renderMembers() {
     const list = document.getElementById('membersList');
     list.innerHTML = '';
@@ -242,96 +132,82 @@ function renderMembers() {
         return;
     }
     
+    // Add container for grid layout
+    const gridContainer = document.createElement('div');
+    gridContainer.className = 'members-grid';
+    
     members.forEach(member => {
         // Filter tasks by member name (case-insensitive)
+        const memberName = (member.name || '').toLowerCase().trim();
         const memberTasks = tasks.filter(t => {
             const assignedTo = (t.assigned_to || '').toLowerCase().trim();
-            const memberName = (member.name || '').toLowerCase().trim();
-            return assignedTo === memberName;
+            // Check if assigned_to matches member name
+            return assignedTo === memberName && assignedTo !== '';
         });
-        const openTasks = memberTasks.filter(t => 
-            t.status !== 'Completed' && t.status !== 'Closed' && t.status !== 'Cancelled'
-        ).length;
+        
+        // Count open tasks (excluding completed, closed, and cancelled)
+        // Include tasks with empty status or specific non-closed statuses
+        const openTasks = memberTasks.filter(t => {
+            const status = (t.status || '').toLowerCase().trim();
+            // Count as active if status is not one of the closed statuses
+            return status !== 'completed' && 
+                   status !== 'closed' && 
+                   status !== 'cancelled';
+        }).length;
         
         const capacity = calculateMemberCapacity(member.id);
         const capacityClass = capacity > 100 ? 'danger' : capacity > 80 ? 'warning' : '';
         
-        const item = document.createElement('div');
-        item.className = 'member-item';
-        item.onclick = () => showMemberDetails(member);
+        const card = document.createElement('div');
+        card.className = 'member-card';
+        card.onclick = () => showMemberDetails(member);
         
-        item.innerHTML = `
-            <div class="member-avatar-large" style="background: ${member.avatar_color || generateColor()}">
-                ${getInitials(member.name)}
+        card.innerHTML = `
+            <div class="member-card-header">
+                <div class="member-avatar-xlarge" style="background: ${member.avatar_color || generateColor()}">
+                    ${getInitials(member.name)}
+                </div>
+                <button class="member-delete-btn" onclick="event.stopPropagation(); deleteMember('${member.id}')" title="Delete Member">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
             
-            <div class="member-details">
+            <div class="member-card-body">
                 <div class="member-name">${member.name}</div>
                 <div class="member-role">${member.role || 'Team Member'}</div>
-                <div class="member-meta">
-                    <span><i class="fas fa-envelope"></i> ${member.email}</span>
-                    <span><i class="fas fa-building"></i> ${member.department || 'N/A'}</span>
-                    <span><i class="fas fa-tasks"></i> ${openTasks} tasks</span>
+                <div class="member-department">
+                    <i class="fas fa-building"></i> ${member.department || 'N/A'}
                 </div>
             </div>
             
-            <div class="member-workload">
+            <div class="member-card-stats">
+                <div class="stat-item">
+                    <div class="stat-value">${openTasks}</div>
+                    <div class="stat-label">Active Tasks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${capacity}%</div>
+                    <div class="stat-label">Capacity</div>
+                </div>
+            </div>
+            
+            <div class="member-card-footer">
                 <div class="capacity-bar">
                     <div class="capacity-fill ${capacityClass}" style="width: ${Math.min(capacity, 100)}%"></div>
                 </div>
-                <div class="capacity-text">${capacity}% capacity</div>
-            </div>
-        `;
-        
-        list.appendChild(item);
-    });
-}
-
-function renderWorkload() {
-    const chart = document.getElementById('workloadChart');
-    chart.innerHTML = `
-        <div class="workload-header">
-            <div class="workload-title">Team Workload Overview</div>
-            <div class="workload-filters">
-                <select class="workload-filter" onchange="filterWorkload(this.value)">
-                    <option value="all">All Teams</option>
-                    ${teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
-                </select>
-            </div>
-        </div>
-        
-        <div class="workload-visualization">
-            ${renderWorkloadBars()}
-        </div>
-    `;
-}
-
-function renderWorkloadBars() {
-    let html = '<div class="workload-bars">';
-    
-    members.forEach(member => {
-        const capacity = calculateMemberCapacity(member.id);
-        const capacityClass = capacity > 100 ? 'danger' : capacity > 80 ? 'warning' : '';
-        
-        html += `
-            <div class="workload-bar-item">
-                <div class="workload-member">
-                    <span class="member-avatar-small" style="background: ${member.avatar_color || generateColor()}">
-                        ${getInitials(member.name)}
-                    </span>
-                    <span>${member.name}</span>
-                </div>
-                <div class="workload-bar-container">
-                    <div class="workload-bar ${capacityClass}" style="width: ${Math.min(capacity, 150)}%">
-                        ${capacity}%
-                    </div>
+                <div class="member-contact">
+                    <a href="mailto:${member.email}" onclick="event.stopPropagation()" title="${member.email}">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    ${member.phone ? `<a href="tel:${member.phone}" onclick="event.stopPropagation()" title="${member.phone}"><i class="fas fa-phone"></i></a>` : ''}
                 </div>
             </div>
         `;
+        
+        gridContainer.appendChild(card);
     });
     
-    html += '</div>';
-    return html;
+    list.appendChild(gridContainer);
 }
 
 // Modal Functions
@@ -518,14 +394,61 @@ async function deleteTeam(teamId) {
     }
 }
 
+async function deleteMember(memberId) {
+    const member = members.find(m => m.id === memberId);
+    if (!member) return;
+    
+    // Count tasks assigned to this member
+    const memberName = (member.name || '').toLowerCase().trim();
+    const memberTasks = tasks.filter(t => {
+        const assignedTo = (t.assigned_to || '').toLowerCase().trim();
+        return assignedTo === memberName && assignedTo !== '';
+    });
+    
+    const activeTasks = memberTasks.filter(t => {
+        const status = (t.status || '').toLowerCase().trim();
+        return status !== 'completed' && status !== 'closed' && status !== 'cancelled';
+    }).length;
+    
+    let confirmMessage = `Are you sure you want to delete ${member.name}?`;
+    if (activeTasks > 0) {
+        confirmMessage += `\n\nWarning: This member has ${activeTasks} active task(s) assigned.`;
+    }
+    
+    if (!confirm(confirmMessage)) return;
+    
+    try {
+        const response = await fetch(`/api/members/${memberId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadMembers();
+            renderMembers();
+            showNotification('Member deleted successfully', 'success');
+        } else {
+            showNotification('Error deleting member', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting member:', error);
+        showNotification('Error deleting member', 'error');
+    }
+}
+
 // Helper Functions
 function updateStats() {
     document.getElementById('totalTeams').textContent = teams.length;
     document.getElementById('totalMembers').textContent = members.length;
     
-    const activeTasks = tasks.filter(t => 
-        t.status !== 'Completed' && t.status !== 'Closed'
-    ).length;
+    // Only count tasks assigned to team members
+    const memberNames = members.map(m => (m.name || '').toLowerCase().trim());
+    const activeTasks = tasks.filter(t => {
+        const assignedTo = (t.assigned_to || '').toLowerCase().trim();
+        return memberNames.includes(assignedTo) && 
+               t.status !== 'Completed' && 
+               t.status !== 'Closed' &&
+               t.status !== 'Cancelled';
+    }).length;
     document.getElementById('activeTasks').textContent = activeTasks;
     
     // Calculate average capacity
@@ -655,6 +578,7 @@ window.showAddTeamModal = showAddTeamModal;
 window.showAddMemberModal = showAddMemberModal;
 window.editTeam = editTeam;
 window.deleteTeam = deleteTeam;
+window.deleteMember = deleteMember;
 window.closeTeamModal = closeTeamModal;
 window.closeMemberModal = closeMemberModal;
 window.showMemberDetails = showMemberDetails;

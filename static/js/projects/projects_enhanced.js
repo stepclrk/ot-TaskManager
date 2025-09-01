@@ -20,9 +20,56 @@ class ProjectManager {
     }
     
     async init() {
+        // Wait for DOM first if needed
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+            return;
+        }
+        
         await this.loadProjects();
         this.initializeEventListeners();
-        this.renderProjectList();
+        
+        // Small delay to ensure all DOM elements are ready
+        setTimeout(() => {
+            this.renderInitialView();
+        }, 100);
+    }
+    
+    renderInitialView() {
+        // Try multiple times to find the container
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        const tryRender = () => {
+            attempts++;
+            const container = document.getElementById('projectsContainer') || 
+                            document.getElementById('projectsGrid') || 
+                            document.querySelector('.projects-container') ||
+                            document.querySelector('.projects-grid');
+            
+            if (container) {
+                // Ensure it has the ID for future references
+                if (!container.id) {
+                    container.id = 'projectsGrid';
+                }
+                console.log('Rendering initial project list with', this.projects.length, 'projects');
+                this.renderProjectList();
+            } else if (attempts < maxAttempts) {
+                // Try again after a short delay
+                console.log(`Container not found, attempt ${attempts}/${maxAttempts}, retrying...`);
+                setTimeout(tryRender, 200);
+            } else {
+                console.error('No container found for projects display after', maxAttempts, 'attempts');
+                // Last resort: create the container
+                const created = this.getOrCreateContainer();
+                if (created) {
+                    console.log('Created container, rendering projects');
+                    this.renderProjectList();
+                }
+            }
+        };
+        
+        tryRender();
     }
     
     async loadProjects() {
@@ -65,6 +112,56 @@ class ProjectManager {
         if (portfolioBtn) {
             portfolioBtn.addEventListener('click', () => this.showPortfolioDashboard());
         }
+        
+        // Setup dropdown toggles
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.dropdown-toggle')) {
+                e.preventDefault();
+                e.target.parentElement.classList.toggle('show');
+            } else if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown.show').forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+    }
+    
+    getOrCreateContainer() {
+        // Try to find existing container - check both possible IDs
+        let container = document.getElementById('projectsContainer') || 
+                       document.getElementById('projectsGrid');
+        if (container) return container;
+        
+        // Try by class names
+        container = document.querySelector('.projects-container') || 
+                   document.querySelector('.projects-grid');
+        if (container) {
+            return container;
+        }
+        
+        // Create if doesn't exist
+        const contentContainer = document.querySelector('.content-container');
+        if (!contentContainer) {
+            console.error('Cannot find content container to create view container');
+            return null;
+        }
+        
+        // Look for filters section to insert after
+        const filtersSection = document.querySelector('.filters-section');
+        if (filtersSection) {
+            container = document.createElement('div');
+            container.id = 'projectsGrid';
+            container.className = 'projects-grid';
+            filtersSection.insertAdjacentElement('afterend', container);
+            return container;
+        }
+        
+        // As last resort, append to content container
+        container = document.createElement('div');
+        container.id = 'projectsGrid';
+        container.className = 'projects-grid';
+        contentContainer.appendChild(container);
+        return container;
     }
     
     switchView(view) {
@@ -93,16 +190,20 @@ class ProjectManager {
     }
     
     renderProjectList() {
-        const container = document.getElementById('projectsContainer');
-        if (!container) return;
+        let container = document.getElementById('projectsContainer') || 
+                       document.getElementById('projectsGrid') ||
+                       document.querySelector('.projects-container') ||
+                       document.querySelector('.projects-grid');
+        if (!container) {
+            console.error('Projects container not found - cannot render');
+            return;
+        }
         
         const filteredProjects = this.getFilteredProjects();
         
-        container.innerHTML = `
-            <div class="projects-grid">
-                ${filteredProjects.map(project => this.createProjectCard(project)).join('')}
-            </div>
-        `;
+        // Restore the original class for grid view
+        container.className = 'projects-grid';
+        container.innerHTML = filteredProjects.map(project => this.createProjectCard(project)).join('');
         
         // Add click handlers
         container.querySelectorAll('.project-card').forEach(card => {
@@ -119,12 +220,13 @@ class ProjectManager {
         const healthColor = project.health_color || 'gray';
         const healthStatus = project.health_status || 'Unknown';
         const progress = this.calculateProjectProgress(project);
+        const projectTitle = project.title || project.name || 'Untitled Project';
         
         return `
             <div class="project-card" data-project-id="${project.id}">
                 <div class="project-header">
                     <div>
-                        <h3 class="project-title">${project.name}</h3>
+                        <h3 class="project-title">${projectTitle}</h3>
                         <span class="project-code">${project.project_code || ''}</span>
                     </div>
                     <div class="project-health" style="background-color: ${healthColor}">
@@ -155,11 +257,11 @@ class ProjectManager {
                     </div>
                     <div class="info-item">
                         <i class="fas fa-calendar"></i>
-                        <span>${this.formatDate(project.end_date)}</span>
+                        <span>${this.formatDate(project.target_date || project.end_date)}</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-dollar-sign"></i>
-                        <span>${this.formatCurrency(project.budget?.total_budget)}</span>
+                        <span>${this.formatCurrency(project.budget?.total_budget || 0)}</span>
                     </div>
                 </div>
                 
@@ -194,9 +296,15 @@ class ProjectManager {
     }
     
     async renderGanttView() {
-        const container = document.getElementById('projectsContainer');
-        if (!container) return;
+        // Get or ensure container exists
+        let container = this.getOrCreateContainer();
+        if (!container) {
+            console.error('Cannot create Gantt view - no container available');
+            return;
+        }
         
+        // Clear the container and add gantt view
+        container.className = 'gantt-view-container';
         container.innerHTML = `
             <div class="gantt-view">
                 <div class="gantt-header">
@@ -205,18 +313,28 @@ class ProjectManager {
                         <select id="ganttProjectSelect" class="form-control">
                             <option value="">All Projects</option>
                             ${this.projects.map(p => `
-                                <option value="${p.id}">${p.name}</option>
+                                <option value="${p.id}">${p.title || p.name || 'Untitled'}</option>
                             `).join('')}
                         </select>
-                        <button class="btn btn-secondary" onclick="projectManager.toggleCriticalPath()">
-                            <i class="fas fa-route"></i> Critical Path
-                        </button>
-                        <button class="btn btn-secondary" onclick="projectManager.exportGantt()">
-                            <i class="fas fa-download"></i> Export
-                        </button>
+                        <div class="dropdown" style="display: inline-block;">
+                            <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#" onclick="projectManager.exportGantt('png')">Export as PNG</a>
+                                <a class="dropdown-item" href="#" onclick="projectManager.exportGantt('svg')">Export as SVG</a>
+                                <a class="dropdown-item" href="#" onclick="projectManager.exportGantt('pdf')">Export as PDF</a>
+                                <a class="dropdown-item" href="#" onclick="projectManager.exportGantt('csv')">Export as CSV</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div id="gantt-container"></div>
+                <div class="gantt-wrapper">
+                    <div class="gantt-task-list">
+                        <div id="gantt-task-list-items"></div>
+                    </div>
+                    <div id="gantt-container"></div>
+                </div>
             </div>
         `;
         
@@ -234,33 +352,171 @@ class ProjectManager {
     
     async loadGanttChart(projectId) {
         try {
-            const response = await fetch(`/api/projects/${projectId}/gantt`);
-            if (response.ok) {
-                const ganttData = await response.json();
-                this.renderGanttChart(ganttData);
+            let ganttTasks = [];
+            
+            if (projectId && projectId !== '') {
+                // Load tasks for specific project
+                const tasksResponse = await fetch(`/api/tasks?project_id=${projectId}`);
+                const tasks = await tasksResponse.json();
+                
+                // Filter for project tasks
+                ganttTasks = tasks.filter(task => task.project_id === projectId);
+            } else {
+                // Load all tasks or create sample data
+                const tasksResponse = await fetch('/api/tasks');
+                const allTasks = await tasksResponse.json();
+                
+                if (allTasks.length > 0) {
+                    ganttTasks = allTasks;
+                } else {
+                    // Create sample tasks for demonstration
+                    ganttTasks = this.createSampleGanttTasks();
+                }
             }
+            
+            // Ensure all tasks have required date fields
+            ganttTasks = ganttTasks.map(task => {
+                if (!task.start_date) {
+                    task.start_date = task.created_date || new Date().toISOString().split('T')[0];
+                }
+                if (!task.end_date) {
+                    const start = new Date(task.start_date);
+                    start.setDate(start.getDate() + 7); // Default 7 days duration
+                    task.end_date = start.toISOString().split('T')[0];
+                }
+                return task;
+            });
+            
+            this.renderGanttChart(ganttTasks, projectId);
         } catch (error) {
             console.error('Error loading Gantt data:', error);
+            // Show sample data on error
+            this.renderGanttChart(this.createSampleGanttTasks(), projectId);
         }
     }
     
-    renderGanttChart(data) {
+    createSampleGanttTasks() {
+        const today = new Date();
+        const getDate = (daysOffset) => {
+            const date = new Date(today);
+            date.setDate(date.getDate() + daysOffset);
+            return date.toISOString().split('T')[0];
+        };
+        
+        return [
+            {
+                id: 'sample-1',
+                title: 'Project Planning',
+                start_date: getDate(0),
+                end_date: getDate(5),
+                progress: 100,
+                priority: 'High'
+            },
+            {
+                id: 'sample-2',
+                title: 'Requirements Gathering',
+                start_date: getDate(3),
+                end_date: getDate(10),
+                progress: 75,
+                priority: 'High',
+                dependencies: ['sample-1']
+            },
+            {
+                id: 'sample-3',
+                title: 'Design Phase',
+                start_date: getDate(10),
+                end_date: getDate(20),
+                progress: 50,
+                priority: 'Medium',
+                dependencies: ['sample-2']
+            },
+            {
+                id: 'sample-4',
+                title: 'Development',
+                start_date: getDate(20),
+                end_date: getDate(45),
+                progress: 25,
+                priority: 'High',
+                dependencies: ['sample-3']
+            },
+            {
+                id: 'sample-5',
+                title: 'Testing',
+                start_date: getDate(40),
+                end_date: getDate(55),
+                progress: 0,
+                priority: 'Medium',
+                dependencies: ['sample-4']
+            },
+            {
+                id: 'sample-6',
+                title: 'Deployment',
+                start_date: getDate(55),
+                end_date: getDate(60),
+                progress: 0,
+                priority: 'Critical',
+                dependencies: ['sample-5']
+            }
+        ];
+    }
+    
+    renderGanttChart(tasks, projectId) {
         const container = document.getElementById('gantt-container');
-        if (!container) return;
+        const taskListContainer = document.getElementById('gantt-task-list-items');
+        if (!container || !taskListContainer) return;
+        
+        // Store tasks data for later use
+        this.currentGanttTasks = tasks;
         
         // Format tasks for Frappe Gantt
-        const tasks = data.tasks.map(task => ({
-            id: task.id,
-            name: task.name,
-            start: task.start,
-            end: task.end,
-            progress: task.progress,
-            dependencies: task.dependencies.join(','),
-            custom_class: task.is_critical ? 'critical-task' : ''
-        }));
+        const ganttTasks = tasks.map(task => {
+            const startDate = task.gantt_properties?.start_date || task.start_date || task.created_date;
+            const endDate = task.gantt_properties?.end_date || task.end_date || task.due_date || startDate;
+            const progress = task.gantt_properties?.progress || task.progress || 0;
+            
+            return {
+                id: task.id,
+                name: task.title,
+                start: startDate,
+                end: endDate,
+                progress: progress,
+                dependencies: task.dependencies || [],
+                custom_class: '',
+                _task: task // Store original task data
+            };
+        });
+        
+        // Populate task list sidebar
+        taskListContainer.innerHTML = ganttTasks.map((task, index) => {
+            const duration = this.calculateDuration(task.start, task.end);
+            return `
+                <div class="task-list-item" data-task-id="${task.id}" data-index="${index}">
+                    <div class="task-name" title="${task.name}">
+                        <span class="task-icon">📋</span>
+                        ${task.name}
+                    </div>
+                    <div class="task-duration">${duration} days</div>
+                    <div class="task-progress">
+                        <div class="progress-bar-mini">
+                            <div class="progress-fill-mini" style="width: ${task.progress}%"></div>
+                        </div>
+                        <span>${task.progress}%</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Add click handlers to task list items
+        taskListContainer.querySelectorAll('.task-list-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const taskId = item.dataset.taskId;
+                this.openTaskDetails(taskId);
+            });
+        });
         
         // Initialize Gantt chart
-        this.ganttChart = new Gantt('#gantt-container', tasks, {
+        // Store config for alignment calculations
+        this.ganttConfig = {
             header_height: 50,
             column_width: 30,
             step: 24,
@@ -269,55 +525,224 @@ class ProjectManager {
             bar_corner_radius: 3,
             arrow_curve: 5,
             padding: 18,
-            view_mode: 'Day',
-            date_format: 'YYYY-MM-DD',
-            custom_popup_html: (task) => {
-                const taskData = data.tasks.find(t => t.id === task.id);
-                return `
-                    <div class="gantt-popup">
-                        <h4>${task.name}</h4>
-                        <p>Start: ${this.formatDate(task._start)}</p>
-                        <p>End: ${this.formatDate(task._end)}</p>
-                        <p>Progress: ${task.progress}%</p>
-                        ${taskData?.resource ? `<p>Resource: ${taskData.resource}</p>` : ''}
-                        ${taskData?.is_critical ? '<p class="critical">Critical Path</p>' : ''}
-                    </div>
-                `;
-            },
+            view_mode: 'Week',
+            date_format: 'YYYY-MM-DD'
+        };
+        
+        this.ganttChart = new Gantt('#gantt-container', ganttTasks, {
+            ...this.ganttConfig,
             on_click: (task) => {
-                this.showTaskDetails(task.id);
+                this.openTaskDetails(task.id);
             },
             on_date_change: (task, start, end) => {
                 this.updateTaskDates(task.id, start, end);
             },
             on_progress_change: (task, progress) => {
                 this.updateTaskProgress(task.id, progress);
+            },
+            custom_popup_html: (task) => {
+                const taskData = task._task;
+                return `
+                    <div class="gantt-popup">
+                        <h4>${task.name}</h4>
+                        <p><strong>Start:</strong> ${this.formatDate(task._start)}</p>
+                        <p><strong>End:</strong> ${this.formatDate(task._end)}</p>
+                        <p><strong>Progress:</strong> ${task.progress}%</p>
+                        <p><strong>Status:</strong> ${taskData?.status || 'Not Started'}</p>
+                        ${taskData?.assigned_to ? `<p><strong>Assigned:</strong> ${taskData.assigned_to}</p>` : ''}
+                        <button class="btn btn-sm btn-primary" onclick="projectManager.openTaskDetails('${task.id}')">
+                            View Details
+                        </button>
+                    </div>
+                `;
             }
         });
         
-        // Highlight critical path if available
-        if (data.critical_path && data.critical_path.length > 0) {
-            this.highlightCriticalPath(data.critical_path);
-        }
+        // Synchronize task list with Gantt chart alignment
+        this.alignTaskListWithGantt();
     }
     
-    highlightCriticalPath(criticalPath) {
-        criticalPath.forEach(taskId => {
-            const element = document.querySelector(`g[data-id="${taskId}"]`);
-            if (element) {
-                element.classList.add('critical-path');
+    alignTaskListWithGantt() {
+        const ganttContainer = document.getElementById('gantt-container');
+        const taskListItems = document.getElementById('gantt-task-list-items');
+        const taskListWrapper = document.querySelector('.gantt-task-list');
+        
+        if (!ganttContainer || !taskListItems) return;
+        
+        // Wait for Gantt to render completely
+        setTimeout(() => {
+            // Find the Gantt SVG and its components
+            const ganttSvg = ganttContainer.querySelector('svg');
+            if (!ganttSvg) {
+                console.log('Gantt SVG not found, retrying...');
+                setTimeout(() => this.alignTaskListWithGantt(), 200);
+                return;
             }
+            
+            // Get all the bars to determine exact positioning
+            let bars = ganttSvg.querySelectorAll('.bar-wrapper');
+            
+            // If no bar-wrapper, try to find individual bars
+            if (bars.length === 0) {
+                bars = ganttSvg.querySelectorAll('.bar');
+            }
+            
+            const taskItemElements = taskListItems.querySelectorAll('.task-list-item');
+            
+            if (bars.length === 0 || taskItemElements.length === 0) {
+                console.log('No bars found or no task items, using fallback');
+                this.alignWithUniformSpacing(taskItemElements, taskListItems);
+                return;
+            }
+            
+            // Get configuration values
+            const barHeight = this.ganttConfig?.bar_height || 20;
+            const padding = this.ganttConfig?.padding || 18;
+            const headerHeight = this.ganttConfig?.header_height || 50;
+            const rowHeight = barHeight + padding;
+            
+            // Reset task list container
+            taskListItems.style.position = 'relative';
+            taskListItems.style.paddingTop = '0';
+            taskListItems.style.marginTop = '0';
+            taskListItems.style.minHeight = ganttSvg.getAttribute('height') + 'px';
+            
+            // Get positions of all bars
+            const barData = [];
+            bars.forEach((bar, index) => {
+                // Try to get Y position from transform
+                let yPos = 0;
+                const transform = bar.getAttribute('transform');
+                if (transform) {
+                    const match = transform.match(/translate\([^,]+,\s*([\d.]+)/);
+                    if (match) {
+                        yPos = parseFloat(match[1]);
+                    }
+                } else {
+                    // Try to get y attribute directly
+                    const barEl = bar.querySelector('.bar') || bar;
+                    const y = barEl.getAttribute('y');
+                    if (y) {
+                        yPos = parseFloat(y);
+                    }
+                }
+                barData.push({ element: bar, y: yPos });
+            });
+            
+            // Sort bars by Y position to ensure correct order
+            barData.sort((a, b) => a.y - b.y);
+            
+            console.log('Bar data:', barData.map(b => b.y));
+            
+            // If we have bars, use their positions
+            if (barData.length > 0) {
+                // Get the first bar position to determine header offset
+                const firstBarY = barData[0].y;
+                
+                // Bars are vertically centered in their row
+                // The row starts at: barY - (rowHeight - barHeight) / 2
+                // But we need to fine-tune this based on actual Gantt rendering
+                const rowPadding = (rowHeight - barHeight) / 2;
+                // Move down by 5% of row height for better alignment
+                const adjustment = rowHeight * 0.30; // 30% of row height
+                const contentStartY = firstBarY - rowPadding + adjustment;
+                
+                console.log('First bar Y:', firstBarY, 'Row padding:', rowPadding, 'Content start:', contentStartY);
+                
+                // Apply padding to align first task with first bar's row
+                taskListItems.style.paddingTop = contentStartY + 'px';
+                
+                // Now set heights for each task item based on bar spacing
+                taskItemElements.forEach((item, index) => {
+                    if (index < barData.length) {
+                        // Calculate height based on next bar position or use default
+                        let itemHeight = rowHeight;
+                        if (index < barData.length - 1) {
+                            // Calculate actual spacing between bars
+                            itemHeight = barData[index + 1].y - barData[index].y;
+                        }
+                        
+                        // Apply styles - ensure no gaps
+                        item.style.height = itemHeight + 'px';
+                        item.style.lineHeight = itemHeight + 'px';
+                        item.style.margin = '0';
+                        item.style.padding = '0 15px';
+                        item.style.position = 'relative';
+                        item.style.display = 'flex';
+                        item.style.alignItems = 'center';
+                        
+                        console.log(`Task ${index}: height=${itemHeight}px`);
+                    } else {
+                        // Hide extra task items if there are more tasks than bars
+                        item.style.display = 'none';
+                    }
+                });
+            } else {
+                // Fallback: use uniform spacing
+                this.alignWithUniformSpacing(taskItemElements, taskListItems);
+            }
+            
+            // Sync scrolling
+            this.setupScrollSync();
+        }, 500); // Give time for Gantt to fully render
+    }
+    
+    alignWithUniformSpacing(taskItemElements, taskListItems) {
+        // Fallback alignment using uniform spacing
+        const barHeight = this.ganttConfig?.bar_height || 20;
+        const padding = this.ganttConfig?.padding || 18;
+        const headerHeight = this.ganttConfig?.header_height || 50;
+        const rowHeight = barHeight + padding;
+        
+        taskListItems.style.position = 'relative';
+        taskListItems.style.paddingTop = headerHeight + 'px';
+        
+        taskItemElements.forEach((item, index) => {
+            item.style.position = 'relative';
+            item.style.height = rowHeight + 'px';
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+        });
+    }
+    
+    setupScrollSync() {
+        const ganttContainer = document.getElementById('gantt-container');
+        const taskListWrapper = document.querySelector('.gantt-task-list');
+        
+        if (!ganttContainer || !taskListWrapper) return;
+        
+        let isScrolling = false;
+        
+        // Sync vertical scrolling
+        ganttContainer.addEventListener('scroll', () => {
+            if (isScrolling) return;
+            isScrolling = true;
+            taskListWrapper.scrollTop = ganttContainer.scrollTop;
+            setTimeout(() => { isScrolling = false; }, 10);
+        });
+        
+        taskListWrapper.addEventListener('scroll', () => {
+            if (isScrolling) return;
+            isScrolling = true;
+            ganttContainer.scrollTop = taskListWrapper.scrollTop;
+            setTimeout(() => { isScrolling = false; }, 10);
         });
     }
     
     renderBoardView() {
-        const container = document.getElementById('projectsContainer');
-        if (!container) return;
+        // Get or ensure container exists
+        let container = this.getOrCreateContainer();
+        if (!container) {
+            console.error('Cannot create board view - no container available');
+            return;
+        }
         
         const statuses = ['Planning', 'Active', 'On Hold', 'Completed'];
         
+        // Set container class for board view
+        container.className = 'board-view';
         container.innerHTML = `
-            <div class="board-view">
+            <div class="board-columns">
                 ${statuses.map(status => `
                     <div class="board-column" data-status="${status}">
                         <div class="column-header">
@@ -339,7 +764,7 @@ class ProjectManager {
     createBoardCard(project) {
         return `
             <div class="board-card" draggable="true" data-project-id="${project.id}">
-                <h4>${project.name}</h4>
+                <h4>${project.title || project.name || 'Untitled'}</h4>
                 <div class="board-card-meta">
                     <span class="priority-${project.priority?.toLowerCase()}">${project.priority}</span>
                     <span>${this.formatDate(project.end_date)}</span>
@@ -516,17 +941,25 @@ class ProjectManager {
     }
     
     resetProjectForm() {
-        // Reset all form fields
-        document.getElementById('projectName').value = '';
-        document.getElementById('projectCode').value = '';
-        document.getElementById('projectCustomer').value = '';
-        document.getElementById('projectManager').value = '';
-        document.getElementById('projectStatus').value = 'Planning';
-        document.getElementById('projectPriority').value = 'Medium';
-        document.getElementById('projectStartDate').value = '';
-        document.getElementById('projectEndDate').value = '';
-        document.getElementById('projectType').value = 'Development';
-        document.getElementById('projectMethodology').value = 'Agile';
+        // Reset all form fields - check if they exist first
+        const setFieldValue = (id, value) => {
+            const field = document.getElementById(id);
+            if (field) field.value = value;
+        };
+        
+        // Reset fields that may exist
+        setFieldValue('projectTitle', '');
+        setFieldValue('projectName', '');
+        setFieldValue('projectCode', '');
+        setFieldValue('projectCustomer', '');
+        setFieldValue('projectManager', '');
+        setFieldValue('projectStatus', 'Planning');
+        setFieldValue('projectPriority', 'Medium');
+        setFieldValue('projectStartDate', '');
+        setFieldValue('projectEndDate', '');
+        setFieldValue('projectTargetDate', '');
+        setFieldValue('projectType', 'Development');
+        setFieldValue('projectMethodology', 'Agile');
         
         // Clear Quill editor
         if (this.descriptionEditor) {
@@ -545,17 +978,25 @@ class ProjectManager {
     }
     
     populateProjectForm(project) {
-        // Populate form fields with project data
-        document.getElementById('projectName').value = project.name || '';
-        document.getElementById('projectCode').value = project.project_code || '';
-        document.getElementById('projectCustomer').value = project.customer_name || '';
-        document.getElementById('projectManager').value = project.project_manager || '';
-        document.getElementById('projectStatus').value = project.status || 'Planning';
-        document.getElementById('projectPriority').value = project.priority || 'Medium';
-        document.getElementById('projectStartDate').value = project.start_date || '';
-        document.getElementById('projectEndDate').value = project.end_date || '';
-        document.getElementById('projectType').value = project.project_type || 'Development';
-        document.getElementById('projectMethodology').value = project.methodology || 'Agile';
+        // Populate form fields with project data - check if they exist first
+        const setFieldValue = (id, value) => {
+            const field = document.getElementById(id);
+            if (field) field.value = value || '';
+        };
+        
+        // Set field values for fields that may exist
+        setFieldValue('projectTitle', project.title || project.name);
+        setFieldValue('projectName', project.title || project.name);
+        setFieldValue('projectCode', project.project_code);
+        setFieldValue('projectCustomer', project.customer_name);
+        setFieldValue('projectManager', project.project_manager);
+        setFieldValue('projectStatus', project.status || 'Planning');
+        setFieldValue('projectPriority', project.priority || 'Medium');
+        setFieldValue('projectStartDate', project.start_date);
+        setFieldValue('projectEndDate', project.end_date);
+        setFieldValue('projectTargetDate', project.target_date || project.end_date);
+        setFieldValue('projectType', project.project_type || 'Development');
+        setFieldValue('projectMethodology', project.methodology || 'Agile');
         
         // Set Quill editor content
         if (this.descriptionEditor && project.description) {
@@ -759,18 +1200,30 @@ class ProjectManager {
         
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         
-        // Initialize Quill editor for description
-        this.descriptionEditor = new Quill('#projectDescription', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    ['link', 'blockquote', 'code-block'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['clean']
-                ]
+        // Initialize Quill editor for description - check which container exists
+        const editorContainer = document.getElementById('projectDescriptionEditor') || 
+                              document.getElementById('projectDescription');
+        if (editorContainer && typeof Quill !== 'undefined') {
+            const containerId = editorContainer.id;
+            // Check if Quill is already initialized on this element
+            if (!editorContainer.__quill) {
+                this.descriptionEditor = new Quill('#' + containerId, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline'],
+                            ['link', 'blockquote', 'code-block'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['clean']
+                        ]
+                    }
+                });
+                editorContainer.__quill = this.descriptionEditor;
+            } else {
+                // Use existing Quill instance
+                this.descriptionEditor = editorContainer.__quill;
             }
-        });
+        }
         
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -815,18 +1268,28 @@ class ProjectManager {
     }
     
     async saveProject() {
+        // Get field values safely
+        const getFieldValue = (id) => {
+            const field = document.getElementById(id);
+            return field ? field.value : '';
+        };
+        
+        const titleValue = getFieldValue('projectTitle') || getFieldValue('projectName');
+        
         const projectData = {
-            name: document.getElementById('projectName').value,
-            project_code: document.getElementById('projectCode').value,
-            description: this.descriptionEditor.root.innerHTML,
-            customer_name: document.getElementById('projectCustomer').value,
-            project_manager: document.getElementById('projectManager').value,
-            status: document.getElementById('projectStatus').value,
-            priority: document.getElementById('projectPriority').value,
-            start_date: document.getElementById('projectStartDate').value,
-            end_date: document.getElementById('projectEndDate').value,
-            project_type: document.getElementById('projectType').value,
-            methodology: document.getElementById('projectMethodology').value
+            name: titleValue,
+            title: titleValue,
+            project_code: getFieldValue('projectCode'),
+            description: this.descriptionEditor?.root?.innerHTML || getFieldValue('projectDescription') || '',
+            customer_name: getFieldValue('projectCustomer'),
+            project_manager: getFieldValue('projectManager'),
+            status: getFieldValue('projectStatus') || 'Planning',
+            priority: getFieldValue('projectPriority') || 'Medium',
+            start_date: getFieldValue('projectStartDate'),
+            end_date: getFieldValue('projectEndDate'),
+            target_date: getFieldValue('projectTargetDate') || getFieldValue('projectEndDate'),
+            project_type: getFieldValue('projectType') || 'Development',
+            methodology: getFieldValue('projectMethodology') || 'Agile'
         };
         
         try {
@@ -929,7 +1392,8 @@ class ProjectManager {
             }
             if (this.filters.search) {
                 const searchLower = this.filters.search.toLowerCase();
-                return project.name.toLowerCase().includes(searchLower) ||
+                const projectName = (project.title || project.name || '').toLowerCase();
+                return projectName.includes(searchLower) ||
                        project.description?.toLowerCase().includes(searchLower) ||
                        project.project_code?.toLowerCase().includes(searchLower);
             }
@@ -1377,25 +1841,305 @@ class ProjectManager {
         // TODO: Implement task details view
     }
     
-    toggleCriticalPath() {
-        // Toggle critical path visibility
-        const criticalElements = document.querySelectorAll('.critical-path');
-        criticalElements.forEach(el => {
-            el.classList.toggle('highlight');
-        });
+    // Helper method to calculate duration between dates
+    calculateDuration(start, end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays || 1;
     }
     
-    exportGantt() {
-        // Export Gantt chart as image or PDF
-        alert('Gantt export feature coming soon!');
-        // TODO: Implement export functionality
+    // Strip HTML tags from text
+    stripHtml(html) {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        return temp.textContent || temp.innerText || '';
+    }
+    
+    // Open task details modal
+    async openTaskDetails(taskId) {
+        try {
+            // Find the task in our current data
+            const task = this.currentGanttTasks?.find(t => t.id === taskId);
+            if (task) {
+                // Open task modal (assuming there's a task modal in the system)
+                if (window.openTaskModal) {
+                    window.openTaskModal(task);
+                } else {
+                    // Fallback: show task details in an alert or custom modal
+                    this.showTaskDetailsModal(task);
+                }
+            } else {
+                // If not found locally, try to fetch all tasks and find it
+                const response = await fetch('/api/tasks');
+                if (response.ok) {
+                    const tasks = await response.json();
+                    const foundTask = tasks.find(t => t.id === taskId);
+                    if (foundTask) {
+                        this.showTaskDetailsModal(foundTask);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading task details:', error);
+        }
+    }
+    
+    // Update task dates when dragged in Gantt
+    async updateTaskDates(taskId, start, end) {
+        try {
+            const response = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    start_date: start.toISOString().split('T')[0],
+                    end_date: end.toISOString().split('T')[0],
+                    gantt_properties: {
+                        start_date: start.toISOString().split('T')[0],
+                        end_date: end.toISOString().split('T')[0]
+                    }
+                })
+            });
+            
+            if (response.ok) {
+                showNotification('Task dates updated', 'success');
+            }
+        } catch (error) {
+            console.error('Error updating task dates:', error);
+            showNotification('Failed to update task dates', 'error');
+        }
+    }
+    
+    // Update task progress
+    async updateTaskProgress(taskId, progress) {
+        try {
+            const response = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    gantt_properties: { progress: progress }
+                })
+            });
+            
+            if (response.ok) {
+                showNotification('Task progress updated', 'success');
+            }
+        } catch (error) {
+            console.error('Error updating task progress:', error);
+            showNotification('Failed to update task progress', 'error');
+        }
+    }
+    
+    // Show task details in a custom modal
+    showTaskDetailsModal(task) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                <h2>${task.title}</h2>
+                <div class="task-details">
+                    <p><strong>Description:</strong> ${task.description || 'No description'}</p>
+                    <p><strong>Status:</strong> ${task.status}</p>
+                    <p><strong>Priority:</strong> ${task.priority}</p>
+                    <p><strong>Assigned to:</strong> ${task.assigned_to || 'Unassigned'}</p>
+                    <p><strong>Due Date:</strong> ${this.formatDate(task.due_date)}</p>
+                    ${task.gantt_properties ? `
+                        <p><strong>Start Date:</strong> ${this.formatDate(task.gantt_properties.start_date)}</p>
+                        <p><strong>End Date:</strong> ${this.formatDate(task.gantt_properties.end_date)}</p>
+                        <p><strong>Progress:</strong> ${task.gantt_properties.progress}%</p>
+                    ` : ''}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="window.location.href='/tasks?edit=${task.id}'">
+                        Edit Task
+                    </button>
+                    <button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    exportGantt(format) {
+        if (!this.ganttChart || !this.currentGanttTasks) {
+            showNotification('No Gantt chart to export', 'warning');
+            return;
+        }
+        
+        switch(format) {
+            case 'png':
+                this.exportGanttAsPNG();
+                break;
+            case 'svg':
+                this.exportGanttAsSVG();
+                break;
+            case 'pdf':
+                this.exportGanttAsPDF();
+                break;
+            case 'csv':
+                this.exportGanttAsCSV();
+                break;
+            default:
+                showNotification('Unknown export format', 'error');
+        }
+    }
+    
+    exportGanttAsPNG() {
+        const svg = document.querySelector('#gantt-container svg');
+        if (!svg) return;
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        // Get SVG data
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            // Download PNG
+            canvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.download = `gantt-chart-${new Date().toISOString().split('T')[0]}.png`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            });
+            
+            URL.revokeObjectURL(url);
+        };
+        
+        img.src = url;
+    }
+    
+    exportGanttAsSVG() {
+        const svg = document.querySelector('#gantt-container svg');
+        if (!svg) return;
+        
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        
+        const link = document.createElement('a');
+        link.download = `gantt-chart-${new Date().toISOString().split('T')[0]}.svg`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+    }
+    
+    exportGanttAsPDF() {
+        // This requires a library like jsPDF
+        if (typeof jsPDF === 'undefined') {
+            // Load jsPDF dynamically
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            script.onload = () => {
+                this.generatePDF();
+            };
+            document.head.appendChild(script);
+        } else {
+            this.generatePDF();
+        }
+    }
+    
+    generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+        
+        // Add title
+        doc.setFontSize(16);
+        doc.text('Project Gantt Chart', 10, 10);
+        
+        // Add task list
+        doc.setFontSize(10);
+        let y = 25;
+        
+        doc.text('Task Name', 10, y);
+        doc.text('Start Date', 80, y);
+        doc.text('End Date', 120, y);
+        doc.text('Progress', 160, y);
+        doc.text('Status', 200, y);
+        
+        y += 10;
+        this.currentGanttTasks.forEach(task => {
+            if (y > 180) {
+                doc.addPage();
+                y = 25;
+            }
+            
+            doc.text(task.title.substring(0, 30), 10, y);
+            doc.text(this.formatDate(task.start_date || task.gantt_properties?.start_date), 80, y);
+            doc.text(this.formatDate(task.end_date || task.gantt_properties?.end_date), 120, y);
+            doc.text(`${task.gantt_properties?.progress || 0}%`, 160, y);
+            doc.text(task.status || 'Not Started', 200, y);
+            
+            y += 8;
+        });
+        
+        // Save PDF
+        doc.save(`gantt-chart-${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+    
+    exportGanttAsCSV() {
+        if (!this.currentGanttTasks || this.currentGanttTasks.length === 0) {
+            showNotification('No tasks to export', 'warning');
+            return;
+        }
+        
+        // Create CSV content
+        const headers = ['Task Name', 'Start Date', 'End Date', 'Duration (days)', 'Progress (%)', 'Status', 'Assigned To', 'Priority'];
+        const rows = this.currentGanttTasks.map(task => {
+            const startDate = task.gantt_properties?.start_date || task.start_date || '';
+            const endDate = task.gantt_properties?.end_date || task.end_date || task.due_date || '';
+            const duration = this.calculateDuration(startDate, endDate);
+            const progress = task.gantt_properties?.progress || task.progress || 0;
+            
+            return [
+                `"${task.title.replace(/"/g, '""')}"`,
+                startDate,
+                endDate,
+                duration,
+                progress,
+                task.status || 'Not Started',
+                task.assigned_to || 'Unassigned',
+                task.priority || 'Medium'
+            ].join(',');
+        });
+        
+        const csv = [headers.join(','), ...rows].join('\n');
+        
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.download = `gantt-chart-${new Date().toISOString().split('T')[0]}.csv`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
     }
 }
 
+// Mark that enhanced version is available (before initialization)
+window.projectManagerEnhanced = true;
+
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.projectManager = new ProjectManager();
-});
+function initializeProjectManager() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeProjectManager);
+    } else {
+        // DOM is already loaded
+        console.log('Initializing Enhanced ProjectManager...');
+        window.projectManager = new ProjectManager();
+    }
+}
+
+// Start initialization
+initializeProjectManager();
 
 // Utility function for notifications
 function showNotification(message, type = 'info') {

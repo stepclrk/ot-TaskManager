@@ -1748,6 +1748,67 @@ small {
     border-bottom: 2px solid #3498db;
 }
 
+/* Time badges for task age/update tracking */
+.time-badges {
+    display: inline-flex;
+    gap: 8px;
+    margin-left: 12px;
+    float: right;
+}
+
+.time-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #f0f2f5;
+    color: #666;
+    white-space: nowrap;
+}
+
+/* Color coding based on age */
+.time-badge.time-recent {
+    background: #d4edda;
+    color: #155724;
+}
+
+.time-badge.time-normal {
+    background: #f0f2f5;
+    color: #666;
+}
+
+.time-badge.time-old {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.time-badge.time-stale {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Kanban specific time badges */
+.kanban-time-badges {
+    display: flex;
+    gap: 6px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+.kanban-time-badges .time-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+}
+
+/* Adjust task title to accommodate floating badges */
+.task-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .summary-body {
     line-height: 1.6;
     color: #34495e;

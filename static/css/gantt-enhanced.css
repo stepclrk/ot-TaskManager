@@ -1,0 +1,524 @@
+/* Enhanced Gantt Chart Styles */
+
+/* Gantt View Container */
+.gantt-view-container {
+    width: 100%;
+    padding: 20px;
+}
+
+.gantt-view {
+    width: 100%;
+}
+
+/* View Switcher */
+.view-switcher {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.view-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6c757d;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.view-btn:hover {
+    background: #f8f9fa;
+    color: #495057;
+    border-color: var(--primary-color, #007bff);
+}
+
+.view-btn.active {
+    background: var(--primary-color, #007bff);
+    color: white;
+    border-color: var(--primary-color, #007bff);
+}
+
+.view-btn i {
+    font-size: 1rem;
+}
+
+.gantt-view {
+    padding: 20px;
+    background: #f5f5f5;
+    min-height: 600px;
+}
+
+.gantt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.gantt-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
+}
+
+.gantt-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.gantt-controls .form-control {
+    min-width: 200px;
+}
+
+/* Gantt wrapper with task list sidebar */
+.gantt-wrapper {
+    display: flex;
+    flex-direction: row;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+    min-height: 400px;
+    width: 100%;
+    position: relative;
+}
+
+/* Task list sidebar */
+.gantt-task-list {
+    width: 350px;
+    min-width: 350px;
+    flex-shrink: 0;
+    border-right: 2px solid #e9ecef;
+    background: #fafbfc;
+    overflow-y: auto; /* Allow scrolling */
+    overflow-x: hidden;
+    position: relative;
+    max-height: 600px; /* Match Gantt container height */
+}
+
+.task-list-header {
+    display: none; /* Hide the task list header - we'll align directly with Gantt rows */
+}
+
+.task-name-header {
+    padding-right: 10px;
+}
+
+.task-duration-header,
+.task-progress-header {
+    text-align: center;
+}
+
+/* Task list items */
+#gantt-task-list-items {
+    /* Container for task items */
+    position: relative;
+    overflow: visible; /* Let parent handle scrolling */
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.task-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    margin: 0 !important; /* Force remove any margins */
+    border: none !important; /* Force remove all borders */
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+    line-height: normal; /* Reset line-height */
+    /* Height will be set dynamically to match Gantt row spacing */
+}
+
+/* Ensure no gaps between items */
+.task-list-item + .task-list-item {
+    margin-top: 0 !important;
+}
+
+.task-list-item .task-name {
+    flex: 1;
+    padding-right: 10px;
+}
+
+.task-list-item .task-duration {
+    width: 80px;
+    text-align: center;
+}
+
+.task-list-item .task-progress {
+    width: 100px;
+}
+
+.task-list-item:hover {
+    background: #f0f4f8;
+    box-shadow: inset 3px 0 0 var(--primary-color, #007bff);
+}
+
+.task-list-item.selected {
+    background: #e8f4ff;
+    box-shadow: inset 3px 0 0 var(--primary-color, #007bff);
+}
+
+.task-name {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.task-duration {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.task-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.progress-bar-mini {
+    flex: 1;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill-mini {
+    height: 100%;
+    background: var(--success-color, #28a745);
+    transition: width 0.3s ease;
+}
+
+/* Main Gantt container */
+#gantt-container {
+    flex: 1;
+    padding: 10px;
+    overflow: auto; /* Allow both scrolling */
+    min-width: 0;
+    position: relative;
+    background: white;
+}
+
+/* Ensure Frappe Gantt takes full width */
+#gantt-container svg {
+    min-width: 100%;
+    display: block;
+}
+
+/* Align Gantt bars with task list items */
+#gantt-container .bar-wrapper {
+    /* Ensure consistent spacing */
+}
+
+#gantt-container .gantt-container {
+    /* Remove any default margins */
+    margin: 0;
+}
+
+/* Remove separator lines since items are absolutely positioned */
+
+/* Gantt chart customizations */
+#gantt-container .gantt-container {
+    font-family: inherit;
+}
+
+#gantt-container .bar-wrapper {
+    cursor: pointer;
+}
+
+#gantt-container .bar-wrapper:hover .bar {
+    opacity: 0.8;
+}
+
+#gantt-container .bar-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#gantt-container .bar-progress {
+    opacity: 0.6;
+}
+
+/* Gantt popup customization */
+.gantt-popup {
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    min-width: 250px;
+}
+
+.gantt-popup h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.gantt-popup p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.gantt-popup p strong {
+    color: #2c3e50;
+    margin-right: 5px;
+}
+
+.gantt-popup .btn {
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Export dropdown styling */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle::after {
+    content: ' ▼';
+    font-size: 0.7em;
+    margin-left: 5px;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-width: 180px;
+    z-index: 1000;
+    margin-top: 2px;
+}
+
+.dropdown.show .dropdown-menu,
+.dropdown-menu:hover {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 8px 16px;
+    color: #495057;
+    text-decoration: none;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+    color: var(--primary-color, #007bff);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .gantt-task-list {
+        width: 280px;
+        min-width: 280px;
+    }
+    
+    .task-list-header,
+    .task-list-item {
+        grid-template-columns: 1fr 60px 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gantt-wrapper {
+        flex-direction: column;
+    }
+    
+    .gantt-task-list {
+        width: 100%;
+        max-height: 250px;
+        border-right: none;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .gantt-controls {
+        flex-wrap: wrap;
+    }
+    
+    .gantt-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+/* Task details modal */
+.task-details {
+    padding: 20px 0;
+}
+
+.task-details p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.task-details strong {
+    color: #495057;
+    margin-right: 8px;
+}
+
+/* Loading state */
+.gantt-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    color: #6c757d;
+}
+
+.gantt-loading::after {
+    content: 'Loading Gantt chart...';
+    font-size: 1.1rem;
+}
+
+/* Empty state */
+.gantt-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    color: #6c757d;
+}
+
+.gantt-empty h3 {
+    margin: 10px 0;
+    color: #495057;
+}
+
+.gantt-empty p {
+    margin: 5px 0;
+}
+
+/* Board View Styles */
+.board-view {
+    padding: 20px 0;
+}
+
+.board-columns {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 20px;
+}
+
+.board-column {
+    flex: 1;
+    min-width: 280px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.board-column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.board-column-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #495057;
+}
+
+.board-count {
+    background: #6c757d;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.board-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.board-card {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.board-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.board-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.board-card p {
+    margin: 0 0 10px 0;
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+.board-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #adb5bd;
+}
+
+.board-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
