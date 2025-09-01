@@ -4,6 +4,34 @@
     box-sizing: border-box;
 }
 
+/* Combo input styles */
+.combo-input {
+    position: relative;
+    width: 100%;
+}
+
+.combo-input input[list] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+}
+
+.combo-input input[list]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.form-group label small {
+    color: #6c757d;
+    font-weight: normal;
+    font-size: 0.85em;
+    margin-left: 5px;
+}
+
 /* Deal ownership styles */
 .read-only-deal {
     background-color: #f8f9fa !important;

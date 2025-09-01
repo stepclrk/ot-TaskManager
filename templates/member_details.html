@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Details - {{ member.name }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/sidebar.css">
+    <link rel="stylesheet" href="/static/css/teams.css">
+    <link rel="stylesheet" href="/static/css/member_details.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <span class="nav-icon">📋</span>
+                <h1>TaskManager</h1>
+            </a>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <span>◀</span>
+            </button>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/" class="nav-link" data-tooltip="Dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/objectives" class="nav-link" data-tooltip="Objectives">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-text">Objectives</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/projects" class="nav-link" data-tooltip="Projects">
+                    <span class="nav-icon">📁</span>
+                    <span class="nav-text">Projects</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/tasks" class="nav-link" data-tooltip="Tasks">
+                    <span class="nav-icon">✅</span>
+                    <span class="nav-text">Tasks</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/teams" class="nav-link active" data-tooltip="Teams">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Teams</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/deals" class="nav-link" data-tooltip="Deals">
+                    <span class="nav-icon">💼</span>
+                    <span class="nav-text">Deals</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/reports" class="nav-link" data-tooltip="Reports">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Reports</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/settings" class="nav-link" data-tooltip="Settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile hamburger button -->
+    <button class="hamburger" id="hamburgerMenu" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Overlay for mobile -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <div class="content-container">
+            <!-- Back button and member header -->
+            <div class="member-page-header">
+                <a href="/teams" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Teams
+                </a>
+                
+                <div class="member-header-info">
+                    <div class="member-avatar-large" id="memberAvatar"></div>
+                    <div class="member-info">
+                        <h1 id="memberName"></h1>
+                        <div class="member-meta-info">
+                            <span id="memberRole"></span>
+                            <span id="memberEmail"></span>
+                            <span id="memberDepartment"></span>
+                        </div>
+                    </div>
+                    <div class="member-actions">
+                        <button class="btn btn-primary" onclick="createTaskForMember()">
+                            <i class="fas fa-plus"></i> Create Task
+                        </button>
+                        <button class="btn btn-secondary" onclick="editMember()">
+                            <i class="fas fa-edit"></i> Edit Member
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalTasksStat">0</div>
+                        <div class="stat-label">Total Tasks</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="completedTasksStat">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="overdueTasksStat">0</div>
+                        <div class="stat-label">Overdue</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="completionRateStat">0%</div>
+                        <div class="stat-label">Completion Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Tasks Section -->
+            <div class="all-tasks-section">
+                <div class="tasks-header">
+                    <h2>Tasks Overview</h2>
+                    <div class="task-counts">
+                        <span class="count-badge assigned-badge">
+                            <i class="fas fa-user-check"></i> 
+                            <span id="assignedCount">0</span> Assigned
+                        </span>
+                        <span class="count-badge related-badge">
+                            <i class="fas fa-link"></i> 
+                            <span id="relatedCount">0</span> Related
+                        </span>
+                    </div>
+                </div>
+
+                <div class="tasks-toolbar">
+                    <select id="tasksFilter" class="filter-select">
+                        <option value="all">All Tasks</option>
+                        <option value="assigned">Assigned Only</option>
+                        <option value="related">Related Only</option>
+                        <option value="active">Active Tasks</option>
+                        <option value="completed">Completed</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+
+                <div id="allTasksList" class="tasks-list">
+                    <!-- All tasks will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Creation Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Task</h2>
+                <span class="close" onclick="closeTaskModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskTitle">Task Title *</label>
+                            <input type="text" id="taskTitle" name="title" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskDescription">Description</label>
+                            <textarea id="taskDescription" name="description" rows="4"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskAssignedTo">Assigned To</label>
+                            <input type="text" id="taskAssignedTo" name="assigned_to" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskRelatedTo">Related To</label>
+                            <input type="text" id="taskRelatedTo" name="related_to">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskPriority">Priority</label>
+                            <select id="taskPriority" name="priority">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskStatus">Status</label>
+                            <select id="taskStatus" name="status">
+                                <option value="Not Started" selected>Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskFollowUpDate">Follow-up Date</label>
+                            <input type="date" id="taskFollowUpDate" name="follow_up_date">
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDueDate">Due Date</label>
+                            <input type="date" id="taskDueDate" name="due_date">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskCategory">Category</label>
+                            <select id="taskCategory" name="category">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskCustomerName">Customer Name</label>
+                            <input type="text" id="taskCustomerName" name="customer_name">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveTask()">Create Task</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store member ID from URL
+        const memberId = '{{ member.id }}';
+        const memberName = '{{ member.name }}';
+    </script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/member_details.js"></script>
+</body>
+</html>

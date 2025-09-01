@@ -556,5 +556,151 @@
     "attachments": [],
     "dependencies": [],
     "blocks": []
+  },
+  {
+    "title": "Something",
+    "customer_name": "someone",
+    "description": "",
+    "category": "Development",
+    "priority": "Low",
+    "follow_up_date": "",
+    "status": "Open",
+    "assigned_to": "",
+    "tags": "",
+    "project_id": "bea04db8-c2ef-462d-9833-905f71c466ee",
+    "id": "b8235d54-552f-49c1-ad41-32842766a1d5",
+    "created_date": "2025-08-31T22:47:21.186265",
+    "history": [
+      {
+        "timestamp": "2025-08-31T22:47:21.186272",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "Shell CSM AssignmentThis is a divestiture from Shell but will be a new MS customer, assignment of CSM is required",
+    "description": "<p>sadsadf</p><p>sadfsda</p><p>sdafasf</p><p><br></p>",
+    "category": "Development",
+    "priority": "Medium",
+    "status": "Not Started",
+    "project_id": "bea04db8-c2ef-462d-9833-905f71c466ee",
+    "phase_id": null,
+    "milestone_id": null,
+    "gantt_properties": {
+      "start_date": "2025-09-01",
+      "end_date": "2025-09-06",
+      "duration": 6,
+      "progress": 0,
+      "is_milestone": false,
+      "is_critical_path": false
+    },
+    "assigned_to": "",
+    "resource_assignments": [],
+    "dependencies": [],
+    "blocks": [],
+    "constraint_type": "ASAP",
+    "constraint_date": "",
+    "tags": "",
+    "notes": "",
+    "estimated_cost": 0,
+    "effort_hours": 0,
+    "id": "b7f0af0a-5c93-4952-89a7-bc50d906ef9e",
+    "created_date": "2025-09-01T10:05:55.445860",
+    "history": [
+      {
+        "timestamp": "2025-09-01T10:05:55.445875",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": []
+  },
+  {
+    "title": "asdf",
+    "customer_name": "asdf",
+    "description": "asdf",
+    "category": "Development",
+    "priority": "Low",
+    "follow_up_date": "",
+    "status": "Open",
+    "assigned_to": "Doerte",
+    "related_to": "",
+    "tags": "",
+    "topic_id": null,
+    "project_id": null,
+    "task_type": "regular",
+    "id": "bbe87115-62d5-4cbc-8096-3fb22883ef50",
+    "created_date": "2025-09-01T12:44:50.535071",
+    "history": [
+      {
+        "timestamp": "2025-09-01T12:44:50.535079",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      },
+      {
+        "timestamp": "2025-09-01T12:53:11.367925",
+        "action": "modified",
+        "field": "title",
+        "old_value": "Something",
+        "new_value": "asdf"
+      },
+      {
+        "timestamp": "2025-09-01T12:53:11.367945",
+        "action": "modified",
+        "field": "customer_name",
+        "old_value": "Acme Corporation",
+        "new_value": "asdf"
+      },
+      {
+        "timestamp": "2025-09-01T12:53:11.367953",
+        "action": "modified",
+        "field": "description",
+        "old_value": "asdfasdfasdf",
+        "new_value": "asdf"
+      },
+      {
+        "timestamp": "2025-09-01T12:53:11.367987",
+        "action": "modified",
+        "field": "assigned_to",
+        "old_value": "Steve",
+        "new_value": "Doerte"
+      },
+      {
+        "timestamp": "2025-09-01T12:53:11.367994",
+        "action": "modified",
+        "field": "related_to",
+        "old_value": "Doerte",
+        "new_value": ""
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "id": "09d886f4-86dd-42ac-ae7d-fea226d8075e",
+    "title": "Test task for Doerte - Related",
+    "customer_name": "Test Customer",
+    "description": "This is a test task related to Doerte",
+    "category": "Development",
+    "priority": "Medium",
+    "status": "Pending",
+    "assigned_to": "Admin",
+    "related_to": "Doerte",
+    "created_at": "2025-09-01T12:57:28.924181",
+    "updated_at": "2025-09-01T12:57:28.924197"
   }
 ]

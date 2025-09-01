@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/sidebar.css">
+    <link rel="stylesheet" href="/static/css/teams.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <span class="nav-icon">📋</span>
+                <h1>TaskManager</h1>
+            </a>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <span>◀</span>
+            </button>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/" class="nav-link" data-tooltip="Dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/objectives" class="nav-link" data-tooltip="Objectives">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-text">Objectives</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/projects" class="nav-link" data-tooltip="Projects">
+                    <span class="nav-icon">📁</span>
+                    <span class="nav-text">Projects</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/tasks" class="nav-link" data-tooltip="Tasks">
+                    <span class="nav-icon">✅</span>
+                    <span class="nav-text">Tasks</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/teams" class="nav-link active" data-tooltip="Teams">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Teams</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/deals" class="nav-link" data-tooltip="Deals">
+                    <span class="nav-icon">💼</span>
+                    <span class="nav-text">Deals</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/reports" class="nav-link" data-tooltip="Reports">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Reports</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/settings" class="nav-link" data-tooltip="Settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile hamburger button -->
+    <button class="hamburger" id="hamburgerMenu" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Overlay for mobile -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <div class="content-container">
+            <div class="content-header">
+                <h1><i class="fas fa-users"></i> Team Management</h1>
+                <div class="header-actions">
+                    <button id="addTeamBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Team
+                    </button>
+                    <button id="addMemberBtn" class="btn btn-secondary">
+                        <i class="fas fa-user-plus"></i> Add Member
+                    </button>
+                </div>
+            </div>
+
+            <!-- Teams Overview -->
+            <div class="teams-overview">
+                <div class="overview-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalTeams">0</div>
+                            <div class="stat-label">Teams</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalMembers">0</div>
+                            <div class="stat-label">Members</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="activeTasks">0</div>
+                            <div class="stat-label">Active Tasks</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="avgCapacity">0%</div>
+                            <div class="stat-label">Avg. Capacity</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="view-switcher">
+                <button class="view-btn active" data-view="teams">
+                    <i class="fas fa-users"></i> Teams View
+                </button>
+                <button class="view-btn" data-view="members">
+                    <i class="fas fa-user"></i> Members View
+                </button>
+                <button class="view-btn" data-view="workload">
+                    <i class="fas fa-chart-bar"></i> Workload View
+                </button>
+            </div>
+
+            <!-- Teams View -->
+            <div id="teamsView" class="view-content active">
+                <div class="teams-grid" id="teamsGrid">
+                    <!-- Teams will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Members View -->
+            <div id="membersView" class="view-content">
+                <div class="members-list" id="membersList">
+                    <!-- Members will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Workload View -->
+            <div id="workloadView" class="view-content">
+                <div class="workload-chart" id="workloadChart">
+                    <!-- Workload visualization will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Modal -->
+    <div id="teamModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="teamModalTitle">Create Team</h2>
+            <form id="teamForm">
+                <input type="hidden" id="teamId">
+                
+                <div class="form-group">
+                    <label for="teamName">Team Name *</label>
+                    <input type="text" id="teamName" required placeholder="e.g., Frontend Team">
+                </div>
+                
+                <div class="form-group">
+                    <label for="teamDescription">Description</label>
+                    <textarea id="teamDescription" rows="3" placeholder="Team responsibilities and goals..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="teamDepartment">Department</label>
+                    <select id="teamDepartment">
+                        <option value="">Select Department</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="teamLead">Team Lead</label>
+                    <select id="teamLead">
+                        <option value="">Select Team Lead</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="teamColor">Team Color</label>
+                    <input type="color" id="teamColor" value="#007bff">
+                </div>
+                
+                <div class="form-group">
+                    <label>Team Members</label>
+                    <div id="teamMembersSelect" class="members-select">
+                        <!-- Member checkboxes will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Team</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeTeamModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Member Modal -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="memberModalTitle">Add Team Member</h2>
+            <form id="memberForm">
+                <input type="hidden" id="memberId">
+                
+                <div class="form-group">
+                    <label for="memberName">Name *</label>
+                    <input type="text" id="memberName" required placeholder="John Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memberEmail">Email *</label>
+                    <input type="email" id="memberEmail" required placeholder="john.doe@company.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memberRole">Role</label>
+                    <input type="text" id="memberRole" placeholder="e.g., Senior Developer">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memberDepartment">Department</label>
+                    <select id="memberDepartment">
+                        <option value="">Select Department</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="memberCapacity">Weekly Capacity (hours)</label>
+                    <input type="number" id="memberCapacity" value="40" min="1" max="80">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memberSkills">Skills (comma-separated)</label>
+                    <input type="text" id="memberSkills" placeholder="JavaScript, React, Node.js">
+                </div>
+                
+                <div class="form-group">
+                    <label>Assign to Teams</label>
+                    <div id="memberTeamsSelect" class="teams-select">
+                        <!-- Team checkboxes will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Member</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeMemberModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Member Details Modal -->
+    <div id="memberDetailsModal" class="modal">
+        <div class="modal-content large-modal">
+            <span class="close">&times;</span>
+            <div class="member-details-header">
+                <div class="member-details-avatar" id="memberDetailsAvatar"></div>
+                <div class="member-details-info">
+                    <h2 id="memberDetailsName"></h2>
+                    <p id="memberDetailsRole"></p>
+                    <p id="memberDetailsEmail"></p>
+                </div>
+                <div class="member-details-actions">
+                    <button class="btn btn-primary" onclick="createTaskForMember()">
+                        <i class="fas fa-plus"></i> Create Task
+                    </button>
+                    <button class="btn btn-secondary" onclick="editMemberFromDetails()">
+                        <i class="fas fa-edit"></i> Edit Member
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs for member details -->
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="assigned">Assigned Tasks</button>
+                <button class="tab-btn" data-tab="related">Related Tasks</button>
+                <button class="tab-btn" data-tab="stats">Statistics</button>
+            </div>
+            
+            <div class="tab-content">
+                <!-- Assigned Tasks Tab -->
+                <div id="assignedTab" class="tab-panel active">
+                    <div class="tasks-filter">
+                        <select id="assignedTasksFilter" onchange="filterMemberTasks()">
+                            <option value="all">All Tasks</option>
+                            <option value="active">Active Only</option>
+                            <option value="completed">Completed</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <div id="assignedTasksList" class="member-tasks-list">
+                        <!-- Tasks will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Related Tasks Tab -->
+                <div id="relatedTab" class="tab-panel">
+                    <div class="tasks-filter">
+                        <select id="relatedTasksFilter" onchange="filterRelatedTasks()">
+                            <option value="all">All Tasks</option>
+                            <option value="active">Active Only</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div id="relatedTasksList" class="member-tasks-list">
+                        <!-- Tasks will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Statistics Tab -->
+                <div id="statsTab" class="tab-panel">
+                    <div class="member-stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Total Tasks</div>
+                            <div class="stat-value" id="totalTasksStat">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Completed Tasks</div>
+                            <div class="stat-value" id="completedTasksStat">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Overdue Tasks</div>
+                            <div class="stat-value" id="overdueTasksStat">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Completion Rate</div>
+                            <div class="stat-value" id="completionRateStat">0%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Current Workload</div>
+                            <div class="stat-value" id="workloadStat">0%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Avg. Task Duration</div>
+                            <div class="stat-value" id="avgDurationStat">0 days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/teams.js"></script>
+</body>
+</html>

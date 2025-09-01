@@ -1,0 +1,387 @@
+/* Project Task Management Styles */
+
+/* Enhanced Task Modal */
+#projectTaskModal .modal-content {
+    width: 90%;
+    max-width: 1000px;
+}
+
+#projectTaskModal .tab-content {
+    min-height: 400px;
+}
+
+/* Progress Input Group */
+.progress-input-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.form-control-range {
+    flex: 1;
+}
+
+#progressValue {
+    min-width: 50px;
+    font-weight: 600;
+    color: #007bff;
+}
+
+/* Dependencies Container */
+.dependencies-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.dependency-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.dependency-section h3 {
+    margin: 0 0 15px 0;
+    color: #495057;
+    font-size: 1.1rem;
+}
+
+.dependency-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.dependency-controls select {
+    flex: 2;
+}
+
+.dependency-controls input {
+    flex: 1;
+    max-width: 120px;
+}
+
+.dependency-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dependency-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.dependency-item span {
+    font-weight: 500;
+}
+
+.dependency-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e7f3ff;
+    border-radius: 4px;
+}
+
+.dependency-info h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    color: #0056b3;
+}
+
+.dependency-info ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.dependency-info li {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+/* Resource Assignments */
+#resourceAssignments {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.resource-assignment {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.resource-assignment .resource-select {
+    flex: 2;
+}
+
+.resource-assignment .allocation-input {
+    flex: 1;
+    max-width: 150px;
+}
+
+/* Constraint Options */
+#recurringOptions {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* Schedule Form */
+#schedule-tab .form-check {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0f8ff;
+    border-radius: 4px;
+}
+
+/* Task List in Project View */
+.project-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.project-task-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.project-task-item:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.task-status-indicator.not-started {
+    background: #6c757d;
+}
+
+.task-status-indicator.in-progress {
+    background: #ffc107;
+}
+
+.task-status-indicator.completed {
+    background: #28a745;
+}
+
+.task-status-indicator.on-hold {
+    background: #dc3545;
+}
+
+.task-info {
+    flex: 1;
+}
+
+.task-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.task-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.task-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.task-progress-bar {
+    width: 100px;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-left: auto;
+}
+
+.task-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    transition: width 0.3s ease;
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px;
+}
+
+.task-actions button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+/* Gantt Task Tooltip */
+.gantt-task-tooltip {
+    position: absolute;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.gantt-task-tooltip h4 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+}
+
+.gantt-task-tooltip p {
+    margin: 4px 0;
+}
+
+.gantt-task-tooltip .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* Critical Path Highlighting */
+.gantt-bar.critical-path {
+    fill: #dc3545 !important;
+    stroke: #a71d2a;
+    stroke-width: 2px;
+}
+
+.gantt-bar.milestone {
+    fill: #6f42c1 !important;
+    transform: rotate(45deg);
+}
+
+/* Resource Conflict Indicator */
+.resource-conflict {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #dc3545;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 8px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Work Breakdown Structure View */
+.wbs-container {
+    padding: 20px;
+}
+
+.wbs-node {
+    margin-left: 20px;
+    padding: 10px;
+    border-left: 2px solid #dee2e6;
+}
+
+.wbs-node-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px;
+    background: white;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.wbs-node-header:hover {
+    background: #f8f9fa;
+}
+
+.wbs-expand-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.wbs-expand-icon.expanded {
+    transform: rotate(90deg);
+}
+
+.wbs-node-content {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 15px;
+}
+
+.wbs-node-title {
+    font-weight: 600;
+}
+
+.wbs-node-info {
+    display: flex;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.wbs-children {
+    margin-top: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #projectTaskModal .modal-content {
+        width: 95%;
+    }
+    
+    .dependency-controls {
+        flex-direction: column;
+    }
+    
+    .resource-assignment {
+        flex-direction: column;
+    }
+    
+    .task-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+}

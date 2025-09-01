@@ -56,6 +56,12 @@
                 </a>
             </div>
             <div class="nav-item">
+                <a href="/teams" class="nav-link" data-tooltip="Teams">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Teams</span>
+                </a>
+            </div>
+            <div class="nav-item">
                 <a href="/deals" class="nav-link" data-tooltip="Deals">
                     <span class="nav-icon">💼</span>
                     <span class="nav-text">Deals</span>
@@ -204,7 +210,22 @@
                         
                         <div class="form-group">
                             <label for="assignedTo">Assigned To</label>
-                            <input type="text" id="assignedTo">
+                            <div class="combo-input">
+                                <input type="text" id="assignedTo" list="assignedToList" placeholder="Select or type name">
+                                <datalist id="assignedToList">
+                                    <option value="Unassigned">
+                                </datalist>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="relatedTo">Related To <small>(Person this task is about)</small></label>
+                            <div class="combo-input">
+                                <input type="text" id="relatedTo" list="relatedToList" placeholder="Select or type name">
+                                <datalist id="relatedToList">
+                                    <option value="">
+                                </datalist>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -377,6 +398,7 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="/static/js/sidebar.js"></script>
     <script src="/static/js/enhanced_features.js"></script>
+    <script src="/static/js/task_type_manager.js"></script>
     <script src="/static/js/tasks.js"></script>
     <script src="/static/js/tasks_enhanced.js"></script>
     <script src="/static/js/quick-actions.js"></script>

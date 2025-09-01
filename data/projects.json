@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "name": "Test Project",
+    "project_code": "TP001",
+    "description": "<p>Something project</p>",
+    "customer_name": "",
+    "project_manager": "",
+    "status": "Planning",
+    "priority": "Medium",
+    "start_date": "",
+    "end_date": "",
+    "project_type": "Development",
+    "methodology": "Agile",
+    "id": "bea04db8-c2ef-462d-9833-905f71c466ee",
+    "created_at": "2025-08-31T22:46:56.550223",
+    "updated_at": "2025-09-01T10:05:56.598100",
+    "notes": ""
+  }
+]

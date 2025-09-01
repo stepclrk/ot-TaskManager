@@ -12,6 +12,8 @@ from werkzeug.utils import secure_filename
 import shutil
 import difflib
 from ftp_sync import FTPSyncManager
+from project_manager import ProjectManager
+from team_manager import TeamManager
 
 app = Flask(__name__)
 CORS(app)
@@ -205,11 +207,20 @@ def save_objectives(objectives):
 def load_projects():
     if os.path.exists(PROJECTS_FILE):
         with open(PROJECTS_FILE, 'r') as f:
-            return json.load(f)
+            data = json.load(f)
+            # Handle both old (list) and new (dict with projects/templates) formats
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and 'projects' in data:
+                return data['projects']
+            else:
+                return data if isinstance(data, list) else []
     return []
 
 def save_projects(projects):
     os.makedirs('data', exist_ok=True)
+    # If projects is a dict (new format), save as is
+    # If it's a list (old format), just save the list
     with open(PROJECTS_FILE, 'w') as f:
         json.dump(projects, f, indent=2, default=str)
 
@@ -406,7 +417,20 @@ def objective_workspace(objective_id):
 
 @app.route('/projects')
 def projects():
-    return render_template('projects.html')
+    return render_template('projects_enhanced.html')
+
+@app.route('/teams')
+def teams():
+    return render_template('teams.html')
+
+@app.route('/teams/member/<member_id>')
+def member_details(member_id):
+    """Display member details page"""
+    team_manager = TeamManager()
+    member = team_manager.get_member(member_id)
+    if not member:
+        return "Member not found", 404
+    return render_template('member_details.html', member=member)
 
 @app.route('/deals')
 def deals():
@@ -1273,10 +1297,33 @@ def delete_objective(topic_id):
     
     return jsonify({'error': 'Objective not found'}), 404
 
+# Initialize project manager
+project_manager = ProjectManager()
+
 # Projects (Topics) endpoints
 @app.route('/api/projects', methods=['GET'])
 def get_projects():
     projects = load_projects()
+    # Add calculated fields for each project
+    for project in projects:
+        # Add health score - handle potential errors gracefully
+        try:
+            health = project_manager.calculate_project_health_score(project['id'])
+            if 'error' not in health:
+                project['health_score'] = health.get('overall_score', 50)
+                project['health_status'] = health.get('health_status', 'Unknown')
+                project['health_color'] = health.get('health_color', 'gray')
+            else:
+                # Default values if health calculation fails
+                project['health_score'] = 50
+                project['health_status'] = 'Unknown'
+                project['health_color'] = 'gray'
+        except Exception as e:
+            # If any error occurs, use default values
+            project['health_score'] = 50
+            project['health_status'] = 'Unknown'
+            project['health_color'] = 'gray'
+            app.logger.warning(f"Failed to calculate health for project {project['id']}: {str(e)}")
     return jsonify(projects)
 
 @app.route('/api/projects', methods=['POST'])
@@ -1370,6 +1417,808 @@ def delete_project(project_id):
         return jsonify({'success': True, 'deleted': deleted_project})
     
     return jsonify({'error': 'Project not found'}), 404
+
+# Enhanced Project Management Endpoints
+
+# Project Phases
+@app.route('/api/projects/<project_id>/phases', methods=['GET'])
+def get_project_phases(project_id):
+    project = project_manager.get_project(project_id)
+    if project:
+        return jsonify(project.get('phases', []))
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/phases', methods=['POST'])
+def create_project_phase(project_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        phase = request.json
+        phase['id'] = str(uuid.uuid4())
+        phase['status'] = phase.get('status', 'Not Started')
+        phase['progress'] = phase.get('progress', 0)
+        phase['milestones'] = phase.get('milestones', [])
+        
+        if 'phases' not in projects[project_index]:
+            projects[project_index]['phases'] = []
+        
+        projects[project_index]['phases'].append(phase)
+        save_projects(projects)
+        return jsonify(phase), 201
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/phases/<phase_id>', methods=['PUT'])
+def update_project_phase(project_id, phase_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        phases = projects[project_index].get('phases', [])
+        phase_index = next((i for i, p in enumerate(phases) if p['id'] == phase_id), None)
+        
+        if phase_index is not None:
+            phases[phase_index].update(request.json)
+            save_projects(projects)
+            return jsonify(phases[phase_index])
+        
+        return jsonify({'error': 'Phase not found'}), 404
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/phases/<phase_id>', methods=['DELETE'])
+def delete_project_phase(project_id, phase_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        phases = projects[project_index].get('phases', [])
+        phase_index = next((i for i, p in enumerate(phases) if p['id'] == phase_id), None)
+        
+        if phase_index is not None:
+            deleted_phase = phases.pop(phase_index)
+            save_projects(projects)
+            return jsonify({'success': True, 'deleted': deleted_phase})
+        
+        return jsonify({'error': 'Phase not found'}), 404
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+# Milestones
+@app.route('/api/projects/<project_id>/milestones', methods=['GET'])
+def get_project_milestones(project_id):
+    project = project_manager.get_project(project_id)
+    if project:
+        milestones = []
+        for phase in project.get('phases', []):
+            for milestone in phase.get('milestones', []):
+                milestone['phase_id'] = phase['id']
+                milestone['phase_name'] = phase['name']
+                milestones.append(milestone)
+        return jsonify(milestones)
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/milestones', methods=['POST'])
+def create_project_milestone(project_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        milestone_data = request.json
+        phase_id = milestone_data.get('phase_id')
+        
+        if not phase_id:
+            return jsonify({'error': 'Phase ID required'}), 400
+        
+        phases = projects[project_index].get('phases', [])
+        phase_index = next((i for i, p in enumerate(phases) if p['id'] == phase_id), None)
+        
+        if phase_index is not None:
+            milestone = {
+                'id': str(uuid.uuid4()),
+                'name': milestone_data.get('name'),
+                'description': milestone_data.get('description', ''),
+                'due_date': milestone_data.get('due_date'),
+                'status': milestone_data.get('status', 'Pending'),
+                'type': milestone_data.get('type', 'Deliverable'),
+                'dependencies': milestone_data.get('dependencies', [])
+            }
+            
+            if 'milestones' not in phases[phase_index]:
+                phases[phase_index]['milestones'] = []
+            
+            phases[phase_index]['milestones'].append(milestone)
+            save_projects(projects)
+            return jsonify(milestone), 201
+        
+        return jsonify({'error': 'Phase not found'}), 404
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+# Gantt Chart Data
+@app.route('/api/projects/<project_id>/gantt', methods=['GET'])
+def get_project_gantt(project_id):
+    project = project_manager.get_project(project_id)
+    if project:
+        tasks = project_manager.get_project_tasks(project_id)
+        
+        # Format tasks for Gantt chart
+        gantt_tasks = []
+        for task in tasks:
+            gantt_props = task.get('gantt_properties', {})
+            # Handle dependencies - it's a list, not a dict
+            dependencies = task.get('dependencies', [])
+            if isinstance(dependencies, dict):
+                # If it's a dict (future format), get depends_on
+                dependencies = dependencies.get('depends_on', [])
+            
+            gantt_task = {
+                'id': task['id'],
+                'name': task.get('title', 'Unnamed Task'),
+                'start': gantt_props.get('start_date') or task.get('created_date'),
+                'end': gantt_props.get('end_date') or task.get('follow_up_date'),
+                'progress': gantt_props.get('progress', 0),
+                'dependencies': dependencies,
+                'is_critical': gantt_props.get('is_critical_path', False),
+                'resource': task.get('assigned_to', ''),
+                'phase_id': task.get('phase_id'),
+                'milestone_id': task.get('milestone_id')
+            }
+            gantt_tasks.append(gantt_task)
+        
+        # Get critical path
+        critical_path_data = project_manager.calculate_critical_path(project_id)
+        
+        return jsonify({
+            'tasks': gantt_tasks,
+            'critical_path': critical_path_data.get('critical_path', []),
+            'project_duration': critical_path_data.get('project_duration', 0),
+            'slack_times': critical_path_data.get('slack_times', {}),
+            'gantt_data': project.get('gantt_data', {})
+        })
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/gantt', methods=['PUT'])
+def update_project_gantt(project_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        gantt_data = request.json
+        
+        # Update gantt data
+        if 'gantt_data' not in projects[project_index]:
+            projects[project_index]['gantt_data'] = {}
+        
+        projects[project_index]['gantt_data'].update(gantt_data)
+        
+        # Update task gantt properties if provided
+        if 'tasks' in gantt_data:
+            tasks = load_tasks()
+            for gantt_task in gantt_data['tasks']:
+                task_index = next((i for i, t in enumerate(tasks) if t['id'] == gantt_task['id']), None)
+                if task_index is not None:
+                    if 'gantt_properties' not in tasks[task_index]:
+                        tasks[task_index]['gantt_properties'] = {}
+                    
+                    tasks[task_index]['gantt_properties'].update({
+                        'start_date': gantt_task.get('start'),
+                        'end_date': gantt_task.get('end'),
+                        'progress': gantt_task.get('progress', 0),
+                        'duration': gantt_task.get('duration'),
+                        'is_critical_path': gantt_task.get('is_critical', False)
+                    })
+            
+            save_tasks(tasks)
+        
+        save_projects(projects)
+        return jsonify({'success': True})
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+# Critical Path Analysis
+@app.route('/api/projects/<project_id>/critical-path', methods=['GET'])
+def get_project_critical_path(project_id):
+    result = project_manager.calculate_critical_path(project_id)
+    if 'error' in result:
+        return jsonify(result), 404
+    return jsonify(result)
+
+# Resource Management
+@app.route('/api/projects/<project_id>/resources', methods=['GET'])
+def get_project_resources(project_id):
+    project = project_manager.get_project(project_id)
+    if project:
+        return jsonify(project.get('resources', []))
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/resources', methods=['POST'])
+def assign_project_resource(project_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        resource = request.json
+        resource['id'] = str(uuid.uuid4())
+        
+        if 'resources' not in projects[project_index]:
+            projects[project_index]['resources'] = []
+        
+        projects[project_index]['resources'].append(resource)
+        save_projects(projects)
+        return jsonify(resource), 201
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/resources/<resource_id>', methods=['PUT'])
+def update_project_resource(project_id, resource_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        resources = projects[project_index].get('resources', [])
+        resource_index = next((i for i, r in enumerate(resources) if r['id'] == resource_id), None)
+        
+        if resource_index is not None:
+            resources[resource_index].update(request.json)
+            save_projects(projects)
+            return jsonify(resources[resource_index])
+        
+        return jsonify({'error': 'Resource not found'}), 404
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/resources/<resource_id>', methods=['DELETE'])
+def remove_project_resource(project_id, resource_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        resources = projects[project_index].get('resources', [])
+        resource_index = next((i for i, r in enumerate(resources) if r['id'] == resource_id), None)
+        
+        if resource_index is not None:
+            deleted_resource = resources.pop(resource_index)
+            save_projects(projects)
+            return jsonify({'success': True, 'deleted': deleted_resource})
+        
+        return jsonify({'error': 'Resource not found'}), 404
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+# Resource Utilization
+@app.route('/api/projects/<project_id>/resource-utilization', methods=['GET'])
+def get_resource_utilization(project_id):
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    result = project_manager.calculate_resource_utilization(project_id, start_date, end_date)
+    if 'error' in result:
+        return jsonify(result), 404
+    return jsonify(result)
+
+# Budget Tracking
+@app.route('/api/projects/<project_id>/budget', methods=['GET'])
+def get_project_budget(project_id):
+    project = project_manager.get_project(project_id)
+    if project:
+        budget = project.get('budget', {})
+        # Add forecast data
+        forecast = project_manager.calculate_budget_forecast(project_id)
+        budget['forecast'] = forecast
+        return jsonify(budget)
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/budget', methods=['PUT'])
+def update_project_budget(project_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        budget_data = request.json
+        
+        if 'budget' not in projects[project_index]:
+            projects[project_index]['budget'] = {
+                'total_budget': 0,
+                'currency': 'USD',
+                'budget_breakdown': [],
+                'expense_items': []
+            }
+        
+        projects[project_index]['budget'].update(budget_data)
+        save_projects(projects)
+        return jsonify(projects[project_index]['budget'])
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/expenses', methods=['POST'])
+def add_project_expense(project_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        expense = request.json
+        expense['id'] = str(uuid.uuid4())
+        expense['date'] = expense.get('date', datetime.now().isoformat())
+        
+        if 'budget' not in projects[project_index]:
+            projects[project_index]['budget'] = {
+                'total_budget': 0,
+                'currency': 'USD',
+                'budget_breakdown': [],
+                'expense_items': []
+            }
+        
+        if 'expense_items' not in projects[project_index]['budget']:
+            projects[project_index]['budget']['expense_items'] = []
+        
+        projects[project_index]['budget']['expense_items'].append(expense)
+        
+        # Update category spending
+        category = expense.get('category')
+        if category:
+            for cat in projects[project_index]['budget'].get('budget_breakdown', []):
+                if cat['category'] == category:
+                    if expense.get('status') == 'Spent':
+                        cat['spent'] = cat.get('spent', 0) + expense['amount']
+                    elif expense.get('status') == 'Committed':
+                        cat['committed'] = cat.get('committed', 0) + expense['amount']
+                    break
+        
+        save_projects(projects)
+        return jsonify(expense), 201
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+# Risk Management
+@app.route('/api/projects/<project_id>/risks', methods=['GET'])
+def get_project_risks(project_id):
+    project = project_manager.get_project(project_id)
+    if project:
+        return jsonify(project.get('risks', []))
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/risks', methods=['POST'])
+def create_project_risk(project_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        risk = request.json
+        risk['id'] = str(uuid.uuid4())
+        risk['identified_date'] = risk.get('identified_date', datetime.now().isoformat())
+        risk['status'] = risk.get('status', 'Open')
+        
+        # Calculate risk score
+        probability_scores = {'Low': 1, 'Medium': 2, 'High': 3}
+        impact_scores = {'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4}
+        
+        prob_score = probability_scores.get(risk.get('probability', 'Low'), 1)
+        impact_score = impact_scores.get(risk.get('impact', 'Low'), 1)
+        risk['risk_score'] = prob_score * impact_score
+        
+        if 'risks' not in projects[project_index]:
+            projects[project_index]['risks'] = []
+        
+        projects[project_index]['risks'].append(risk)
+        save_projects(projects)
+        return jsonify(risk), 201
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/risks/<risk_id>', methods=['PUT'])
+def update_project_risk(project_id, risk_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        risks = projects[project_index].get('risks', [])
+        risk_index = next((i for i, r in enumerate(risks) if r['id'] == risk_id), None)
+        
+        if risk_index is not None:
+            updated_risk = request.json
+            
+            # Recalculate risk score if probability or impact changed
+            if 'probability' in updated_risk or 'impact' in updated_risk:
+                probability_scores = {'Low': 1, 'Medium': 2, 'High': 3}
+                impact_scores = {'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4}
+                
+                prob = updated_risk.get('probability', risks[risk_index].get('probability', 'Low'))
+                impact = updated_risk.get('impact', risks[risk_index].get('impact', 'Low'))
+                
+                prob_score = probability_scores.get(prob, 1)
+                impact_score = impact_scores.get(impact, 1)
+                updated_risk['risk_score'] = prob_score * impact_score
+            
+            risks[risk_index].update(updated_risk)
+            save_projects(projects)
+            return jsonify(risks[risk_index])
+        
+        return jsonify({'error': 'Risk not found'}), 404
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+@app.route('/api/projects/<project_id>/risks/<risk_id>', methods=['DELETE'])
+def delete_project_risk(project_id, risk_id):
+    projects = load_projects()
+    project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+    
+    if project_index is not None:
+        risks = projects[project_index].get('risks', [])
+        risk_index = next((i for i, r in enumerate(risks) if r['id'] == risk_id), None)
+        
+        if risk_index is not None:
+            deleted_risk = risks.pop(risk_index)
+            save_projects(projects)
+            return jsonify({'success': True, 'deleted': deleted_risk})
+        
+        return jsonify({'error': 'Risk not found'}), 404
+    
+    return jsonify({'error': 'Project not found'}), 404
+
+# Templates
+@app.route('/api/project-templates', methods=['GET'])
+def get_project_templates():
+    templates = project_manager.load_templates()
+    return jsonify(templates)
+
+@app.route('/api/project-templates', methods=['POST'])
+def create_project_template():
+    template = request.json
+    template['id'] = str(uuid.uuid4())
+    
+    projects_data = load_projects()
+    
+    # Ensure we have the right structure
+    if isinstance(projects_data, list):
+        # Convert to dict with projects and templates
+        projects_data = {
+            'projects': projects_data,
+            'templates': []
+        }
+    
+    if 'templates' not in projects_data:
+        projects_data['templates'] = []
+    
+    projects_data['templates'].append(template)
+    save_projects(projects_data)
+    
+    return jsonify(template), 201
+
+@app.route('/api/projects/from-template/<template_id>', methods=['POST'])
+def create_project_from_template(template_id):
+    project_data = request.json
+    result = project_manager.create_project_from_template(template_id, project_data)
+    
+    if 'error' in result:
+        return jsonify(result), 404
+    
+    return jsonify(result), 201
+
+# Project Health Score
+@app.route('/api/projects/<project_id>/health', methods=['GET'])
+def get_project_health(project_id):
+    health = project_manager.calculate_project_health_score(project_id)
+    if 'error' in health:
+        return jsonify(health), 404
+    return jsonify(health)
+
+# Portfolio Management
+@app.route('/api/portfolio/dashboard', methods=['GET'])
+def get_portfolio_dashboard():
+    projects = load_projects()
+    
+    # Calculate portfolio metrics
+    total_projects = len(projects)
+    active_projects = sum(1 for p in projects if p.get('status') in ['Active', 'In Progress'])
+    completed_projects = sum(1 for p in projects if p.get('status') == 'Completed')
+    
+    # Budget summary
+    total_budget = sum(p.get('budget', {}).get('total_budget', 0) for p in projects)
+    total_spent = 0
+    
+    for project in projects:
+        expenses = project.get('budget', {}).get('expense_items', [])
+        total_spent += sum(e['amount'] for e in expenses if e.get('status') == 'Spent')
+    
+    # Resource utilization across projects
+    all_resources = {}
+    for project in projects:
+        for resource in project.get('resources', []):
+            resource_id = resource['id']
+            if resource_id not in all_resources:
+                all_resources[resource_id] = {
+                    'name': resource['name'],
+                    'projects': [],
+                    'total_allocation': 0
+                }
+            all_resources[resource_id]['projects'].append(project['name'])
+            all_resources[resource_id]['total_allocation'] += resource.get('allocation_percentage', 0)
+    
+    # Health summary
+    health_summary = {'Excellent': 0, 'Good': 0, 'At Risk': 0, 'Critical': 0}
+    for project in projects:
+        health = project_manager.calculate_project_health_score(project['id'])
+        if 'error' not in health:
+            health_summary[health['health_status']] = health_summary.get(health['health_status'], 0) + 1
+    
+    return jsonify({
+        'summary': {
+            'total_projects': total_projects,
+            'active_projects': active_projects,
+            'completed_projects': completed_projects,
+            'total_budget': total_budget,
+            'total_spent': total_spent,
+            'budget_utilization': (total_spent / total_budget * 100) if total_budget > 0 else 0
+        },
+        'resources': list(all_resources.values()),
+        'health_summary': health_summary,
+        'projects': projects
+    })
+
+@app.route('/api/portfolio/resource-utilization', methods=['GET'])
+def get_portfolio_resource_utilization():
+    projects = load_projects()
+    
+    # Aggregate resource utilization across all projects
+    resource_data = {}
+    
+    for project in projects:
+        util = project_manager.calculate_resource_utilization(project['id'])
+        if 'error' not in util:
+            for resource_id, data in util['utilization'].items():
+                if resource_id not in resource_data:
+                    resource_data[resource_id] = {
+                        'name': data['name'],
+                        'projects': [],
+                        'total_hours': 0,
+                        'total_allocation': 0
+                    }
+                
+                resource_data[resource_id]['projects'].append({
+                    'project_id': project['id'],
+                    'project_name': project['name'],
+                    'allocation': data['utilization_percentage'],
+                    'hours': data['allocated_hours']
+                })
+                resource_data[resource_id]['total_hours'] += data['allocated_hours']
+                resource_data[resource_id]['total_allocation'] += data['utilization_percentage']
+    
+    return jsonify(resource_data)
+
+# Integration with existing tasks
+@app.route('/api/projects/<project_id>/link-task', methods=['POST'])
+def link_task_to_project(project_id):
+    task_id = request.json.get('task_id')
+    phase_id = request.json.get('phase_id')
+    milestone_id = request.json.get('milestone_id')
+    
+    if not task_id:
+        return jsonify({'error': 'Task ID required'}), 400
+    
+    tasks = load_tasks()
+    task_index = next((i for i, t in enumerate(tasks) if t['id'] == task_id), None)
+    
+    if task_index is not None:
+        tasks[task_index]['project_id'] = project_id
+        
+        if phase_id:
+            tasks[task_index]['phase_id'] = phase_id
+        
+        if milestone_id:
+            tasks[task_index]['milestone_id'] = milestone_id
+        
+        save_tasks(tasks)
+        
+        # Update project task list
+        projects = load_projects()
+        project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+        
+        if project_index is not None:
+            if 'task_ids' not in projects[project_index]:
+                projects[project_index]['task_ids'] = []
+            
+            if task_id not in projects[project_index]['task_ids']:
+                projects[project_index]['task_ids'].append(task_id)
+                save_projects(projects)
+        
+        return jsonify({'success': True})
+    
+    return jsonify({'error': 'Task not found'}), 404
+
+@app.route('/api/projects/<project_id>/unlink-task/<task_id>', methods=['DELETE'])
+def unlink_task_from_project(project_id, task_id):
+    tasks = load_tasks()
+    task_index = next((i for i, t in enumerate(tasks) if t['id'] == task_id), None)
+    
+    if task_index is not None:
+        if 'project_id' in tasks[task_index]:
+            del tasks[task_index]['project_id']
+        if 'phase_id' in tasks[task_index]:
+            del tasks[task_index]['phase_id']
+        if 'milestone_id' in tasks[task_index]:
+            del tasks[task_index]['milestone_id']
+        
+        save_tasks(tasks)
+        
+        # Update project task list
+        projects = load_projects()
+        project_index = next((i for i, p in enumerate(projects) if p['id'] == project_id), None)
+        
+        if project_index is not None:
+            if 'task_ids' in projects[project_index] and task_id in projects[project_index]['task_ids']:
+                projects[project_index]['task_ids'].remove(task_id)
+                save_projects(projects)
+        
+        return jsonify({'success': True})
+    
+    return jsonify({'error': 'Task not found'}), 404
+
+# Reports
+@app.route('/api/projects/<project_id>/reports/progress', methods=['GET'])
+def get_project_progress_report(project_id):
+    project = project_manager.get_project(project_id)
+    if not project:
+        return jsonify({'error': 'Project not found'}), 404
+    
+    tasks = project_manager.get_project_tasks(project_id)
+    
+    # Calculate progress metrics
+    total_tasks = len(tasks)
+    completed_tasks = sum(1 for t in tasks if t.get('status') == 'Completed')
+    in_progress_tasks = sum(1 for t in tasks if t.get('status') == 'In Progress')
+    
+    # Phase progress
+    phase_progress = []
+    for phase in project.get('phases', []):
+        phase_tasks = [t for t in tasks if t.get('phase_id') == phase['id']]
+        phase_completed = sum(1 for t in phase_tasks if t.get('status') == 'Completed')
+        
+        phase_progress.append({
+            'phase_name': phase['name'],
+            'total_tasks': len(phase_tasks),
+            'completed_tasks': phase_completed,
+            'progress': (phase_completed / len(phase_tasks) * 100) if phase_tasks else 0,
+            'status': phase.get('status', 'Not Started')
+        })
+    
+    # Milestone status
+    milestone_status = []
+    for phase in project.get('phases', []):
+        for milestone in phase.get('milestones', []):
+            milestone_status.append({
+                'milestone_name': milestone['name'],
+                'phase_name': phase['name'],
+                'due_date': milestone['due_date'],
+                'status': milestone['status']
+            })
+    
+    return jsonify({
+        'project_name': project['name'],
+        'overall_progress': (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,
+        'task_summary': {
+            'total': total_tasks,
+            'completed': completed_tasks,
+            'in_progress': in_progress_tasks,
+            'pending': total_tasks - completed_tasks - in_progress_tasks
+        },
+        'phase_progress': phase_progress,
+        'milestone_status': milestone_status,
+        'critical_path': project_manager.calculate_critical_path(project_id).get('critical_path', []),
+        'health_score': project_manager.calculate_project_health_score(project_id)
+    })
+
+# Team Management endpoints
+team_manager = TeamManager()
+
+@app.route('/api/teams', methods=['GET'])
+def get_teams():
+    teams = team_manager.get_all_teams()
+    return jsonify(teams)
+
+@app.route('/api/teams', methods=['POST'])
+def create_team():
+    team_data = request.json
+    team = team_manager.create_team(team_data)
+    return jsonify(team), 201
+
+@app.route('/api/teams/<team_id>', methods=['GET'])
+def get_team(team_id):
+    team = team_manager.get_team(team_id)
+    if team:
+        return jsonify(team)
+    return jsonify({'error': 'Team not found'}), 404
+
+@app.route('/api/teams/<team_id>', methods=['PUT'])
+def update_team(team_id):
+    updates = request.json
+    team = team_manager.update_team(team_id, updates)
+    if team:
+        return jsonify(team)
+    return jsonify({'error': 'Team not found'}), 404
+
+@app.route('/api/teams/<team_id>', methods=['DELETE'])
+def delete_team(team_id):
+    if team_manager.delete_team(team_id):
+        return jsonify({'message': 'Team deleted successfully'})
+    return jsonify({'error': 'Team not found'}), 404
+
+@app.route('/api/teams/<team_id>/members', methods=['GET'])
+def get_team_members(team_id):
+    members = team_manager.get_members_by_team(team_id)
+    return jsonify(members)
+
+@app.route('/api/members', methods=['GET'])
+def get_members():
+    members = team_manager.get_all_members()
+    return jsonify(members)
+
+@app.route('/api/members', methods=['POST'])
+def create_member():
+    member_data = request.json
+    member = team_manager.create_member(member_data)
+    return jsonify(member), 201
+
+@app.route('/api/members/<member_id>', methods=['GET'])
+def get_member(member_id):
+    member = team_manager.get_member(member_id)
+    if member:
+        return jsonify(member)
+    return jsonify({'error': 'Member not found'}), 404
+
+@app.route('/api/members/<member_id>', methods=['PUT'])
+def update_member(member_id):
+    updates = request.json
+    member = team_manager.update_member(member_id, updates)
+    if member:
+        return jsonify(member)
+    return jsonify({'error': 'Member not found'}), 404
+
+@app.route('/api/members/<member_id>', methods=['DELETE'])
+def delete_member(member_id):
+    if team_manager.delete_member(member_id):
+        return jsonify({'message': 'Member deleted successfully'})
+    return jsonify({'error': 'Member not found'}), 404
+
+@app.route('/api/members/<member_id>/workload', methods=['GET'])
+def get_member_workload(member_id):
+    tasks = load_tasks()
+    workload = team_manager.get_member_workload(member_id, tasks)
+    if workload:
+        return jsonify(workload)
+    return jsonify({'error': 'Member not found'}), 404
+
+@app.route('/api/teams/<team_id>/workload', methods=['GET'])
+def get_team_workload(team_id):
+    tasks = load_tasks()
+    workload = team_manager.get_team_workload(team_id, tasks)
+    if workload:
+        return jsonify(workload)
+    return jsonify({'error': 'Team not found'}), 404
+
+@app.route('/api/teams/suggest-assignment', methods=['POST'])
+def suggest_assignment():
+    task_data = request.json
+    team_id = task_data.get('team_id')
+    suggested_member_id = team_manager.suggest_assignment(task_data, team_id)
+    if suggested_member_id:
+        member = team_manager.get_member(suggested_member_id)
+        return jsonify({'suggested_member': member})
+    return jsonify({'error': 'No suitable member found'}), 404
+
+@app.route('/api/departments', methods=['GET'])
+def get_departments():
+    departments = team_manager.get_departments()
+    return jsonify(departments)
+
+@app.route('/api/departments', methods=['POST'])
+def add_department():
+    department = request.json.get('department')
+    if team_manager.add_department(department):
+        return jsonify({'message': 'Department added successfully'})
+    return jsonify({'error': 'Department already exists'}), 400
 
 # Deals endpoints
 @app.route('/api/deals', methods=['GET'])

@@ -28,5 +28,10 @@
     "deal_id": "bcafca66-88dd-46de-9fbe-cb6744be3891",
     "deleted_by": "demo",
     "deleted_at": "2025-08-30T15:05:24.554318"
+  },
+  {
+    "deal_id": "fcb4c085-61f4-4571-88ff-54d6e1e06889",
+    "deleted_by": "stephen",
+    "deleted_at": "2025-09-01T11:49:07.067873"
   }
 ]

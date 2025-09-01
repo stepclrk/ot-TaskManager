@@ -1,0 +1,63 @@
+{
+  "teams": [
+    {
+      "id": "0860aee8-5f01-47a0-a63f-6bc1262ea5c5",
+      "name": "Management Team",
+      "description": "",
+      "department": "",
+      "lead_id": null,
+      "member_ids": [
+        "0a13f214-6961-4987-927b-408bf4af0aef",
+        "2c0b9e1a-726b-4a44-b6a5-bb1c668a241c"
+      ],
+      "color": "#007bff",
+      "created_at": "2025-09-01T12:09:17.530837",
+      "updated_at": "2025-09-01T13:00:29.072373",
+      "is_active": true
+    }
+  ],
+  "members": [
+    {
+      "id": "0a13f214-6961-4987-927b-408bf4af0aef",
+      "name": "Doerte",
+      "email": "demo@flokr.com",
+      "role": "",
+      "department": "",
+      "team_ids": [],
+      "skills": [
+        ""
+      ],
+      "capacity_hours_per_week": 40,
+      "avatar_color": "#F7DC6F",
+      "is_active": true,
+      "created_at": "2025-09-01T12:09:02.844698",
+      "updated_at": "2025-09-01T12:09:02.844711"
+    },
+    {
+      "id": "2c0b9e1a-726b-4a44-b6a5-bb1c668a241c",
+      "name": "Andy",
+      "email": "asdf@sdff.com",
+      "role": "",
+      "department": "",
+      "team_ids": [
+        "0860aee8-5f01-47a0-a63f-6bc1262ea5c5"
+      ],
+      "skills": [
+        ""
+      ],
+      "capacity_hours_per_week": 40,
+      "avatar_color": "#52B788",
+      "is_active": true,
+      "created_at": "2025-09-01T13:00:17.644923",
+      "updated_at": "2025-09-01T13:00:17.644969"
+    }
+  ],
+  "departments": [
+    "Development",
+    "Design",
+    "Marketing",
+    "Sales",
+    "Support",
+    "Management"
+  ]
+}

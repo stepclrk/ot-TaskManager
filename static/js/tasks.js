@@ -3,6 +3,7 @@ let currentTask = null;
 let config = {};
 let topics = [];
 let projects = [];
+let teamMembers = [];
 window.hasApiKey = false;
 
 async function checkApiKey() {
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadConfig();
     loadTopics();
     loadProjects();
+    loadTeamMembers();
     loadTasks().then(() => {
         // Check if we need to open a specific task
         const taskIdToOpen = sessionStorage.getItem('openTaskId');
@@ -181,6 +183,41 @@ async function loadConfig() {
         populateSelect('status', config.statuses);
     } catch (error) {
         console.error('Error loading config:', error);
+    }
+}
+
+async function loadTeamMembers() {
+    try {
+        const response = await fetch('/api/members');
+        teamMembers = await response.json();
+        
+        // Populate the assignedTo datalist
+        const assignedToList = document.getElementById('assignedToList');
+        if (assignedToList) {
+            assignedToList.innerHTML = '<option value="">Unassigned</option>';
+            teamMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.name;
+                option.dataset.memberId = member.id;
+                option.label = `${member.role || 'Team Member'}`;
+                assignedToList.appendChild(option);
+            });
+        }
+        
+        // Populate the relatedTo datalist
+        const relatedToList = document.getElementById('relatedToList');
+        if (relatedToList) {
+            relatedToList.innerHTML = '<option value="">None</option>';
+            teamMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.name;
+                option.dataset.memberId = member.id;
+                option.label = `${member.role || 'Team Member'}`;
+                relatedToList.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading team members:', error);
     }
 }
 
@@ -322,6 +359,8 @@ function renderListView(tasks, container) {
                         Status: ${task.status} | 
                         Priority: <span class="${task.priority === 'Urgent' ? 'priority-urgent' : (task.priority === 'High' ? 'priority-high' : '')}">${task.priority}</span> | 
                         Due: ${formatFollowUpDate(task.follow_up_date)}
+                        ${task.assigned_to ? ` | <span style="color: #28a745;">👤 ${escapeHtml(task.assigned_to)}</span>` : ''}
+                        ${task.related_to ? ` | <span style="color: #6c757d;">📎 About: ${escapeHtml(task.related_to)}</span>` : ''}
                         ${topicName ? ` | <span style="color: #3498db;">📊 ${escapeHtml(topicName)}</span>` : ''}
                     </div>
                 </div>
@@ -388,7 +427,9 @@ function renderKanbanView(tasks, container, groupBy) {
                                     <div class="kanban-card-content" onclick="editTask('${task.id}')">
                                         <div class="kanban-card-title">${escapeHtml(task.title)}</div>
                                         <div class="kanban-card-customer">${escapeHtml(task.customer_name || 'No customer')}</div>
-                                        ${topicName ? `<div class="kanban-card-topic" style="color: #3498db; font-size: 0.85em; margin-top: 5px;">📊 ${escapeHtml(topicName)}</div>` : ''}
+                                        ${task.assigned_to ? `<div class="kanban-card-assigned" style="color: #28a745; font-size: 0.85em; margin-top: 3px;">👤 ${escapeHtml(task.assigned_to)}</div>` : ''}
+                                        ${task.related_to ? `<div class="kanban-card-related" style="color: #6c757d; font-size: 0.85em; margin-top: 3px;">📎 About: ${escapeHtml(task.related_to)}</div>` : ''}
+                                        ${topicName ? `<div class="kanban-card-topic" style="color: #3498db; font-size: 0.85em; margin-top: 3px;">📊 ${escapeHtml(topicName)}</div>` : ''}
                                         ${task.tags ? `
                                             <div class="kanban-card-tags">
                                                 ${task.tags.split(',').map(tag => 
@@ -418,6 +459,14 @@ function showAddTaskModal() {
     document.getElementById('taskForm').reset();
     document.getElementById('taskObjective').value = ''; // Clear topic selection
     
+    // Check if we're creating a task for a specific member
+    const assignedTo = sessionStorage.getItem('newTaskAssignedTo');
+    if (assignedTo) {
+        document.getElementById('assignedTo').value = assignedTo;
+        sessionStorage.removeItem('newTaskAssignedTo');
+        sessionStorage.removeItem('newTaskAssignedToId');
+    }
+    
     // Explicitly clear the description editor
     const descriptionEditor = document.getElementById('descriptionEditor');
     if (descriptionEditor) {
@@ -434,6 +483,16 @@ function showAddTaskModal() {
     if (modal) {
         console.log('Showing task modal');
         modal.style.display = 'block';
+        
+        // Setup task type manager after modal is visible
+        setTimeout(() => {
+            if (window.taskTypeManager) {
+                console.log('Setting up task type manager for new task');
+                window.taskTypeManager.setupTaskModal(null);
+            } else {
+                console.error('Task type manager not found');
+            }
+        }, 100);
         
         // Verify modal is actually visible
         console.log('Modal display style after setting:', window.getComputedStyle(modal).display);
@@ -506,6 +565,18 @@ function editTask(taskId) {
         return;
     }
     console.log('Found task:', currentTask);
+    
+    // Setup task type manager with current task (will be called after modal is shown)
+    // Defer setup to after modal is displayed
+    setTimeout(() => {
+        if (window.taskTypeManager) {
+            console.log('Setting up task type manager for editing task');
+            window.taskTypeManager.setupTaskModal(currentTask);
+            window.taskTypeManager.loadTaskData(currentTask);
+        } else {
+            console.error('Task type manager not found');
+        }
+    }, 100);
     
     try {
     
@@ -595,6 +666,7 @@ function editTask(taskId) {
     }
     document.getElementById('status').value = currentTask.status || config.statuses[0];
     document.getElementById('assignedTo').value = currentTask.assigned_to || '';
+    document.getElementById('relatedTo').value = currentTask.related_to || '';
     document.getElementById('tags').value = currentTask.tags || '';
     document.getElementById('taskObjective').value = currentTask.topic_id || '';
     document.getElementById('taskProject').value = currentTask.project_id || '';
@@ -677,7 +749,7 @@ async function saveTask(e) {
     
     console.log('Final description value being saved:', descriptionValue);
     
-    const taskData = {
+    let taskData = {
         title: document.getElementById('title').value,
         customer_name: document.getElementById('customerName').value,
         description: descriptionValue,
@@ -685,11 +757,17 @@ async function saveTask(e) {
         priority: document.getElementById('priority').value,
         follow_up_date: document.getElementById('followUpDate').value,
         status: document.getElementById('status').value,
-        assigned_to: document.getElementById('assignedTo').value,
+        assigned_to: document.getElementById('assignedTo').value || '',
+        related_to: document.getElementById('relatedTo').value || '',
         tags: document.getElementById('tags').value,
         topic_id: document.getElementById('taskObjective').value || null,
         project_id: document.getElementById('taskProject').value || null
     };
+    
+    // Add task type information and project fields if available
+    if (window.taskTypeManager) {
+        taskData = window.taskTypeManager.getTaskData(taskData);
+    }
     
     console.log('Full task data being sent:', JSON.stringify(taskData, null, 2));
     
