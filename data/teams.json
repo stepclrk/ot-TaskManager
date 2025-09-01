@@ -12,8 +12,8 @@
       ],
       "color": "#007bff",
       "created_at": "2025-09-01T12:09:17.530837",
-      "updated_at": "2025-09-01T13:00:29.072373",
-      "is_active": true
+      "updated_at": "2025-09-01T15:27:08.713107",
+      "is_active": false
     }
   ],
   "members": [
@@ -50,6 +50,22 @@
       "is_active": true,
       "created_at": "2025-09-01T13:00:17.644923",
       "updated_at": "2025-09-01T13:00:17.644969"
+    },
+    {
+      "id": "1496cb7e-4287-4811-a561-e0da5cf934db",
+      "name": "Steve Clarke",
+      "email": "sclarke@opentext.com",
+      "role": "",
+      "department": "",
+      "team_ids": [],
+      "skills": [
+        ""
+      ],
+      "capacity_hours_per_week": 40,
+      "avatar_color": "#DDA0DD",
+      "is_active": true,
+      "created_at": "2025-09-01T15:26:57.063130",
+      "updated_at": "2025-09-01T15:26:57.063137"
     }
   ],
   "departments": [

@@ -4,43 +4,43 @@
 .content-header h1 {
     display: flex;
     align-items: center;
-    gap: 15px;
-    font-size: 1.8rem;
-    color: #2c3e50;
+    gap: var(--spacing-md);
+    font-size: var(--font-2xl);
+    color: var(--text-primary);
     margin: 0;
 }
 
 .header-actions {
     display: flex;
-    gap: 15px;
+    gap: var(--spacing-md);
 }
 
 /* Overview Stats */
 .teams-overview {
-    margin-bottom: 30px;
+    margin-bottom: var(--spacing-xl);
 }
 
 .overview-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
 }
 
 .stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background: var(--background-primary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
     display: flex;
     align-items: center;
-    gap: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    gap: var(--spacing-lg);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-lg);
 }
 
 .stat-icon {
@@ -104,7 +104,7 @@
 }
 
 .view-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     color: white;
     border-color: transparent;
 }
@@ -369,16 +369,16 @@
 
 .capacity-fill {
     height: 100%;
-    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    background: var(--success-color);
     transition: width 0.3s ease;
 }
 
 .capacity-fill.warning {
-    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+    background: var(--warning-color);
 }
 
 .capacity-fill.danger {
-    background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+    background: var(--danger-color);
 }
 
 .capacity-text {
@@ -519,7 +519,7 @@
 
 .workload-bar {
     height: 100%;
-    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    background: var(--success-color);
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -531,30 +531,31 @@
 }
 
 .workload-bar.warning {
-    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+    background: var(--warning-color);
 }
 
 .workload-bar.danger {
-    background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+    background: var(--danger-color);
 }
 
-/* Button styles */
+/* Button styles - Using theme variables */
 .btn {
     padding: 10px 20px;
     border: none;
-    border-radius: 6px;
-    font-size: 0.95rem;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-base);
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-normal);
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-sm);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
 }
 
 .btn-primary:hover {
@@ -563,12 +564,13 @@
 }
 
 .btn-secondary {
-    background: #6c757d;
-    color: white;
+    background: var(--secondary-color) !important;
+    color: white !important;
+    border: none !important;
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: var(--secondary-dark) !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
@@ -612,7 +614,7 @@
 .modal-content h2 {
     padding: 20px 25px;
     margin: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     color: white;
     border-radius: 12px 12px 0 0;
     font-size: 1.3rem;
@@ -684,7 +686,7 @@
     align-items: center;
     gap: 20px;
     padding: 25px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     border-radius: 12px 12px 0 0;
     margin: -25px -25px 20px -25px;
 }

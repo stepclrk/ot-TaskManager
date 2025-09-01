@@ -1,8 +1,8 @@
 {
-  "api_key": "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",
+  "api_key": "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",
   "notifications_enabled": true,
   "check_interval": 60,
-  "ai_provider": "none",
+  "ai_provider": "claude",
   "user_id": "demo",
   "team_ids": [
     "andy",

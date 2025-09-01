@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager - Tasks</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/sidebar.css">
     <link rel="stylesheet" href="/static/css/enhanced.css">
@@ -88,38 +89,71 @@
     <!-- Main Content -->
     <div id="mainContent" class="main-content">
         <div class="content-container">
-        <div class="tasks-header">
-            <h2>Tasks</h2>
-            <div class="header-actions">
-                <button id="addTaskBtn" class="btn btn-primary">+ Add Task</button>
-                <button id="createFromTemplateBtn" class="btn btn-secondary">📋 From Template</button>
-                <button id="exportBtn" class="btn btn-secondary">Export</button>
-                <button id="importBtn" class="btn btn-secondary">Import</button>
+        <!-- Page Header Banner -->
+        <div class="page-header">
+            <div class="page-header-content">
+                <h2>Task Management</h2>
+                <p>Track, manage, and organize all your tasks in one place</p>
+            </div>
+            <div class="page-header-actions">
+                <button id="addTaskBtn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Task
+                </button>
+                <button id="createFromTemplateBtn" class="btn btn-secondary">
+                    <i class="fas fa-clipboard"></i> From Template
+                </button>
+                <button id="exportBtn" class="btn btn-secondary">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button id="importBtn" class="btn btn-secondary">
+                    <i class="fas fa-upload"></i> Import
+                </button>
                 <input type="file" id="importFile" accept=".json" style="display: none;">
             </div>
         </div>
 
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search tasks...">
-            </div>
-            <div class="view-controls">
-                <label>View:</label>
-                <select id="viewType">
-                    <option value="list">List</option>
-                    <option value="kanban">Kanban</option>
-                </select>
-                <label>Group by:</label>
-                <select id="groupBy">
-                    <option value="status">Status</option>
-                    <option value="customer">Customer</option>
-                    <option value="category">Category</option>
-                    <option value="priority">Priority</option>
-                </select>
-                <label style="margin-left: 20px;">
-                    <input type="checkbox" id="showCompletedCancelled" onchange="filterTasks()">
-                    Show Completed/Cancelled
-                </label>
+        <!-- Filter Controls -->
+        <div class="filter-bar">
+            <div class="filter-row">
+                <div class="search-section">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search tasks..." class="search-input">
+                </div>
+                
+                <div class="filter-controls">
+                    <div class="select-group">
+                        <label>View</label>
+                        <select id="viewType">
+                            <option value="list">List</option>
+                            <option value="kanban">Kanban</option>
+                        </select>
+                        
+                        <label>Group by</label>
+                        <select id="groupBy">
+                            <option value="status">Status</option>
+                            <option value="customer">Customer</option>
+                            <option value="category">Category</option>
+                            <option value="priority">Priority</option>
+                        </select>
+                        
+                        <label>Sort by</label>
+                        <select id="sortBy" onchange="sortAndDisplayTasks()">
+                            <option value="created">Created Date</option>
+                            <option value="due">Due Date</option>
+                            <option value="followup">Follow-up Date</option>
+                            <option value="priority">Priority</option>
+                            <option value="title">Title (A-Z)</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showCompletedCancelled" onchange="filterTasks()">
+                            <span>Show Completed</span>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
 

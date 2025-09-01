@@ -310,7 +310,74 @@ function filterTasks() {
         });
     }
     
+    // Apply sorting
+    filtered = sortTasks(filtered);
+    
     renderTasksFiltered(filtered);
+}
+
+function sortAndDisplayTasks() {
+    filterTasks(); // This will apply filtering and sorting
+}
+
+function sortTasks(tasks) {
+    const sortBy = document.getElementById('sortBy')?.value || 'created';
+    const tasksCopy = [...tasks];
+    
+    // Priority order for sorting
+    const priorityOrder = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
+    const statusOrder = { 'In Progress': 0, 'Not Started': 1, 'On Hold': 2, 'Completed': 3, 'Cancelled': 4 };
+    
+    switch(sortBy) {
+        case 'due':
+            tasksCopy.sort((a, b) => {
+                if (!a.due_date && !b.due_date) return 0;
+                if (!a.due_date) return 1;
+                if (!b.due_date) return -1;
+                return new Date(a.due_date) - new Date(b.due_date);
+            });
+            break;
+            
+        case 'followup':
+            tasksCopy.sort((a, b) => {
+                if (!a.follow_up_date && !b.follow_up_date) return 0;
+                if (!a.follow_up_date) return 1;
+                if (!b.follow_up_date) return -1;
+                return new Date(a.follow_up_date) - new Date(b.follow_up_date);
+            });
+            break;
+            
+        case 'priority':
+            tasksCopy.sort((a, b) => {
+                const aPriority = priorityOrder[a.priority] ?? 999;
+                const bPriority = priorityOrder[b.priority] ?? 999;
+                return aPriority - bPriority;
+            });
+            break;
+            
+        case 'title':
+            tasksCopy.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+            break;
+            
+        case 'status':
+            tasksCopy.sort((a, b) => {
+                const aStatus = statusOrder[a.status] ?? 999;
+                const bStatus = statusOrder[b.status] ?? 999;
+                return aStatus - bStatus;
+            });
+            break;
+            
+        case 'created':
+        default:
+            tasksCopy.sort((a, b) => {
+                const aDate = new Date(a.created_at || 0);
+                const bDate = new Date(b.created_at || 0);
+                return bDate - aDate; // Newest first
+            });
+            break;
+    }
+    
+    return tasksCopy;
 }
 
 function renderTasksFiltered(tasks) {

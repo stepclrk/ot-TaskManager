@@ -7,26 +7,26 @@
 .back-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: #6c757d;
+    gap: var(--spacing-sm);
+    color: var(--text-secondary);
     text-decoration: none;
-    font-size: 0.95rem;
-    margin-bottom: 20px;
-    transition: color 0.3s ease;
+    font-size: var(--font-base);
+    margin-bottom: var(--spacing-lg);
+    transition: color var(--transition-normal);
 }
 
 .back-btn:hover {
-    color: #495057;
+    color: var(--text-primary);
 }
 
 .member-header-info {
     display: flex;
     align-items: center;
-    gap: 30px;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    gap: var(--spacing-xl);
+    background: var(--background-primary);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
 }
 
 .member-avatar-large {
@@ -47,16 +47,16 @@
 }
 
 .member-info h1 {
-    margin: 0 0 10px 0;
-    color: #2c3e50;
-    font-size: 2rem;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--text-primary);
+    font-size: var(--font-3xl);
 }
 
 .member-meta-info {
     display: flex;
-    gap: 20px;
-    color: #6c757d;
-    font-size: 0.95rem;
+    gap: var(--spacing-lg);
+    color: var(--text-secondary);
+    font-size: var(--font-base);
 }
 
 .member-meta-info span {
@@ -79,19 +79,19 @@
 }
 
 .stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background: var(--background-primary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
     display: flex;
     align-items: center;
-    gap: 15px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    gap: var(--spacing-md);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .stat-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-lg);
 }
 
 .stat-icon {
@@ -110,26 +110,26 @@
 }
 
 .stat-value {
-    font-size: 1.8rem;
+    font-size: var(--font-2xl);
     font-weight: bold;
-    color: #2c3e50;
-    margin-bottom: 3px;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
 }
 
 .stat-label {
-    color: #7f8c8d;
-    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-size: var(--font-sm);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 /* All Tasks Section */
 .all-tasks-section {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    margin-top: 30px;
+    background: var(--background-primary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    margin-top: var(--spacing-xl);
 }
 
 .tasks-header {
@@ -143,8 +143,8 @@
 
 .tasks-header h2 {
     margin: 0;
-    color: #2c3e50;
-    font-size: 1.5rem;
+    color: var(--text-primary);
+    font-size: var(--font-2xl);
 }
 
 .task-counts {
@@ -163,12 +163,12 @@
 }
 
 .assigned-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     color: white;
 }
 
 .related-badge {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: var(--info-color);
     color: white;
 }
 
@@ -290,13 +290,13 @@
 }
 
 .task-item.assigned-task {
-    border-left-color: #667eea;
-    background: linear-gradient(to right, rgba(102, 126, 234, 0.05), white);
+    border-left-color: var(--primary-color);
+    background: rgba(0, 123, 255, 0.03);
 }
 
 .task-item.related-task {
-    border-left-color: #4facfe;
-    background: linear-gradient(to right, rgba(79, 172, 254, 0.05), white);
+    border-left-color: var(--info-color);
+    background: rgba(23, 162, 184, 0.03);
 }
 
 .task-item:hover {
@@ -441,7 +441,7 @@
 
 .modal-header {
     padding: 20px 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     color: white;
     border-radius: 12px 12px 0 0;
     display: flex;
@@ -551,7 +551,7 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     color: white;
 }
 

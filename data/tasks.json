@@ -567,7 +567,6 @@
     "status": "Open",
     "assigned_to": "",
     "tags": "",
-    "project_id": "bea04db8-c2ef-462d-9833-905f71c466ee",
     "id": "b8235d54-552f-49c1-ad41-32842766a1d5",
     "created_date": "2025-08-31T22:47:21.186265",
     "history": [
@@ -590,7 +589,6 @@
     "category": "Development",
     "priority": "Medium",
     "status": "Not Started",
-    "project_id": "bea04db8-c2ef-462d-9833-905f71c466ee",
     "phase_id": null,
     "milestone_id": null,
     "gantt_properties": {
@@ -698,9 +696,451 @@
     "category": "Development",
     "priority": "Medium",
     "status": "Pending",
-    "assigned_to": "Admin",
+    "assigned_to": "Steve Clarke",
     "related_to": "Doerte",
     "created_at": "2025-09-01T12:57:28.924181",
-    "updated_at": "2025-09-01T12:57:28.924197"
+    "updated_at": "2025-09-01T12:57:28.924197",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:27:37.804391",
+        "action": "modified",
+        "field": "follow_up_date",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T15:27:37.804400",
+        "action": "modified",
+        "field": "assigned_to",
+        "old_value": "Admin",
+        "new_value": "Steve Clarke"
+      },
+      {
+        "timestamp": "2025-09-01T15:27:37.804414",
+        "action": "modified",
+        "field": "tags",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T15:27:37.804417",
+        "action": "modified",
+        "field": "task_type",
+        "old_value": null,
+        "new_value": "regular"
+      }
+    ],
+    "follow_up_date": "",
+    "tags": "",
+    "topic_id": null,
+    "project_id": null,
+    "task_type": "regular"
+  },
+  {
+    "title": "Market Research & Analysis",
+    "description": "Conduct comprehensive market research to identify target demographics and competitor analysis",
+    "category": "Development",
+    "priority": "High",
+    "status": "Completed",
+    "assigned_to": "Sarah Johnson",
+    "due_date": "2025-01-15",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-01-02",
+    "end_date": "2025-01-15",
+    "gantt_properties": {
+      "start_date": "2025-01-02",
+      "end_date": "2025-01-15",
+      "duration": 14,
+      "progress": 100
+    },
+    "resource_allocation": {
+      "resource": "Marketing Team - Sarah Johnson",
+      "estimated_hours": 80
+    },
+    "budget_tracking": {
+      "budget": 15000,
+      "actual_cost": 5250
+    },
+    "id": "0b8330e7-3cf8-4796-8737-05761bb11fdb",
+    "created_date": "2025-09-01T15:19:08.030709",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:19:08.030723",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      },
+      {
+        "timestamp": "2025-09-01T15:22:11.952527",
+        "action": "modified",
+        "field": "customer_name",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T15:22:11.952554",
+        "action": "modified",
+        "field": "category",
+        "old_value": "Research",
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T15:22:11.952563",
+        "action": "modified",
+        "field": "follow_up_date",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T15:22:11.952569",
+        "action": "modified",
+        "field": "status",
+        "old_value": "In Progress",
+        "new_value": "Completed"
+      },
+      {
+        "timestamp": "2025-09-01T15:22:11.952575",
+        "action": "modified",
+        "field": "related_to",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T15:22:11.952581",
+        "action": "modified",
+        "field": "tags",
+        "old_value": null,
+        "new_value": ""
+      },
+      {
+        "timestamp": "2025-09-01T15:23:01.375909",
+        "action": "modified",
+        "field": "category",
+        "old_value": "",
+        "new_value": "Development"
+      },
+      {
+        "timestamp": "2025-09-01T15:23:01.375924",
+        "action": "modified",
+        "field": "gantt_properties",
+        "old_value": {
+          "start_date": "2025-01-02",
+          "end_date": "2025-01-15",
+          "duration": 14,
+          "progress": 35
+        },
+        "new_value": {
+          "start_date": "2025-01-02",
+          "end_date": "2025-01-15",
+          "duration": 14,
+          "progress": 100
+        }
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": [],
+    "customer_name": "",
+    "follow_up_date": "",
+    "related_to": "",
+    "tags": "",
+    "topic_id": null
+  },
+  {
+    "title": "Product Design & Prototyping",
+    "description": "Design product specifications, create mockups and develop working prototypes for testing",
+    "category": "Development",
+    "priority": "Critical",
+    "status": "In Progress",
+    "assigned_to": "Michael Chen",
+    "due_date": "2025-02-01",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-01-10",
+    "end_date": "2025-02-01",
+    "gantt_properties": {
+      "start_date": "2025-01-10",
+      "end_date": "2025-02-01",
+      "duration": 22,
+      "progress": 25
+    },
+    "resource_allocation": {
+      "resource": "Design Team - Michael Chen, Lisa Wong",
+      "estimated_hours": 176
+    },
+    "budget_tracking": {
+      "budget": 45000,
+      "actual_cost": 11250
+    },
+    "dependencies": [],
+    "id": "0aa8e5b6-5318-4842-9404-a2ae2777d35f",
+    "created_date": "2025-09-01T15:19:26.564416",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:19:26.564430",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "blocks": []
+  },
+  {
+    "title": "Manufacturing Setup",
+    "description": "Setup manufacturing lines, quality control processes, and supply chain logistics",
+    "category": "Operations",
+    "priority": "High",
+    "status": "Not Started",
+    "assigned_to": "James Wilson",
+    "due_date": "2025-02-20",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-01-25",
+    "end_date": "2025-02-20",
+    "gantt_properties": {
+      "start_date": "2025-01-25",
+      "end_date": "2025-02-20",
+      "duration": 26,
+      "progress": 0
+    },
+    "resource_allocation": {
+      "resource": "Operations Team - James Wilson, Production Staff",
+      "estimated_hours": 208
+    },
+    "budget_tracking": {
+      "budget": 75000,
+      "actual_cost": 0
+    },
+    "id": "f0dc289b-d7e4-4de3-bdac-fe6c1d3b7f9e",
+    "created_date": "2025-09-01T15:19:36.780336",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:19:36.780341",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "Marketing Campaign Development",
+    "description": "Create comprehensive marketing strategy including digital ads, social media, and traditional media",
+    "category": "Marketing",
+    "priority": "High",
+    "status": "Not Started",
+    "assigned_to": "Emily Rodriguez",
+    "due_date": "2025-03-01",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-02-01",
+    "end_date": "2025-03-01",
+    "gantt_properties": {
+      "start_date": "2025-02-01",
+      "end_date": "2025-03-01",
+      "duration": 28,
+      "progress": 0
+    },
+    "resource_allocation": {
+      "resource": "Marketing Team - Emily Rodriguez, Creative Agency",
+      "estimated_hours": 224
+    },
+    "budget_tracking": {
+      "budget": 120000,
+      "actual_cost": 0
+    },
+    "id": "b1e51e2e-86d6-4ae6-bdf4-8ad41c12f229",
+    "created_date": "2025-09-01T15:19:46.794306",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:19:46.794318",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "Sales Team Training",
+    "description": "Train sales team on product features, benefits, and sales strategies",
+    "category": "Training",
+    "priority": "Medium",
+    "status": "Not Started",
+    "assigned_to": "David Thompson",
+    "due_date": "2025-03-10",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-02-15",
+    "end_date": "2025-03-10",
+    "gantt_properties": {
+      "start_date": "2025-02-15",
+      "end_date": "2025-03-10",
+      "duration": 23,
+      "progress": 0
+    },
+    "resource_allocation": {
+      "resource": "Sales Team - David Thompson, Training Department",
+      "estimated_hours": 184
+    },
+    "budget_tracking": {
+      "budget": 25000,
+      "actual_cost": 0
+    },
+    "id": "5c26abf2-ca46-40cf-9399-fab61be8e60d",
+    "created_date": "2025-09-01T15:19:56.825929",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:19:56.825937",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "Distribution Channel Setup",
+    "description": "Establish distribution partnerships, logistics, and inventory management systems",
+    "category": "Operations",
+    "priority": "High",
+    "status": "Not Started",
+    "assigned_to": "Robert Kim",
+    "due_date": "2025-03-15",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-02-10",
+    "end_date": "2025-03-15",
+    "gantt_properties": {
+      "start_date": "2025-02-10",
+      "end_date": "2025-03-15",
+      "duration": 33,
+      "progress": 0
+    },
+    "resource_allocation": {
+      "resource": "Logistics Team - Robert Kim, Warehouse Staff",
+      "estimated_hours": 264
+    },
+    "budget_tracking": {
+      "budget": 55000,
+      "actual_cost": 0
+    },
+    "id": "5e6389f0-9ffe-445c-922d-622ffc74ba65",
+    "created_date": "2025-09-01T15:20:06.569237",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:20:06.569251",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "Customer Support Infrastructure",
+    "description": "Setup customer support systems, knowledge base, and support team training",
+    "category": "Support",
+    "priority": "Medium",
+    "status": "Not Started",
+    "assigned_to": "Jennifer Martinez",
+    "due_date": "2025-03-20",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-02-20",
+    "end_date": "2025-03-20",
+    "gantt_properties": {
+      "start_date": "2025-02-20",
+      "end_date": "2025-03-20",
+      "duration": 28,
+      "progress": 0
+    },
+    "resource_allocation": {
+      "resource": "Support Team - Jennifer Martinez, IT Department",
+      "estimated_hours": 224
+    },
+    "budget_tracking": {
+      "budget": 35000,
+      "actual_cost": 0
+    },
+    "id": "13f20782-e06a-4a31-b465-a8c62fa19bd3",
+    "created_date": "2025-09-01T15:20:17.302944",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:20:17.302957",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "Product Launch Event",
+    "description": "Organize and execute launch event including venue, press coverage, and stakeholder invitations",
+    "category": "Marketing",
+    "priority": "Critical",
+    "status": "Not Started",
+    "assigned_to": "Amanda Foster",
+    "due_date": "2025-03-31",
+    "project_id": "01f92dcd-2d76-4144-a647-80254065777d",
+    "task_type": "project",
+    "start_date": "2025-03-15",
+    "end_date": "2025-03-31",
+    "gantt_properties": {
+      "start_date": "2025-03-15",
+      "end_date": "2025-03-31",
+      "duration": 16,
+      "progress": 0
+    },
+    "resource_allocation": {
+      "resource": "Events Team - Amanda Foster, PR Agency",
+      "estimated_hours": 128
+    },
+    "budget_tracking": {
+      "budget": 85000,
+      "actual_cost": 0
+    },
+    "id": "7708f433-3546-417a-85cf-3a9a21cadd9b",
+    "created_date": "2025-09-01T15:20:28.051922",
+    "history": [
+      {
+        "timestamp": "2025-09-01T15:20:28.051933",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
   }
 ]

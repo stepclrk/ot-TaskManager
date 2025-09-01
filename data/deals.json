@@ -24,7 +24,7 @@
       }
     ],
     "sync_metadata": {
-      "last_synced": "2025-09-01T11:49:09.480008",
+      "last_synced": "2025-09-01T15:12:00.734787",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_011818.json",
       "imported_at": "2025-08-30T07:30:17.132227"
@@ -60,7 +60,7 @@
       }
     ],
     "sync_metadata": {
-      "last_synced": "2025-09-01T11:49:09.480012",
+      "last_synced": "2025-09-01T15:12:00.734793",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_011818.json",
       "imported_at": "2025-08-30T07:30:17.133237"
@@ -91,7 +91,7 @@
       }
     ],
     "sync_metadata": {
-      "last_synced": "2025-09-01T11:49:09.480014",
+      "last_synced": "2025-09-01T15:12:00.734795",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_011818.json",
       "imported_at": "2025-08-30T07:30:17.133420"
@@ -115,10 +115,12 @@
     "owned_by": "andy",
     "notes": [],
     "sync_metadata": {
-      "last_synced": "2025-09-01T11:49:09.480015",
+      "last_synced": "2025-09-01T15:12:00.734797",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_081825.json",
-      "imported_at": "2025-08-30T08:18:34.283762"
+      "imported_at": "2025-08-30T08:18:34.283762",
+      "last_merged": "2025-09-01T14:21:52.408581",
+      "merged_from": "deals_stephen_20250901_135803.json"
     },
     "comments": [
       {
@@ -129,5 +131,86 @@
         "read": false
       }
     ]
+  },
+  {
+    "salesforceId": "006J50000037s3l",
+    "customerName": "Akwel",
+    "customerType": "New Customer",
+    "dealType": "eInvoicing",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "5",
+    "dealForecast": "",
+    "dealActual": "",
+    "dealSummary": "<p>Standard France DPDP deployment.  Agreement to start at 5% onshore.</p>",
+    "id": "32c1be2f-7ad7-424b-9b74-23b912d1dc9f",
+    "created_at": "2025-09-01T08:40:31.991800",
+    "updated_at": "2025-09-01T08:40:31.991800",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "notes": [],
+    "sync_metadata": {
+      "last_synced": "2025-09-01T15:12:00.734799",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250901_131140.json",
+      "imported_at": "2025-09-01T14:21:48.290277"
+    }
+  },
+  {
+    "salesforceId": "006dO000004IsShQAK",
+    "customerName": "Boots",
+    "customerType": "Existing Customer",
+    "dealType": "RTS",
+    "dealStatus": "Open",
+    "csmLocation": "",
+    "csmAllocation": "",
+    "dealForecast": "",
+    "dealActual": "",
+    "dealSummary": "<p>Boots has an issue with the current model of 10 concurrent requests as they are finding it limiting, but also realizing that they are experiencing internal constraints which may not help them expand beyond 10 requests.</p><p><br></p><p>Sales is exploring both RTS and ECM for boots.</p>",
+    "id": "c24ab268-6b23-471f-89bf-b8c59e00f72b",
+    "created_at": "2025-09-01T10:12:37.520949",
+    "updated_at": "2025-09-01T13:43:03.535996",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "notes": [
+      {
+        "text": "<p>Spoke with Suhel and the main issue is CAT in that this is taking the majority of the time, so RTS wouldn't fix this, ECM may help them to control it.</p><p><br></p><p>Boots have also outsourced their work to a 3rd party, which may not be helping.</p>",
+        "id": "33d052d5-8d89-422b-bbf6-c9aea6d4550e",
+        "timestamp": "2025-09-01T13:43:00.854025"
+      }
+    ],
+    "sync_metadata": {
+      "last_synced": "2025-09-01T15:12:00.734801",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250901_131140.json",
+      "imported_at": "2025-09-01T14:21:48.290339",
+      "last_merged": "2025-09-01T14:21:48.905936",
+      "merged_from": "deals_stephen_20250901_135145.json"
+    },
+    "updated_by": "stephen"
+  },
+  {
+    "salesforceId": "006dO000003y1qj",
+    "customerName": "Clinigen",
+    "customerType": "Existing Customer",
+    "dealType": "eInvoicing",
+    "dealStatus": "Open",
+    "csmLocation": "",
+    "csmAllocation": "",
+    "dealForecast": "",
+    "dealActual": "",
+    "dealSummary": "<p>New eInvoicing opportunity for Belgium.</p><p><br></p><p>this will form part of the global framework and be implemented on their existing MS, no incremental CSM is required.</p>",
+    "id": "7784a460-95e5-44b1-a421-8feaab71bcb5",
+    "created_at": "2025-09-01T10:51:24.604005",
+    "updated_at": "2025-09-01T10:51:24.604005",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "notes": [],
+    "sync_metadata": {
+      "last_synced": "2025-09-01T15:12:00.734802",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250901_131140.json",
+      "imported_at": "2025-09-01T14:21:48.290386"
+    }
   }
 ]

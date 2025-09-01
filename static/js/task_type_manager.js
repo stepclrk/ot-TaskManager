@@ -58,9 +58,9 @@ class TaskTypeManager {
         }
         
         // Set the current type
-        const typeRadio = document.querySelector(`input[name="taskType"][value="${this.currentTaskType}"]`);
-        if (typeRadio) {
-            typeRadio.checked = true;
+        const typeSelect = document.getElementById('taskTypeSelect');
+        if (typeSelect) {
+            typeSelect.value = this.currentTaskType;
         }
         
         // Show/hide appropriate fields
@@ -93,18 +93,12 @@ class TaskTypeManager {
         switcher.id = 'taskTypeSwitcher';
         switcher.className = 'task-type-switcher';
         switcher.innerHTML = `
-            <div class="form-group type-selector">
-                <label>Choose Task Type</label>
-                <div class="type-options">
-                    <label class="type-option">
-                        <input type="radio" name="taskType" value="regular" checked>
-                        <span>Regular Task</span>
-                    </label>
-                    <label class="type-option">
-                        <input type="radio" name="taskType" value="project">
-                        <span>Project Task</span>
-                    </label>
-                </div>
+            <div class="form-group">
+                <label for="taskTypeSelect">Task Type</label>
+                <select id="taskTypeSelect" name="taskType" class="form-control">
+                    <option value="regular">Regular Task</option>
+                    <option value="project">Project Task</option>
+                </select>
                 <small id="typeDescription" class="type-info">💡 Regular tasks are simple to-do items without project management features</small>
             </div>
             <input type="hidden" id="taskTypeField" name="task_type" value="regular">
@@ -116,11 +110,9 @@ class TaskTypeManager {
             form.insertBefore(switcher, form.firstChild);
         }
         
-        // Add event listeners
-        const radios = switcher.querySelectorAll('input[name="taskType"]');
-        radios.forEach(radio => {
-            radio.addEventListener('change', (e) => this.handleTypeChange(e.target.value));
-        });
+        // Add event listener
+        const select = switcher.querySelector('#taskTypeSelect');
+        select.addEventListener('change', (e) => this.handleTypeChange(e.target.value));
     }
 
     // Handle type change
@@ -366,9 +358,9 @@ class TaskTypeManager {
         this.currentTaskType = this.getTaskType(task);
         
         // Update type selector
-        const typeRadio = document.querySelector(`input[name="taskType"][value="${this.currentTaskType}"]`);
-        if (typeRadio) {
-            typeRadio.checked = true;
+        const typeSelect = document.getElementById('taskTypeSelect');
+        if (typeSelect) {
+            typeSelect.value = this.currentTaskType;
         }
         
         // Update type field
@@ -423,95 +415,52 @@ console.log('Task Type Manager loaded and initialized', window.taskTypeManager);
 const style = document.createElement('style');
 style.textContent = `
     .task-type-switcher {
-        margin: -10px -20px 20px -20px;
+        margin-bottom: 20px;
         padding: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 8px 8px 0 0;
-        overflow: hidden;
     }
     
-    .type-selector {
-        padding: 15px 20px;
-        margin-bottom: 0 !important;
+    .task-type-switcher .form-group {
+        margin-bottom: 15px;
     }
     
-    .type-selector > label {
-        color: rgba(255, 255, 255, 0.9);
-        font-weight: 500;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 12px;
+    .task-type-switcher label {
         display: block;
-    }
-    
-    .type-options {
-        display: flex;
-        gap: 15px;
-        margin-top: 10px;
-    }
-    
-    .type-option {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 12px 20px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.15);
-        border: 2px solid transparent;
-        color: white;
+        margin-bottom: 5px;
         font-weight: 500;
+        color: var(--text-primary, #2c3e50);
+        font-size: 0.9rem;
     }
     
-    .type-option:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .type-option input[type="radio"] {
-        display: none;
-    }
-    
-    .type-option input[type="radio"]:checked + span {
-        font-weight: 600;
-    }
-    
-    .type-option input[type="radio"]:checked ~ .type-option,
-    input[type="radio"]:checked + span {
-        color: white;
-    }
-    
-    input[type="radio"]:checked + .type-option,
-    .type-option:has(input[type="radio"]:checked) {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-    }
-    
-    .type-option span {
+    .task-type-switcher select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: var(--border-radius-sm, 4px);
         font-size: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .task-type-switcher select:focus {
+        outline: none;
+        border-color: var(--primary-color, #007bff);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
     }
     
     .type-info {
         display: block;
-        margin-top: 12px;
-        padding: 10px 15px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
-        color: rgba(255, 255, 255, 0.95);
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: var(--background-secondary, #f8f9fa);
+        border-radius: 4px;
+        color: var(--text-secondary, #6c757d);
         font-size: 0.875rem;
         line-height: 1.4;
+        border: 1px solid var(--border-color-light, #e9ecef);
     }
     
     .project-task-fields {
-        background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+        background: var(--background-secondary, #f8f9fa);
         border-radius: 12px;
         padding: 25px;
         margin: 20px 0;
@@ -539,7 +488,7 @@ style.textContent = `
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-color, #007bff);
         border-radius: 12px 12px 0 0;
     }
     
