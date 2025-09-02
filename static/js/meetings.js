@@ -212,6 +212,7 @@ function initializeEventListeners() {
     
     // Modal controls
     document.getElementById('cancelBtn').addEventListener('click', closeModal);
+    document.getElementById('copyMinutesBtn').addEventListener('click', copyMeetingMinutes);
     
     // Tab management
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1770,5 +1771,152 @@ function showNotification(message, type = 'info') {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+}
+
+// Function to convert HTML to plain text
+function htmlToText(html) {
+    if (!html) return '';
+    
+    // Create a temporary div to parse HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    // Replace common HTML elements with text equivalents
+    temp.querySelectorAll('br').forEach(el => el.replaceWith('\n'));
+    temp.querySelectorAll('p').forEach(el => el.replaceWith(el.textContent + '\n\n'));
+    temp.querySelectorAll('li').forEach(el => el.replaceWith('• ' + el.textContent + '\n'));
+    temp.querySelectorAll('h1').forEach(el => el.replaceWith('\n' + el.textContent.toUpperCase() + '\n' + '='.repeat(el.textContent.length) + '\n'));
+    temp.querySelectorAll('h2').forEach(el => el.replaceWith('\n' + el.textContent + '\n' + '-'.repeat(el.textContent.length) + '\n'));
+    temp.querySelectorAll('h3').forEach(el => el.replaceWith('\n### ' + el.textContent + '\n'));
+    
+    // Get the text content
+    let text = temp.textContent || temp.innerText || '';
+    
+    // Clean up excessive whitespace
+    text = text.replace(/\n{3,}/g, '\n\n').trim();
+    
+    return text;
+}
+
+// Copy meeting minutes to clipboard
+async function copyMeetingMinutes() {
+    if (!currentMeeting) {
+        showNotification('No meeting to copy', 'warning');
+        return;
+    }
+    
+    try {
+        // Generate formatted text version of meeting minutes
+        let minutesText = '';
+        
+        // Header
+        minutesText += '=' + '='.repeat(60) + '\n';
+        minutesText += 'MEETING MINUTES\n';
+        minutesText += '=' + '='.repeat(60) + '\n\n';
+        
+        // Basic Details
+        minutesText += 'Meeting Title: ' + (currentMeeting.title || 'Untitled') + '\n';
+        minutesText += 'Date: ' + formatDate(currentMeeting.date) + '\n';
+        minutesText += 'Time: ' + (currentMeeting.time || 'Not specified') + '\n';
+        minutesText += 'Duration: ' + (currentMeeting.duration || 'Not specified') + ' minutes\n';
+        minutesText += 'Status: ' + (currentMeeting.status || 'Not specified') + '\n';
+        minutesText += 'Location: ' + (currentMeeting.location || 'Not specified') + '\n';
+        
+        if (currentMeeting.customerName) {
+            minutesText += 'Customer: ' + currentMeeting.customerName + '\n';
+        }
+        if (currentMeeting.projectName) {
+            minutesText += 'Project: ' + currentMeeting.projectName + '\n';
+        }
+        
+        minutesText += '\n';
+        
+        // Objective
+        if (currentMeeting.objective) {
+            minutesText += 'OBJECTIVE\n';
+            minutesText += '-'.repeat(40) + '\n';
+            minutesText += htmlToText(currentMeeting.objective) + '\n\n';
+        }
+        
+        // Attendees
+        if (currentMeeting.attendees && currentMeeting.attendees.length > 0) {
+            minutesText += 'ATTENDEES\n';
+            minutesText += '-'.repeat(40) + '\n';
+            currentMeeting.attendees.forEach(attendee => {
+                minutesText += '• ' + attendee.name;
+                if (attendee.role) minutesText += ' (' + attendee.role + ')';
+                if (attendee.email) minutesText += ' - ' + attendee.email;
+                if (attendee.attended === false) minutesText += ' [ABSENT]';
+                minutesText += '\n';
+            });
+            minutesText += '\n';
+        }
+        
+        // Agenda
+        if (currentMeeting.agenda && currentMeeting.agenda.length > 0) {
+            minutesText += 'AGENDA\n';
+            minutesText += '-'.repeat(40) + '\n';
+            currentMeeting.agenda.forEach((item, index) => {
+                minutesText += (index + 1) + '. ' + item.title;
+                if (item.time) minutesText += ' (' + item.time + ' min)';
+                minutesText += '\n';
+                if (item.presenter) minutesText += '   Presenter: ' + item.presenter + '\n';
+                if (item.notes) {
+                    minutesText += '   Notes: ' + htmlToText(item.notes).replace(/\n/g, '\n   ') + '\n';
+                }
+            });
+            minutesText += '\n';
+        }
+        
+        // Action Items
+        if (currentMeeting.actionItems && currentMeeting.actionItems.length > 0) {
+            minutesText += 'ACTION ITEMS\n';
+            minutesText += '-'.repeat(40) + '\n';
+            currentMeeting.actionItems.forEach((item, index) => {
+                minutesText += (index + 1) + '. ' + item.title + '\n';
+                if (item.description) minutesText += '   Description: ' + item.description + '\n';
+                if (item.assignee) minutesText += '   Assigned to: ' + item.assignee + '\n';
+                if (item.dueDate) minutesText += '   Due date: ' + formatDate(item.dueDate) + '\n';
+                minutesText += '   Status: ' + (item.status || 'pending') + '\n';
+            });
+            minutesText += '\n';
+        }
+        
+        // Decisions
+        if (currentMeeting.decisions && currentMeeting.decisions.length > 0) {
+            minutesText += 'DECISIONS\n';
+            minutesText += '-'.repeat(40) + '\n';
+            currentMeeting.decisions.forEach((decision, index) => {
+                minutesText += (index + 1) + '. ' + decision.decision + '\n';
+                if (decision.rationale) minutesText += '   Rationale: ' + decision.rationale + '\n';
+                if (decision.impact) minutesText += '   Impact: ' + decision.impact + '\n';
+            });
+            minutesText += '\n';
+        }
+        
+        // Notes
+        if (currentMeeting.notes) {
+            minutesText += 'NOTES\n';
+            minutesText += '-'.repeat(40) + '\n';
+            minutesText += htmlToText(currentMeeting.notes) + '\n\n';
+        }
+        
+        // Tags
+        if (currentMeeting.tags && currentMeeting.tags.length > 0) {
+            minutesText += 'Tags: ' + currentMeeting.tags.join(', ') + '\n';
+        }
+        
+        // Footer
+        minutesText += '\n' + '-'.repeat(60) + '\n';
+        minutesText += 'Generated on: ' + new Date().toLocaleString() + '\n';
+        
+        // Copy to clipboard
+        await navigator.clipboard.writeText(minutesText);
+        showNotification('Meeting minutes copied to clipboard!', 'success');
+        
+    } catch (error) {
+        console.error('Error copying meeting minutes:', error);
+        showNotification('Failed to copy meeting minutes', 'error');
     }
 }
