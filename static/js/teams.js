@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 function setupEventListeners() {
     // Add buttons
-    document.getElementById('addTeamBtn').addEventListener('click', showAddTeamModal);
+    // Removed New Team button - only Add Member is needed
+    // document.getElementById('addTeamBtn').addEventListener('click', showAddTeamModal);
     document.getElementById('addMemberBtn').addEventListener('click', showAddMemberModal);
     
     // Modal close buttons
