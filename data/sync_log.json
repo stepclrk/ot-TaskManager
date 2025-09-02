@@ -1,89 +1,5 @@
 [
   {
-    "timestamp": "2025-08-29T18:24:04.763635",
-    "action": "upload",
-    "filename": "deals_stephen_20250829_182404.json",
-    "user_id": "stephen",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:24:33.201884",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182432.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:24:37.551720",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182437.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:25:32.618449",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182532.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:26:13.697384",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182613.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:27:08.694608",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182708.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:28:08.537307",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182808.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:29:08.552316",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182908.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:29:22.917753",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182922.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:29:44.863000",
-    "action": "upload",
-    "filename": "deals_demo_20250829_182944.json",
-    "user_id": "demo",
-    "deal_count": 2
-  },
-  {
-    "timestamp": "2025-08-29T18:30:04.406076",
-    "action": "upload",
-    "filename": "deals_demo_20250829_183003.json",
-    "user_id": "demo",
-    "deal_count": 3
-  },
-  {
-    "timestamp": "2025-08-30T07:30:13.646459",
-    "action": "upload",
-    "filename": "deals_demo_20250830_073013.json",
-    "user_id": "demo",
-    "deal_count": 3
-  },
-  {
     "timestamp": "2025-08-30T07:30:16.456535",
     "action": "upload",
     "filename": "deals_demo_20250830_073016.json",
@@ -696,6 +612,90 @@
     "timestamp": "2025-09-02T17:14:31.937068",
     "action": "upload",
     "filename": "deals_demo_20250902_171431.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:30:19.765985",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173019.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:30:37.047713",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173036.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:31:01.007015",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173100.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:31:11.248953",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173110.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:31:23.685452",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173122.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:31:53.596794",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173152.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:32:19.856504",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173219.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:32:30.813119",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173230.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:32:48.220786",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173247.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:33:02.659165",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173301.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:33:23.855623",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173322.json",
+    "user_id": "demo",
+    "deal_count": 12
+  },
+  {
+    "timestamp": "2025-09-02T17:33:40.342148",
+    "action": "upload",
+    "filename": "deals_demo_20250902_173339.json",
     "user_id": "demo",
     "deal_count": 12
   }

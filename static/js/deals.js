@@ -188,7 +188,7 @@ function renderDeals(deals = null) {
     const tbody = document.getElementById('dealsTableBody');
     
     if (dealsToRender.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No deals found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px;">No deals found</td></tr>';
         return;
     }
     
@@ -199,7 +199,7 @@ function renderDeals(deals = null) {
         
         // Check if the current user owns this deal
         const isOwned = !deal.owned_by || deal.owned_by === currentUser;
-        const ownerBadge = !isOwned ? `<span class="owner-badge" title="Created by ${deal.owned_by}">👤 ${deal.owned_by}</span>` : '';
+        const createdBy = deal.owned_by || currentUser || 'Unknown';
         const rowClass = isOwned ? '' : 'read-only-deal';
         
         // Check for unread comments
@@ -224,11 +224,12 @@ function renderDeals(deals = null) {
         // Use data attributes instead of inline onclick to avoid quote escaping issues
         return `
         <tr class="${rowClass} deal-row" data-deal-id="${deal.id}" data-is-owned="${isOwned}">
-            <td>${deal.salesforceId || ''} ${ownerBadge} ${unreadBadge}</td>
+            <td>${deal.salesforceId || ''} ${unreadBadge}</td>
             <td>${deal.customerName || ''}</td>
             <td>${deal.customerType || ''}</td>
             <td>${deal.dealType || ''}</td>
             <td>${statusBadge}</td>
+            <td><span class="created-by ${isOwned ? 'created-by-me' : 'created-by-other'}">${createdBy}</span></td>
             <td>${deal.csmLocation || ''}</td>
             <td>${deal.csmAllocation ? deal.csmAllocation + '%' : ''}</td>
             <td>${formatCurrency(deal.dealForecast)}</td>

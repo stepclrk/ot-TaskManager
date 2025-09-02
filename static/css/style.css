@@ -2013,3 +2013,23 @@ small {
     border-top: 1px solid #e5e5e5;
     padding-top: 15px;
 }
+
+/* Created By column styles for Deals table */
+.created-by {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--border-radius-lg);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.created-by-me {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.created-by-other {
+    background: #fff3e0;
+    color: #f57c00;
+    font-weight: 600;
+}
