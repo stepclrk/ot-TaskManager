@@ -848,7 +848,7 @@ function renderAgenda(agenda) {
         <div class="agenda-item" data-index="${index}">
             <div class="agenda-header">
                 <div class="agenda-title">${escapeHtml(item.title)}</div>
-                <div class="agenda-time">${item.time} min</div>
+                ${item.time ? `<div class="agenda-time">${item.time} min</div>` : ''}
             </div>
             ${item.presenter ? `<div class="agenda-presenter">Presenter: ${escapeHtml(item.presenter)}</div>` : ''}
             ${item.notes ? `<div class="agenda-notes">${item.notes}</div>` : ''}
@@ -887,7 +887,7 @@ function editAgendaItem(index) {
     
     document.getElementById('agendaItemId').value = index;
     document.getElementById('agendaItemTitle').value = item.title || '';
-    document.getElementById('agendaItemTime').value = item.time || 10;
+    document.getElementById('agendaItemTime').value = item.time || '';
     document.getElementById('agendaItemPresenter').value = item.presenter || '';
     
     if (agendaNotesEditor) {
@@ -922,9 +922,10 @@ function saveAgendaItem(event) {
     event.preventDefault();
     
     const formData = new FormData(event.target);
+    const timeValue = formData.get('agendaItemTime') || document.getElementById('agendaItemTime').value;
     const agendaItem = {
         title: formData.get('agendaItemTitle') || document.getElementById('agendaItemTitle').value,
-        time: parseInt(formData.get('agendaItemTime') || document.getElementById('agendaItemTime').value),
+        time: timeValue ? parseInt(timeValue) : null,
         presenter: formData.get('agendaItemPresenter') || document.getElementById('agendaItemPresenter').value,
         notes: document.getElementById('agendaItemNotes').value
     };
