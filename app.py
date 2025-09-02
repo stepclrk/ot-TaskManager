@@ -240,6 +240,25 @@ def load_deals():
             return json.load(f)
     return []
 
+def get_deleted_deal_ids():
+    """Get set of deleted deal IDs from the deleted_deals.json file"""
+    deleted_deals_file = os.path.join('data', 'deleted_deals.json')
+    deleted_deal_ids = set()
+    if os.path.exists(deleted_deals_file):
+        try:
+            with open(deleted_deals_file, 'r') as f:
+                deleted_deals = json.load(f)
+                deleted_deal_ids = {d['deal_id'] for d in deleted_deals}
+        except:
+            pass
+    return deleted_deal_ids
+
+def get_active_deals():
+    """Get all deals excluding deleted ones"""
+    deals = load_deals()
+    deleted_deal_ids = get_deleted_deal_ids()
+    return [deal for deal in deals if deal.get('id') not in deleted_deal_ids]
+
 def save_deals(deals):
     os.makedirs('data', exist_ok=True)
     with open(DEALS_FILE, 'w') as f:
@@ -2315,12 +2334,14 @@ def add_department():
 # Deals endpoints
 @app.route('/api/deals', methods=['GET'])
 def get_deals():
-    deals = load_deals()
+    # Get only active deals (excluding deleted ones)
+    active_deals = get_active_deals()
+    
     # Add current user info to response
     settings = load_settings()
     current_user = settings.get('user_id', 'unknown')
     return jsonify({
-        'deals': deals,
+        'deals': active_deals,
         'current_user': current_user
     })
 
@@ -2638,8 +2659,9 @@ def sync_upload_deals():
         settings = load_settings()
         sync_manager = FTPSyncManager(settings)
         
-        deals = load_deals()
-        success = sync_manager.upload_deals(deals)
+        # Get only active deals for upload
+        active_deals = get_active_deals()
+        success = sync_manager.upload_deals(active_deals)
         
         if success:
             return jsonify({
@@ -2678,11 +2700,16 @@ def sync_download_deals():
         settings = load_settings()
         sync_manager = FTPSyncManager(settings)
         
-        current_deals = load_deals()
-        merged_deals, sync_report = sync_manager.download_and_merge_deals(current_deals)
+        # Get only active deals for merging
+        active_deals = get_active_deals()
+        merged_deals, sync_report = sync_manager.download_and_merge_deals(active_deals)
+        
+        # Filter out deleted deals from merged results
+        deleted_deal_ids = get_deleted_deal_ids()
+        final_deals = [deal for deal in merged_deals if deal.get('id') not in deleted_deal_ids]
         
         # Save merged deals
-        save_deals(merged_deals)
+        save_deals(final_deals)
         
         return jsonify({
             'success': True,
@@ -2720,9 +2747,9 @@ def sync_auto():
         settings = load_settings()
         sync_manager = FTPSyncManager(settings)
         
-        # First upload current deals
-        deals = load_deals()
-        upload_success = sync_manager.upload_deals(deals)
+        # Get only active deals
+        active_deals = get_active_deals()
+        upload_success = sync_manager.upload_deals(active_deals)
         
         if not upload_success:
             return jsonify({
@@ -2731,12 +2758,16 @@ def sync_auto():
             }), 500
         
         # Then download and merge
-        merged_deals, sync_report = sync_manager.download_and_merge_deals(deals)
-        save_deals(merged_deals)
+        merged_deals, sync_report = sync_manager.download_and_merge_deals(active_deals)
+        
+        # Filter out deleted deals from merged results
+        deleted_deal_ids = get_deleted_deal_ids()
+        final_deals = [deal for deal in merged_deals if deal.get('id') not in deleted_deal_ids]
+        save_deals(final_deals)
         
         return jsonify({
             'success': True,
-            'uploaded': len(deals),
+            'uploaded': len(active_deals),
             'report': sync_report,
             'total_deals': len(merged_deals),
             'timestamp': datetime.now().isoformat()
