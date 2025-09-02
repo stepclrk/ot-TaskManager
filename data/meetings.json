@@ -1,0 +1,130 @@
+[
+  {
+    "id": "test-meeting-001",
+    "title": "Weekly Team Standupg",
+    "type": "team",
+    "status": "in-progress",
+    "date": "2025-09-02",
+    "time": "16:38",
+    "duration": 30,
+    "location": "Conference Room A / Zoom",
+    "objective": "dfghdfhdfh",
+    "notes": "<h3>Additional Discussion Points:</h3><p>The team discussed potential performance improvements for the dashboard loading times. Initial benchmarks show 3-second load times which need to be reduced to under 1 second.</p><p><strong>Technical considerations:</strong></p><ul><li>Implement caching layer</li><li>Optimize database queries</li><li>Consider CDN for static assets</li></ul><p>Next steps will be analyzed during sprint planning session.</p>",
+    "tags": [],
+    "agenda": [
+      {
+        "discussion": "<p>Reviewed current sprint progress. Team is on track to complete 85% of planned work.</p><ul><li>Feature A - 90% complete</li><li>Bug fixes - All resolved</li><li>Documentation - In progress</li></ul>",
+        "duration": 10,
+        "item": "Sprint Progress Review"
+      },
+      {
+        "discussion": "<p>Jane mentioned API integration delays from third-party vendor. Expected resolution by Friday.</p>",
+        "duration": 10,
+        "item": "Blockers and Challenges"
+      },
+      {
+        "discussion": "<p>Discussed priorities for next sprint. Focus will be on user authentication and performance optimization.</p>",
+        "duration": 10,
+        "item": "Next Sprint Planning"
+      }
+    ],
+    "attendees": [
+      {
+        "email": "john.smith@company.com",
+        "name": "John Smith",
+        "role": "Team Lead",
+        "status": "Present"
+      },
+      {
+        "email": "jane.doe@company.com",
+        "name": "Jane Doe",
+        "role": "Developer",
+        "status": "Present"
+      },
+      {
+        "email": "bob.wilson@company.com",
+        "name": "Bob Wilson",
+        "role": "QA Engineer",
+        "status": "Absent"
+      }
+    ],
+    "actionItems": [
+      {
+        "assignee": "",
+        "convertedToTask": true,
+        "createdAt": "2025-09-02T15:39:06.113Z",
+        "description": "xcvxcbxcbvxb",
+        "dueDate": "",
+        "status": "pending",
+        "title": "sdsfsgdsf"
+      }
+    ],
+    "decisions": [
+      {
+        "decision": "Move Feature B to next sprint due to API dependency",
+        "impact": "Will affect Q1 delivery timeline by 1 week but ensures quality"
+      },
+      {
+        "decision": "Implement automated testing for critical user flows",
+        "impact": "Improved product stability and reduced regression bugs"
+      }
+    ],
+    "attachments": [],
+    "createdAt": "2025-09-02T15:38:54.287Z",
+    "updatedAt": "2025-09-02T15:47:40.697Z",
+    "updated_at": "2025-09-02T16:47:40.712472",
+    "created_at": "2025-01-15T09:45:00Z"
+  },
+  {
+    "id": "bcb44c99-0602-4d0f-a135-69ca14651d36",
+    "title": "rtyurtyu",
+    "type": "one-on-one",
+    "status": "completed",
+    "date": "2025-09-03",
+    "time": "09:00",
+    "duration": 60,
+    "location": "",
+    "customerName": "Acme Corporation",
+    "projectName": "",
+    "objective": "dfghdfhdfh",
+    "notes": "<h3>Additional Discussion Points:</h3><p>The team discussed potential performance improvements for the dashboard loading times. Initial benchmarks show 3-second load times which need to be reduced to under 1 second.</p><p><strong>Technical considerations:</strong></p><ul><li>Implement caching layer</li><li>Optimize database queries</li><li>Consider CDN for static assets</li></ul><p>Next steps will be analyzed during sprint planning session.</p>",
+    "tags": [],
+    "agenda": [],
+    "attendees": [],
+    "actionItems": [],
+    "decisions": [],
+    "attachments": [],
+    "createdAt": "2025-09-02T15:54:08.669Z",
+    "updatedAt": "2025-09-02T15:54:08.669Z",
+    "created_at": "2025-09-02T16:54:08.671972",
+    "updated_at": "2025-09-02T16:54:08.671987",
+    "action_items": [],
+    "metadata": {}
+  },
+  {
+    "id": "c24c994b-983b-484a-ab19-b784a92272d5",
+    "title": "65575756",
+    "type": "team",
+    "status": "upcoming",
+    "date": "2025-09-03",
+    "time": "09:00",
+    "duration": 60,
+    "location": "",
+    "customerName": "Acme Corporation",
+    "projectName": "",
+    "objective": "dfghdfhdfh",
+    "notes": "<h3>Additional Discussion Points:</h3><p>The team discussed potential performance improvements for the dashboard loading times. Initial benchmarks show 3-second load times which need to be reduced to under 1 second.</p><p><strong>Technical considerations:</strong></p><ul><li>Implement caching layer</li><li>Optimize database queries</li><li>Consider CDN for static assets</li></ul><p>Next steps will be analyzed during sprint planning session.</p>",
+    "tags": [],
+    "agenda": [],
+    "attendees": [],
+    "actionItems": [],
+    "decisions": [],
+    "attachments": [],
+    "createdAt": "2025-09-02T15:54:25.249Z",
+    "updatedAt": "2025-09-02T15:54:25.249Z",
+    "created_at": "2025-09-02T16:54:25.252418",
+    "updated_at": "2025-09-02T16:54:25.252433",
+    "action_items": [],
+    "metadata": {}
+  }
+]

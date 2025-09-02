@@ -24,7 +24,7 @@
       }
     ],
     "sync_metadata": {
-      "last_synced": "2025-09-01T19:25:08.296191",
+      "last_synced": "2025-09-02T16:30:44.789930",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_011818.json",
       "imported_at": "2025-08-30T07:30:17.132227"
@@ -60,7 +60,7 @@
       }
     ],
     "sync_metadata": {
-      "last_synced": "2025-09-01T19:25:08.296195",
+      "last_synced": "2025-09-02T16:30:44.789936",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_011818.json",
       "imported_at": "2025-08-30T07:30:17.133237"
@@ -91,7 +91,7 @@
       }
     ],
     "sync_metadata": {
-      "last_synced": "2025-09-01T19:25:08.296197",
+      "last_synced": "2025-09-02T16:30:44.789938",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_011818.json",
       "imported_at": "2025-08-30T07:30:17.133420"
@@ -115,7 +115,7 @@
     "owned_by": "andy",
     "notes": [],
     "sync_metadata": {
-      "last_synced": "2025-09-01T19:25:08.296198",
+      "last_synced": "2025-09-02T16:30:44.789940",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250830_081825.json",
       "imported_at": "2025-08-30T08:18:34.283762",
@@ -150,7 +150,7 @@
     "owned_by": "stephen",
     "notes": [],
     "sync_metadata": {
-      "last_synced": "2025-09-01T19:25:08.296199",
+      "last_synced": "2025-09-02T16:30:44.789941",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250901_131140.json",
       "imported_at": "2025-09-01T14:21:48.290277"
@@ -180,7 +180,7 @@
       }
     ],
     "sync_metadata": {
-      "last_synced": "2025-09-01T19:25:08.296200",
+      "last_synced": "2025-09-02T16:30:44.789942",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250901_131140.json",
       "imported_at": "2025-09-01T14:21:48.290339",
@@ -207,10 +207,186 @@
     "owned_by": "stephen",
     "notes": [],
     "sync_metadata": {
-      "last_synced": "2025-09-01T19:25:08.296201",
+      "last_synced": "2025-09-02T16:30:44.789943",
       "synced_by": "demo",
       "imported_from": "deals_stephen_20250901_131140.json",
       "imported_at": "2025-09-01T14:21:48.290386"
+    }
+  },
+  {
+    "salesforceId": "006dO000004L9sP",
+    "customerName": "WH Smith (TG Jones)",
+    "customerType": "New Customer",
+    "dealType": "BNCE",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "15",
+    "dealForecast": "98228.86",
+    "dealActual": "",
+    "dealSummary": "<p>TG Jones is a divestiture from WH Smith, they will need to have a new MS instance setup on TG and have all maps re-written in Contivo</p>",
+    "id": "4d3e8fd5-abe5-4e29-af5d-c021bc1f6d91",
+    "created_at": "2025-09-02T09:42:37.706707",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "updated_at": "2025-09-02T11:31:14.112737",
+    "updated_by": "stephen",
+    "notes": [
+      {
+        "text": "<p>Sales (Owen) has split out the initial deal which had a price which included the initial implementation, WH Smiths will be paying for this and so they have issued a CR which is for this initial implementation of \u00a373,100</p><p><br></p><p>This will not go-live unless TG Jones purchases an MS Agreement.</p>",
+        "id": "293967ae-137e-4784-b9ad-e74737d73174",
+        "timestamp": "2025-09-02T09:45:01.157190"
+      },
+      {
+        "text": "<p><span style=\"color: black;\">Hi Steve,&nbsp;</span></p><p><br></p><p><span style=\"color: black;\">Hope you\u2019re doing well. Happy to clarify the context behind the closed opportunity with WH Smith, I understand there below confusion, rest assured this is not the 'final product' and there is no expectation to support this CR with our ongoing services.&nbsp;</span></p><p><br></p><p><span style=\"color: black;\">We have signed a deal with WH Smith in which they are paying for transition services aligned with their divested arm of the business, previously \u2018WH Smith High Street\u2019 now \u2018TG Jones\u2019 after being brought by PE firm Modella. WH Smith have to pay for any work aligned with the splitting of existing setups and creation of new ones hence why we have an agreement with them for the PS Services. TG Jones being a new customer to OpenText will need their own MS contract, this is something that was central to discussions and has also been written into the contract in clause 11. This means that we will not go live with the solution if no service agreement is in place, eliminating the risk for us.&nbsp;</span></p><p><br></p><p><span style=\"color: black;\">Mike\u2019s MM team will pick up the opportunity on the new contract with TG Jones, we are in a strong position as we are the only option for them, timelines are tight with a clear deadline (14th November cutover weekend as per TSA) and the build already committed. We are currently waiting for WH Smith to share who the procurement stakeholder will be for the negotiation of the new TG Jones agreement.&nbsp;</span></p><p><br></p><p><span style=\"color: black;\">Let me know if you have any further questions on this topic.&nbsp;</span></p><p><br></p><p><span style=\"color: black;\">Best,&nbsp;</span></p><p><span style=\"color: black;\">Owen&nbsp;</span></p>",
+        "id": "1512790b-fdc2-429d-9b61-7aee65105579",
+        "timestamp": "2025-09-02T11:31:10.165775"
+      }
+    ],
+    "sync_metadata": {
+      "last_synced": "2025-09-02T16:30:44.789944",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250902_142119.json",
+      "imported_at": "2025-09-02T16:13:33.762519"
+    }
+  },
+  {
+    "salesforceId": "006dO000003rZSX",
+    "customerName": "Wermundsen",
+    "customerType": "New Customer",
+    "dealType": "ANI",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "",
+    "dealForecast": "167616.62",
+    "dealActual": "",
+    "dealSummary": "<p><strong>Scope: ANI - Wermundsen EDI Solution, Client is new customer, Buy/Sell-side program,</strong></p><p><br></p><p><strong>Request to Hire: (x ContractOnshore_Hire, y ContractOffshore_Hire, z ContractNearshore_Hire, x CAPOnshore_Hire, y CAPOffshore_Hire, z CAPNearshore_Hire)</strong></p><p><br></p><p><strong>AT with x TPs, Schedule:&nbsp;Project Duration in wks (SI/CL/Total): 11/0/13, Start Date: Not Specified, End Date: Not Specified,&nbsp;Resource Allocation:&nbsp;All resources within recommended guidelines.</strong></p><p><br></p><p><strong>Notes:</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;Project to implement e-invoicing for new Customer on Anilinker platform&nbsp;</strong></p><p><strong>From SRQ:</strong></p><p><strong>New connections</strong></p><p><strong>&nbsp;- Orders from Kesko (migrated from Pagero)</strong></p><p><strong>&nbsp;- Finnish e-invoicing in&amp;out&nbsp;(migrated from Pagero)</strong></p><p><strong>&nbsp;- Order response to Onninen</strong></p><p><strong>Connections assumed existing, status to be checked and implemented/activated if not in use</strong></p><p><strong>&nbsp;- Orders from Onninen, Inex</strong></p><p><strong>&nbsp;- Invoice out Inex, Finnish e-invoice (Gistele), invoice to factoring service</strong></p><p><strong>&nbsp;- On Wermundsen side for all units assuming the same connectivity protocol as currently in use</strong></p><p><br></p><p><strong>Assumptions/caveats from Erik/Artturi:</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;No new connectivity needed</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Interface specifications from Wermundsen needed.</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Existing interfaces will be used as is and they are not part of any testing:</strong></p><p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Solotop einvoice out, Finvoice 2.01</strong></p><p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Wexon eInvoice out, Finvoice 2.01 (as an exception, this will be tested)</strong></p><p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Gistele einvoice out, Finvoice 2.01</strong></p><p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Solotop order in, XML</strong></p><p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Gistele factoring invoice out, Finvoice 2.01</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Finvoice 3.0 used for new Wermundsen interface invoice in</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Peppol bis 3.0 used for Wermundsen order in for Kesko</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;All Wermundsen business units share same maps (e.g. same invoice map for all four business units)</strong></p><p><br></p><p><br></p><p><br></p>",
+    "id": "37ac7ac9-3cb2-41ff-8096-f2801c7277ac",
+    "created_at": "2025-09-02T10:38:26.547206",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "updated_at": "2025-09-02T10:41:11.433781",
+    "updated_by": "stephen",
+    "notes": [
+      {
+        "text": "<p>MS Reservation of 4 hrs per month</p>",
+        "id": "9ce22044-8fc7-42dd-8913-dcd74bf87c0c",
+        "timestamp": "2025-09-02T10:38:48.884377"
+      },
+      {
+        "text": "<p><strong>Scope: ANI - Wermundsen EDI Solution, Client is new customer, Buy/Sell-side program,</strong></p><p><br></p><p><strong>Request to Hire: (x ContractOnshore_Hire, y ContractOffshore_Hire, z ContractNearshore_Hire, x CAPOnshore_Hire, y CAPOffshore_Hire, z CAPNearshore_Hire)</strong></p><p><br></p><p><strong>Start Date: Not Specified, End Date: Not Specified,&nbsp;Resource Allocation:&nbsp;All resources within recommended guidelines.</strong></p><p><br></p><p><strong>*ANNUAL COST, DEAL DESK TO ADJUST FOR CONTRACT DURATION*</strong></p><p><br></p><p><strong>Notes:</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;MS Reservation of four (4) hours per month under Jussi's team</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;4000 transactions per month</strong></p><p><br></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;June, Aug &amp; Dec \u2013 75% of monthly average due to business Holidays = 3 hours</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;July \u2013 50% of monthly average due to business Holidays = 2 hours</strong></p><p><strong>&nbsp;</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Blended resources applied in other needs with split over resource types per SOP (20% PM, 45% Analyst, 35% Integrator) all onshore resources</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Up to 25% carry over, three (3) months availability for carry over.</strong></p><p><br></p><p><br></p><p><br></p>",
+        "id": "af5e4ffb-7b00-4c5d-ae22-8a4511c4bc1b",
+        "timestamp": "2025-09-02T10:39:06.486720"
+      }
+    ],
+    "sync_metadata": {
+      "last_synced": "2025-09-02T16:30:44.789945",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250902_142119.json",
+      "imported_at": "2025-09-02T16:13:33.762681"
+    }
+  },
+  {
+    "salesforceId": "006dO000003OWEj",
+    "customerName": "Baxters",
+    "customerType": "Existing Customer",
+    "dealType": "eInvoicing",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "0",
+    "dealForecast": "120508.40",
+    "dealActual": "",
+    "dealSummary": "<p>Baxters are an existing MS customer and they have an a requirement to support the Poland eInvoicing mandate, as this is now requiring a new MS we for TG, we may want to consider moving this out of ADM</p>",
+    "id": "92b2a9f4-3c2b-4d1a-9194-dea52c994574",
+    "created_at": "2025-09-02T11:16:23.127397",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "updated_at": "2025-09-02T11:16:49.209115",
+    "updated_by": "stephen",
+    "notes": [],
+    "sync_metadata": {
+      "last_synced": "2025-09-02T16:30:44.789947",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250902_142119.json",
+      "imported_at": "2025-09-02T16:13:33.762764"
+    }
+  },
+  {
+    "salesforceId": "006dO000004K8qL",
+    "customerName": "IMI Hydronics",
+    "customerType": "Existing Customer",
+    "dealType": "BNCE",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "0",
+    "dealForecast": "268752.02",
+    "dealActual": "",
+    "dealSummary": "<p>Notes:</p><p>   -   Existing Customer with project for email2EDI implementation  </p><p>   -   TP Client to send to Customer, Customer then forwarded to TG</p><p>   -   Existing EMEA CSM allocation applies, no incremental needed per Steve C</p><p>   -   No (0) new backend connections, existing backedn connection(s) will be utilised per Sales assumption </p><p>   -   One (1) transaction type: Inbound Orders</p><p>   -   Correlation included for the one (1) map</p><p>   -   One (1) SMTP (email) TP setup for the one (1) Customer sender email address to forward PDF to OT</p><p>   -   CAT assumed to be with one (1) TPs</p><p>   -   Average monthly KC: 8,000</p><p>   -   Average monthly number of transactions : 4,000</p><p>   -   Remote kickoff</p><p>   -   One (1) Go-live</p><p><br></p><p>EMAIL2EDI</p><p>   -   Multi-country in Europe; Austria, Germany Switzerland, France, Sweden, Finland, Netherlands, Chechia, Belgium, Hungary, Denmark, Spain, UK, Luxemburg, Slovakia, Romania</p><p>   -   Thirty five (35) unique layouts per Sales Assumption</p><p>   -   Assumption:</p><p>         - Multi-language, all common European languages as supported by OCC: German, French, English, Dutch, Hungarian, Polish, Slovak, and more..</p><p>         - thirty five (35) templates</p><p>         - five (5) header fields, four (4) line items, fifteen (15) averageline item rows</p><p>   -   Four thousand (4000) TPs behind the one (1) Customer email address</p><p>   -   One (1) Cusomer email address (sending to single OT mailbox)</p><p>   -   Five (5) users requiring the ability to validate documents  </p><p>   -   Number of image files per month: 4000</p><p>   -   Number of pages per month: 8000</p><p>   -   Average daily pages:  400</p><p>   -   Invoice will be forwarded in by Customer.  1 Direct Connect MS TP ijncluded for this inbound SMTP connection</p><p>   -   Incoming email will have single attachment of single PDF \u2013 ie not multiple attachments in 1 email and not multiple orderss in 1 PDF file</p><p>   -   Email attachment file format assumed to be application generated PDF (not scanned PDF)</p><p><br></p>",
+    "id": "1da8bd93-1ea0-4823-8209-4d6b6e2c4e5d",
+    "created_at": "2025-09-02T11:26:13.587443",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "updated_at": "2025-09-02T11:27:32.946164",
+    "updated_by": "stephen",
+    "notes": [
+      {
+        "text": "<p>No incremental CSM required for this deal with the assumption that it will be implemented on their existing MS instance.</p>",
+        "id": "2b57ce76-ed71-45b6-8138-aba339386ee4",
+        "timestamp": "2025-09-02T11:27:00.173891"
+      }
+    ],
+    "sync_metadata": {
+      "last_synced": "2025-09-02T16:30:44.789947",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250902_142119.json",
+      "imported_at": "2025-09-02T16:13:33.762819"
+    }
+  },
+  {
+    "salesforceId": "006dO00000480Bp",
+    "customerName": "Air Liquide",
+    "customerType": "Existing Customer",
+    "dealType": "Advisory",
+    "dealStatus": "Open",
+    "csmLocation": "",
+    "csmAllocation": "",
+    "dealForecast": "27528.70",
+    "dealActual": "",
+    "dealSummary": "<p>eInvoicing readiness check for France</p>",
+    "id": "0aa2b94d-0768-4d35-9569-bbcd968f6f31",
+    "created_at": "2025-09-02T12:27:12.528533",
+    "updated_at": "2025-09-02T12:27:12.528533",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "notes": [],
+    "sync_metadata": {
+      "last_synced": "2025-09-02T16:30:44.789949",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250902_142119.json",
+      "imported_at": "2025-09-02T16:13:33.762893"
+    }
+  },
+  {
+    "salesforceId": "006J5000002Y76q ",
+    "customerName": "Knorr Bremse",
+    "customerType": "Existing Customer",
+    "dealType": "BNCE",
+    "dealStatus": "Open",
+    "csmLocation": "Onshore",
+    "csmAllocation": "0",
+    "dealForecast": "",
+    "dealActual": "",
+    "dealSummary": "<p><strong>Scope: Alstom TG Migration Solution, Client is existing MS - GXS (between 2008 and 2012) customer, Buy/Sell-side program,</strong></p><p><br></p><p><strong>If the client chooses full P2P mapping, then:</strong></p><p><strong>All P2P Maps: 20 maps (20 base, 0 clone, 0 complex, 0 FS Complex), Sales Assumption,</strong></p><p><strong>Forms (IWF 0, TG4E 0)</strong></p><p><br></p><p><strong>Request to Hire: (x ContractOnshore_Hire, y ContractOffshore_Hire, z ContractNearshore_Hire, x CAPOnshore_Hire, y CAPOffshore_Hire, z CAPNearshore_Hire)</strong></p><p><br></p><p><strong>12 Total TPs, 12 existing TPs (0 direct, 12 VAN), 0 new TPs (0 direct, 0 VAN),</strong></p><p><strong>AT with 9 TPs, Schedule:&nbsp;Project Duration in wks (SI/CL/Total): 16/0/16, Start Date: Not Specified, End Date: Not Specified,&nbsp;Resource Allocation:&nbsp;All resources within recommended guidelines.</strong></p><p><br></p><p><strong>Notes:</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;This project assumes that the eInvoicing project (0063z00001MdAtL) is complete and stabilised</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;This project is to move TPs and maps from Alstom MS to the new Knorr Bremse TG env (as built in the eInvoice project)</strong></p><p><br></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Twenty (20) maps on existing Alstom MS to be adapted to the Knorr Bremse backend and configured onto the Knorr Bremse TG (per Bastien these need to be new maps and cannot be lift &amp; drop from Alstom as will be different format for the different SAP backend)</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Correlation included for all maps per Bastien</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;TPs are existing VAN on Alstom</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Assumption Knorr Bremse will provide a new GLN for this new TG (cannot be the GLN they use in their existing Classic MS env)</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Assumption Knorr Bremse will notify the TPs of the GLN change and cutover date (else an onboarding notification program could be added to scope via CR)</strong></p><p><strong>&nbsp;&nbsp;-&nbsp;&nbsp;Average monthly KC: 12,500</strong></p>",
+    "id": "84493187-819a-45cf-adda-1240f680481a",
+    "created_at": "2025-09-02T13:18:15.897711",
+    "updated_at": "2025-09-02T13:18:15.897711",
+    "created_by": "stephen",
+    "owned_by": "stephen",
+    "notes": [],
+    "sync_metadata": {
+      "last_synced": "2025-09-02T16:30:44.789949",
+      "synced_by": "demo",
+      "imported_from": "deals_stephen_20250902_142119.json",
+      "imported_at": "2025-09-02T16:13:33.762941"
     }
   }
 ]

@@ -5,6 +5,7 @@ let topics = [];
 let projects = [];
 let teamMembers = [];
 window.hasApiKey = false;
+let taskDescriptionEditor = null; // SimpleEditor instance for task description
 
 async function checkApiKey() {
     try {
@@ -628,10 +629,16 @@ function showAddTaskModal() {
     }
     
     // Explicitly clear the description editor
+    // Clear description editor
     const descriptionEditor = document.getElementById('descriptionEditor');
     if (descriptionEditor) {
-        descriptionEditor.innerHTML = '';
-        descriptionEditor.textContent = '';
+        // If SimpleEditor exists, use it
+        if (window.taskDescriptionEditor && typeof window.taskDescriptionEditor.clear === 'function') {
+            window.taskDescriptionEditor.clear();
+        } else {
+            descriptionEditor.innerHTML = '';
+            descriptionEditor.textContent = '';
+        }
     }
     // Also clear the hidden description field
     const descriptionField = document.getElementById('description');
@@ -651,6 +658,21 @@ function showAddTaskModal() {
                 window.taskTypeManager.setupTaskModal(null);
             } else {
                 console.error('Task type manager not found');
+            }
+            
+            // Initialize SimpleEditor for description if needed
+            const descEditor = document.getElementById('descriptionEditor');
+            if (descEditor && !window.taskDescriptionEditor && typeof SimpleEditor !== 'undefined') {
+                try {
+                    window.taskDescriptionEditor = new SimpleEditor('descriptionEditor', {
+                        placeholder: 'Enter task description...',
+                        height: '200px',
+                        toolbar: ['bold', 'italic', 'underline', 'bullet', 'number', 'link', 'heading', 'quote', 'clear']
+                    });
+                    console.log('SimpleEditor initialized for task description');
+                } catch (e) {
+                    console.log('Could not initialize SimpleEditor:', e);
+                }
             }
         }, 100);
         
@@ -782,22 +804,25 @@ function editTask(taskId) {
     // Also set it in the rich editor if it exists
     const descriptionEditor = document.getElementById('descriptionEditor');
     if (descriptionEditor) {
-        // Try to set Quill content if it exists
-        if (window.quillEditor) {
-            window.quillEditor.setText(descriptionValue);
-        } else if (descriptionEditor.__quill) {
-            descriptionEditor.__quill.setText(descriptionValue);
-        } else if (typeof Quill !== 'undefined' && Quill.find) {
-            const quillInstance = Quill.find(descriptionEditor);
-            if (quillInstance) {
-                quillInstance.setText(descriptionValue);
-            } else {
-                // No Quill, just set text content
-                descriptionEditor.textContent = descriptionValue || '';
+        // Initialize SimpleEditor if needed
+        if (!window.taskDescriptionEditor && typeof SimpleEditor !== 'undefined') {
+            try {
+                window.taskDescriptionEditor = new SimpleEditor('descriptionEditor', {
+                    placeholder: 'Enter task description...',
+                    height: '200px',
+                    toolbar: ['bold', 'italic', 'underline', 'bullet', 'number', 'link', 'heading', 'quote', 'clear']
+                });
+            } catch (e) {
+                console.log('Could not initialize SimpleEditor:', e);
             }
+        }
+        
+        // Set content
+        if (window.taskDescriptionEditor && typeof window.taskDescriptionEditor.setContent === 'function') {
+            window.taskDescriptionEditor.setContent(descriptionValue || '');
         } else {
-            // Fallback to setting text content directly
-            descriptionEditor.textContent = descriptionValue || '';
+            // Fallback to basic HTML content
+            descriptionEditor.innerHTML = descriptionValue || '';
         }
     }
     
@@ -835,6 +860,23 @@ function editTask(taskId) {
     if (modal) {
         console.log('Showing task modal');
         modal.style.display = 'block';
+        
+        // Initialize SimpleEditor for description if needed
+        setTimeout(() => {
+            const descEditor = document.getElementById('descriptionEditor');
+            if (descEditor && !window.taskDescriptionEditor && typeof SimpleEditor !== 'undefined') {
+                try {
+                    window.taskDescriptionEditor = new SimpleEditor('descriptionEditor', {
+                        placeholder: 'Enter task description...',
+                        height: '200px',
+                        toolbar: ['bold', 'italic', 'underline', 'bullet', 'number', 'link', 'heading', 'quote', 'clear']
+                    });
+                    console.log('SimpleEditor initialized for task description');
+                } catch (e) {
+                    console.log('Could not initialize SimpleEditor:', e);
+                }
+            }
+        }, 100);
         
         // Verify modal is actually visible
         console.log('Modal display style after setting:', window.getComputedStyle(modal).display);
@@ -883,28 +925,30 @@ function editTask(taskId) {
 async function saveTask(e) {
     e.preventDefault();
     
-    // Get description - simplified approach focusing on the contenteditable div
+    // Get description - check SimpleEditor first, then fallback
     let descriptionValue = '';
-    const descriptionEditor = document.getElementById('descriptionEditor');
     const descriptionField = document.getElementById('description');
     
-    // Primary: Get from contenteditable div
-    if (descriptionEditor) {
-        // Get text content, handling various browser differences
-        const text = descriptionEditor.innerText || descriptionEditor.textContent || '';
-        descriptionValue = text.trim();
-        console.log('Description from editor:', descriptionValue);
+    // Primary: Get from SimpleEditor if it exists
+    if (window.taskDescriptionEditor && typeof window.taskDescriptionEditor.getContent === 'function') {
+        descriptionValue = window.taskDescriptionEditor.getContent();
+        console.log('Description from SimpleEditor:', descriptionValue);
         
         // Also update the hidden field to keep in sync
         if (descriptionField) {
             descriptionField.value = descriptionValue;
         }
-    }
-    
-    // Fallback: If no editor or empty, try hidden field
-    if (!descriptionValue && descriptionField) {
-        descriptionValue = descriptionField.value || '';
-        console.log('Description from hidden field (fallback):', descriptionValue);
+    } else {
+        // Fallback to contenteditable div or hidden field
+        const descriptionEditor = document.getElementById('descriptionEditor');
+        if (descriptionEditor) {
+            // Try to get HTML content first, then text
+            descriptionValue = descriptionEditor.innerHTML || descriptionEditor.innerText || descriptionEditor.textContent || '';
+            console.log('Description from editor element:', descriptionValue);
+        } else if (descriptionField) {
+            descriptionValue = descriptionField.value || '';
+            console.log('Description from hidden field:', descriptionValue);
+        }
     }
     
     console.log('Final description value being saved:', descriptionValue);

@@ -1,8 +1,10 @@
-* {
+/* Global reset - but exclude SVG elements */
+*:not(svg):not(path):not(line):not(polyline):not(rect):not(circle):not(polygon) {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
+
 
 /* Combo input styles */
 .combo-input {

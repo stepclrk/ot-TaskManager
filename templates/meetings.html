@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Meetings</title>
+    <!-- Load our custom CSS -->
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/sidebar.css">
+    <link rel="stylesheet" href="/static/css/enhanced.css">
+    <link rel="stylesheet" href="/static/css/quick-actions.css">
+    <link rel="stylesheet" href="/static/css/meetings.css">
+    <link href="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" rel="preconnect">
+    <style>
+        /* Meeting-specific styles */
+        .meeting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .meeting-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .meeting-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .meeting-card.upcoming {
+            border-left-color: var(--success-color);
+        }
+        
+        .meeting-card.in-progress {
+            border-left-color: var(--warning-color);
+        }
+        
+        .meeting-card.completed {
+            border-left-color: var(--info-color);
+        }
+        
+        .meeting-card.cancelled {
+            border-left-color: var(--danger-color);
+            opacity: 0.7;
+        }
+        
+        .meeting-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .meeting-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .meeting-date {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .meeting-attendees {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .attendee-count {
+            background: var(--background-secondary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .meeting-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-upcoming { background: #e8f5e9; color: #2e7d32; }
+        .status-in-progress { background: #fff3e0; color: #f57c00; }
+        .status-completed { background: #e3f2fd; color: #1976d2; }
+        .status-cancelled { background: #ffebee; color: #c62828; }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+        
+        .view-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .view-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* Calendar view styles */
+        .calendar-view {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: var(--border-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .calendar-day {
+            background: white;
+            padding: 0.5rem;
+            min-height: 100px;
+            font-size: 0.9rem;
+        }
+        
+        .calendar-day.other-month {
+            background: var(--background-secondary);
+            color: var(--text-secondary);
+        }
+        
+        .calendar-day.today {
+            background: #e3f2fd;
+        }
+        
+        .calendar-meeting {
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            margin: 1px 0;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Agenda items */
+        .agenda-item {
+            background: var(--background-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: grab;
+        }
+        
+        .agenda-item:active {
+            cursor: grabbing;
+        }
+        
+        .agenda-item.sortable-chosen {
+            opacity: 0.5;
+        }
+        
+        .agenda-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .agenda-title {
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .agenda-time {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: var(--background-primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .agenda-presenter {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .agenda-notes {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+        
+        /* Action items */
+        .action-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .action-item.overdue {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .action-item.due-soon {
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .action-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .action-title {
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .action-status {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .action-pending { background: #fff3e0; color: #f57c00; }
+        .action-in-progress { background: #e3f2fd; color: #1976d2; }
+        .action-completed { background: #e8f5e9; color: #2e7d32; }
+        .action-blocked { background: #ffebee; color: #c62828; }
+        
+        .action-assignee {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .action-due {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Attendee management */
+        .attendee-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .attendee-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--background-secondary);
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        
+        .attendee-info {
+            flex: 1;
+        }
+        
+        .attendee-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .attendee-role {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .attendee-status {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .attendance-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .attended { background: #e8f5e9; color: #2e7d32; }
+        .absent { background: #ffebee; color: #c62828; }
+        .tentative { background: #fff3e0; color: #f57c00; }
+        
+        /* Decision items */
+        .decision-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .decision-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .decision-outcome {
+            background: var(--background-secondary);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .decision-votes {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .vote-count {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        /* Template selector */
+        .template-selector {
+            background: var(--background-secondary);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .template-selector select {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        
+        /* Time allocation display */
+        .time-progress {
+            width: 100%;
+            height: 6px;
+            background: var(--background-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .time-progress-bar {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .time-progress-bar.over-time {
+            background: var(--danger-color);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .meeting-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar-grid {
+                grid-template-columns: repeat(7, 1fr);
+                font-size: 0.8rem;
+            }
+            
+            .calendar-day {
+                min-height: 80px;
+                padding: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Hamburger Menu -->
+    <button id="hamburgerMenu" class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <span class="nav-icon">📋</span>
+                <h1>Task Manager</h1>
+            </a>
+            <button id="sidebarToggle" class="sidebar-toggle">
+                <span class="toggle-icon">◀</span>
+            </button>
+        </div>
+        
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/" class="nav-link" data-tooltip="Dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/objectives" class="nav-link" data-tooltip="Objectives">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-text">Objectives</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/projects" class="nav-link" data-tooltip="Projects">
+                    <span class="nav-icon">📁</span>
+                    <span class="nav-text">Projects</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/meetings" class="nav-link active" data-tooltip="Meetings">
+                    <span class="nav-icon">🤝</span>
+                    <span class="nav-text">Meetings</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/tasks" class="nav-link" data-tooltip="Tasks">
+                    <span class="nav-icon">✅</span>
+                    <span class="nav-text">Tasks</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/teams" class="nav-link" data-tooltip="Teams">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Teams</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/deals" class="nav-link" data-tooltip="Deals">
+                    <span class="nav-icon">💼</span>
+                    <span class="nav-text">Deals</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/reports" class="nav-link" data-tooltip="Reports">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Reports</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/settings" class="nav-link" data-tooltip="Settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Overlay for mobile -->
+    <div id="sidebarOverlay" class="overlay"></div>
+    
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <div class="content-container">
+            <!-- Page Header Banner -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <h2>Meeting Management</h2>
+                    <p>Schedule, track, and manage all your meetings and minutes</p>
+                </div>
+                <div class="page-header-actions">
+                    <button id="addMeetingBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Meeting
+                    </button>
+                    <button id="createFromTemplateBtn" class="btn btn-secondary">
+                        <i class="fas fa-clipboard"></i> From Template
+                    </button>
+                    <button id="exportBtn" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button id="importBtn" class="btn btn-secondary">
+                        <i class="fas fa-upload"></i> Import
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="search-section">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Search meetings..." class="search-input">
+                    </div>
+                    
+                    <div class="filter-controls">
+                        <div class="select-group">
+                            <label>Status</label>
+                            <select id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="upcoming">Upcoming</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            
+                            <label>Type</label>
+                            <select id="typeFilter">
+                                <option value="">All Types</option>
+                                <option value="team">Team Meeting</option>
+                                <option value="one-on-one">One-on-One</option>
+                                <option value="client">Client Meeting</option>
+                                <option value="project">Project Review</option>
+                                <option value="standup">Daily Standup</option>
+                                <option value="retrospective">Retrospective</option>
+                                <option value="planning">Planning</option>
+                            </select>
+                            
+                            <label>Customer</label>
+                            <select id="customerFilter">
+                                <option value="">All Customers</option>
+                                <!-- Dynamic options will be added by JavaScript -->
+                            </select>
+                            
+                            <label>Project</label>
+                            <select id="projectFilter">
+                                <option value="">All Projects</option>
+                                <!-- Dynamic options will be added by JavaScript -->
+                            </select>
+                            
+                            <label>Group by</label>
+                            <select id="groupBy">
+                                <option value="">No Grouping</option>
+                                <option value="customer">Customer</option>
+                                <option value="project">Project</option>
+                                <option value="date">Date</option>
+                                <option value="status">Status</option>
+                            </select>
+                            
+                            <label>Sort by</label>
+                            <select id="sortBy">
+                                <option value="date">Date</option>
+                                <option value="title">Title</option>
+                                <option value="status">Status</option>
+                                <option value="customer">Customer</option>
+                                <option value="project">Project</option>
+                                <option value="attendees">Attendees</option>
+                            </select>
+                        </div>
+                        
+                        <div class="view-toggle">
+                            <button id="gridViewBtn" class="view-btn active">
+                                <i class="fas fa-th-large"></i> Grid
+                            </button>
+                            <button id="calendarViewBtn" class="view-btn">
+                                <i class="fas fa-calendar"></i> Calendar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meetings Container -->
+            <div id="meetingsContainer" class="meetings-container">
+                <!-- Grid View -->
+                <div id="meetingsGrid" class="meeting-grid">
+                </div>
+                
+                <!-- Calendar View -->
+                <div id="calendarView" class="calendar-view">
+                    <div class="calendar-header">
+                        <h3 id="calendarTitle">January 2024</h3>
+                        <div class="calendar-nav">
+                            <button id="prevMonthBtn" class="btn btn-small">‹ Prev</button>
+                            <button id="todayBtn" class="btn btn-small">Today</button>
+                            <button id="nextMonthBtn" class="btn btn-small">Next ›</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Meeting Modal with Tabs -->
+    <div id="meetingModal" class="modal">
+        <div class="modal-content large-modal">
+            <span class="close">&times;</span>
+            <h3 id="modalTitle">New Meeting</h3>
+            
+            <!-- Template Selection -->
+            <div id="templateSelector" class="template-selector">
+                <label>Start from template:</label>
+                <select id="templateSelect">
+                    <option value="">-- Select Template --</option>
+                </select>
+                <button type="button" id="applyTemplateBtn" class="btn btn-small">Apply</button>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="details">Details</button>
+                <button class="tab-btn" data-tab="agenda">Agenda <span id="agendaCount" class="badge"></span></button>
+                <button class="tab-btn" data-tab="attendees">Attendees <span id="attendeeCount" class="badge"></span></button>
+                <button class="tab-btn" data-tab="actions">Action Items <span id="actionCount" class="badge"></span></button>
+                <button class="tab-btn" data-tab="decisions">Decisions <span id="decisionCount" class="badge"></span></button>
+                <button class="tab-btn" data-tab="attachments">Attachments <span id="attachmentCount" class="badge"></span></button>
+                <button class="tab-btn" data-tab="ai-assistant">AI Assistant</button>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Details Tab -->
+                <div id="detailsTab" class="tab-panel active">
+                    <form id="meetingForm">
+                        <input type="hidden" id="meetingId">
+                        
+                        <div class="form-group">
+                            <label for="meetingTitle">Title *</label>
+                            <input type="text" id="meetingTitle">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="meetingType">Type</label>
+                                <select id="meetingType">
+                                    <option value="team">Team Meeting</option>
+                                    <option value="one-on-one">One-on-One</option>
+                                    <option value="client">Client Meeting</option>
+                                    <option value="project">Project Review</option>
+                                    <option value="standup">Daily Standup</option>
+                                    <option value="retrospective">Retrospective</option>
+                                    <option value="planning">Planning</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="meetingStatus">Status</label>
+                                <select id="meetingStatus">
+                                    <option value="upcoming">Upcoming</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="meetingDate">Date</label>
+                                <input type="date" id="meetingDate">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="meetingTime">Start Time</label>
+                                <input type="time" id="meetingTime">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="meetingDuration">Duration (minutes)</label>
+                                <input type="number" id="meetingDuration" value="60" min="15" step="15">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="customerName">Customer</label>
+                                <input type="text" id="customerName" placeholder="Customer or client name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="projectName">Project</label>
+                                <input type="text" id="projectName" placeholder="Related project name">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="meetingLocation">Location / Link</label>
+                            <input type="text" id="meetingLocation" placeholder="Conference room or video call link">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="meetingObjective">Objective</label>
+                            <div id="objectiveEditor" class="rich-editor"></div>
+                            <input type="hidden" id="meetingObjective">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="meetingNotes">Notes</label>
+                            <div id="notesEditor" class="rich-editor"></div>
+                            <input type="hidden" id="meetingNotes">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="meetingTags">Tags (comma-separated)</label>
+                            <input type="text" id="meetingTags" placeholder="e.g., weekly, client, planning">
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Agenda Tab -->
+                <div id="agendaTab" class="tab-panel">
+                    <div class="agenda-header-controls">
+                        <div class="time-allocation">
+                            <strong>Total Time: <span id="totalAllocatedTime">0</span> minutes</strong>
+                            <div class="time-progress">
+                                <div class="time-progress-bar" id="timeProgressBar"></div>
+                            </div>
+                        </div>
+                        <button type="button" id="addAgendaBtn" class="btn btn-primary">+ Add Agenda Item</button>
+                    </div>
+                    
+                    <div id="agendaList" class="agenda-list">
+                        <!-- Agenda items will be rendered here -->
+                    </div>
+                </div>
+                
+                <!-- Attendees Tab -->
+                <div id="attendeesTab" class="tab-panel">
+                    <div class="attendees-controls">
+                        <div class="form-row">
+                            <input type="text" id="newAttendeeName" placeholder="Name">
+                            <input type="email" id="newAttendeeEmail" placeholder="Email">
+                            <select id="newAttendeeRole">
+                                <option value="participant">Participant</option>
+                                <option value="facilitator">Facilitator</option>
+                                <option value="note-taker">Note Taker</option>
+                                <option value="presenter">Presenter</option>
+                                <option value="observer">Observer</option>
+                            </select>
+                            <button type="button" id="addAttendeeBtn" class="btn btn-primary">Add</button>
+                        </div>
+                    </div>
+                    
+                    <div id="attendeesList" class="attendee-list">
+                        <!-- Attendees will be rendered here -->
+                    </div>
+                </div>
+                
+                <!-- Action Items Tab -->
+                <div id="actionsTab" class="tab-panel">
+                    <div class="actions-controls">
+                        <button type="button" id="addActionBtn" class="btn btn-primary">+ Add Action Item</button>
+                        <button type="button" id="convertActionsBtn" class="btn btn-secondary">🔄 Convert to Tasks</button>
+                    </div>
+                    
+                    <div id="actionsList" class="actions-list">
+                        <!-- Action items will be rendered here -->
+                    </div>
+                </div>
+                
+                <!-- Decisions Tab -->
+                <div id="decisionsTab" class="tab-panel">
+                    <div class="decisions-controls">
+                        <button type="button" id="addDecisionBtn" class="btn btn-primary">+ Add Decision</button>
+                    </div>
+                    
+                    <div id="decisionsList" class="decisions-list">
+                        <!-- Decisions will be rendered here -->
+                    </div>
+                </div>
+                
+                <!-- Attachments Tab -->
+                <div id="attachmentsTab" class="tab-panel">
+                    <div id="attachmentsList" class="attachments-list"></div>
+                    <div class="upload-area" id="uploadArea">
+                        <p>📎 Drag files here or click to upload</p>
+                        <input type="file" id="fileInput" multiple style="display: none;">
+                    </div>
+                </div>
+                
+                <!-- AI Assistant Tab -->
+                <div id="aiAssistantTab" class="tab-panel">
+                    <div class="ai-controls">
+                        <div class="ai-actions">
+                            <button type="button" id="generateSummaryBtn" class="btn btn-info">📝 Generate Meeting Summary</button>
+                            <button type="button" id="extractActionsBtn" class="btn btn-info">⚡ Extract Action Items</button>
+                            <button type="button" id="generateMinutesBtn" class="btn btn-info">📋 Generate Minutes</button>
+                        </div>
+                    </div>
+                    
+                    <div id="aiOutput" class="ai-output">
+                        <div class="ai-placeholder">
+                            <h4>AI Assistant Ready</h4>
+                            <p>Use the buttons above to generate summaries, extract action items, or create meeting minutes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Actions -->
+            <div class="form-actions">
+                <button type="submit" form="meetingForm" class="btn btn-primary">Save Meeting</button>
+                <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agenda Item Modal -->
+    <div id="agendaModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="agendaModalTitle">Add Agenda Item</h3>
+            
+            <form id="agendaForm">
+                <input type="hidden" id="agendaItemId">
+                
+                <div class="form-group">
+                    <label for="agendaItemTitle">Topic *</label>
+                    <input type="text" id="agendaItemTitle" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="agendaItemTime">Time (minutes)</label>
+                        <input type="number" id="agendaItemTime" value="10" min="1" step="5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="agendaItemPresenter">Presenter</label>
+                        <input type="text" id="agendaItemPresenter">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="agendaItemNotes">Discussion Notes</label>
+                    <div id="agendaNotesEditor" class="rich-editor"></div>
+                    <input type="hidden" id="agendaItemNotes">
+                </div>
+            </form>
+            
+            <div class="form-actions">
+                <button type="submit" form="agendaForm" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary cancel-agenda">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Item Modal -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="actionModalTitle">Add Action Item</h3>
+            
+            <form id="actionForm">
+                <input type="hidden" id="actionItemId">
+                
+                <div class="form-group">
+                    <label for="actionItemTitle">Action *</label>
+                    <input type="text" id="actionItemTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="actionItemDescription">Description</label>
+                    <textarea id="actionItemDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="actionItemAssignee">Assigned To</label>
+                        <input type="text" id="actionItemAssignee" list="assigneeList">
+                        <datalist id="assigneeList">
+                        </datalist>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="actionItemDue">Due Date</label>
+                        <input type="date" id="actionItemDue">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="actionItemStatus">Status</label>
+                    <select id="actionItemStatus">
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="blocked">Blocked</option>
+                    </select>
+                </div>
+            </form>
+            
+            <div class="form-actions">
+                <button type="submit" form="actionForm" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary cancel-action">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decision Modal -->
+    <div id="decisionModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="decisionModalTitle">Add Decision</h3>
+            
+            <form id="decisionForm">
+                <input type="hidden" id="decisionItemId">
+                
+                <div class="form-group">
+                    <label for="decisionTitle">Decision Topic *</label>
+                    <input type="text" id="decisionTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="decisionOutcome">Decision Outcome *</label>
+                    <textarea id="decisionOutcome" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="decisionVotesFor">Votes For</label>
+                        <input type="number" id="decisionVotesFor" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="decisionVotesAgainst">Votes Against</label>
+                        <input type="number" id="decisionVotesAgainst" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="decisionAbstentions">Abstentions</label>
+                        <input type="number" id="decisionAbstentions" value="0" min="0">
+                    </div>
+                </div>
+            </form>
+            
+            <div class="form-actions">
+                <button type="submit" form="decisionForm" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary cancel-decision">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/simple_editor.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/enhanced_features.js"></script>
+    <script src="/static/js/meetings.js"></script>
+    <script src="/static/js/quick-actions.js"></script>
+    <script src="/static/js/funny_character.js"></script>
+</body>
+</html>

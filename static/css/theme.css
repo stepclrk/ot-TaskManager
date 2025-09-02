@@ -2,6 +2,55 @@
    UNIFIED THEME SYSTEM FOR TASK MANAGER
    ======================================== */
 
+/* CRITICAL FIX: Quill toolbar icon visibility - MUST be before other styles */
+
+/* Fix SVG sizing issue - SVGs must have width and height */
+.ql-toolbar button svg,
+.ql-snow .ql-toolbar button svg,
+.ql-toolbar svg {
+    width: 18px !important;
+    height: 18px !important;
+    display: inline-block !important;
+}
+
+.ql-snow .ql-stroke {
+    stroke: #444 !important;
+    fill: none !important;
+}
+
+.ql-snow .ql-fill,
+.ql-snow .ql-stroke.ql-fill {
+    fill: #444 !important;
+}
+
+.ql-snow .ql-even {
+    stroke: #444 !important;
+}
+
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow .ql-toolbar button:hover .ql-stroke {
+    stroke: #06c !important;
+}
+
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button:hover .ql-stroke.ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-stroke.ql-fill {
+    fill: #06c !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke {
+    stroke: #06c !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active .ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke.ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke.ql-fill {
+    fill: #06c !important;
+}
+
 /* CSS Variables for Consistent Theming */
 :root {
     /* Primary Colors - Simple flat blue */

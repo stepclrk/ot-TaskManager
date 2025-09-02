@@ -818,13 +818,41 @@
         "field": "task_type",
         "old_value": null,
         "new_value": "regular"
+      },
+      {
+        "timestamp": "2025-09-02T16:30:19.082909",
+        "action": "comment_added",
+        "field": "comments",
+        "old_value": null,
+        "new_value": "sdfsdgfsdg"
+      },
+      {
+        "timestamp": "2025-09-02T16:30:21.269419",
+        "action": "comment_added",
+        "field": "comments",
+        "old_value": null,
+        "new_value": "sdfgsdg"
       }
     ],
     "follow_up_date": "",
     "tags": "",
     "topic_id": null,
     "project_id": null,
-    "task_type": "regular"
+    "task_type": "regular",
+    "comments": [
+      {
+        "text": "sdfsdgfsdg",
+        "author": "Current User",
+        "id": "e6449256-cf5e-4279-abd1-4a2e0465d9aa",
+        "timestamp": "2025-09-02T16:30:19.081717"
+      },
+      {
+        "text": "sdfgsdg",
+        "author": "Current User",
+        "id": "7dd7151a-e620-4bea-8431-0c76fd511052",
+        "timestamp": "2025-09-02T16:30:21.268733"
+      }
+    ]
   },
   {
     "title": "Market Research & Analysis",
@@ -1230,6 +1258,101 @@
     ],
     "comments": [],
     "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "sdsfsgdsf",
+    "description": "dsfgsdfgsdg",
+    "assignedTo": "Doerte",
+    "followUpDate": "",
+    "category": "Meeting Action",
+    "priority": "Medium",
+    "status": "In Progress",
+    "tags": [
+      "meeting-action"
+    ],
+    "id": "cfaa9005-3425-4435-bbfb-9c85bc85a023",
+    "created_date": "2025-09-02T16:31:09.940002",
+    "history": [
+      {
+        "timestamp": "2025-09-02T16:31:09.940013",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "fghj",
+    "description": "fghj",
+    "assignedTo": "",
+    "followUpDate": "",
+    "category": "Meeting Action",
+    "priority": "Medium",
+    "status": "In Progress",
+    "tags": [
+      "meeting-action"
+    ],
+    "id": "d1922b11-695e-46ae-ac0c-52ed7454f3bd",
+    "created_date": "2025-09-02T16:34:40.185423",
+    "history": [
+      {
+        "timestamp": "2025-09-02T16:34:40.185440",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      }
+    ],
+    "comments": [],
+    "attachments": [],
+    "dependencies": [],
+    "blocks": []
+  },
+  {
+    "title": "sdsfsgdsf",
+    "description": "xcvxcbxcbvxb",
+    "assignedTo": "",
+    "followUpDate": "",
+    "category": "Meeting Action",
+    "priority": "Medium",
+    "status": "In Progress",
+    "tags": [
+      "meeting-action"
+    ],
+    "id": "d73b0ff8-d246-4f4d-b366-001feb36f132",
+    "created_date": "2025-09-02T16:39:07.389872",
+    "history": [
+      {
+        "timestamp": "2025-09-02T16:39:07.389879",
+        "action": "created",
+        "field": "task",
+        "old_value": null,
+        "new_value": "Task created"
+      },
+      {
+        "timestamp": "2025-09-02T16:44:47.613149",
+        "action": "attachment_added",
+        "field": "attachments",
+        "old_value": null,
+        "new_value": "test_sync.py"
+      }
+    ],
+    "comments": [],
+    "attachments": [
+      {
+        "id": "a1b4a9a5-c9c6-4311-be34-d14457278af1",
+        "filename": "test_sync.py",
+        "size": 3871,
+        "uploaded_at": "2025-09-02T16:44:47.613131"
+      }
+    ],
     "dependencies": [],
     "blocks": []
   }

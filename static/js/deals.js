@@ -1,8 +1,8 @@
 let allDeals = [];
 let currentDealId = null;
 let currentUser = null;
-let dealSummaryEditor = null;
-let noteEditor = null;
+let dealSummaryEditor = null; // SimpleEditor instance
+let noteEditor = null; // SimpleEditor instance
 let autoSyncInterval = null;
 let hiddenDeals = [];
 let dealConfig = {
@@ -41,19 +41,10 @@ function initializeEditors() {
     const editorElement = document.getElementById('dealSummaryEditor');
     if (editorElement && !dealSummaryEditor) {
         try {
-            dealSummaryEditor = new Quill('#dealSummaryEditor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        ['bold', 'italic', 'underline', 'strike'],
-                        ['blockquote', 'code-block'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['link'],
-                        ['clean']
-                    ]
-                },
-                placeholder: 'Enter deal summary...'
+            dealSummaryEditor = new SimpleEditor('dealSummaryEditor', {
+                placeholder: 'Enter deal summary...',
+                height: '150px',
+                toolbar: ['bold', 'italic', 'underline', 'bullet', 'number', 'link', 'heading', 'quote', 'clear']
             });
             console.log('Deal summary editor initialized successfully');
         } catch (err) {
@@ -65,17 +56,10 @@ function initializeEditors() {
     
     // Initialize Notes editor
     if (document.getElementById('newNoteEditor')) {
-        noteEditor = new Quill('#newNoteEditor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link', 'blockquote'],
-                    ['clean']
-                ]
-            },
-            placeholder: 'Add a note...'
+        noteEditor = new SimpleEditor('newNoteEditor', {
+            placeholder: 'Add a note...',
+            height: '150px',
+            toolbar: ['bold', 'italic', 'underline', 'bullet', 'number', 'link', 'quote', 'clear']
         });
     }
 }
@@ -551,10 +535,10 @@ function openDealModal() {
     
     // Clear rich text editors
     if (dealSummaryEditor) {
-        dealSummaryEditor.setText('');
+        dealSummaryEditor.clear();
     }
     if (noteEditor) {
-        noteEditor.setText('');
+        noteEditor.clear();
     }
     
     // Reset to first tab and ensure others are hidden
@@ -601,10 +585,10 @@ function closeDealModal() {
     
     // Re-enable rich text editor
     if (dealSummaryEditor) {
-        dealSummaryEditor.enable();
+        // SimpleEditor is always enabled
     }
     if (noteEditor) {
-        noteEditor.enable();
+        // SimpleEditor is always enabled
     }
     
     // Show save button
@@ -683,21 +667,21 @@ async function viewDeal(dealId) {
         try {
             if (deal.dealSummary) {
                 if (deal.dealSummary.includes('<') && deal.dealSummary.includes('>')) {
-                    dealSummaryEditor.root.innerHTML = deal.dealSummary;
+                    dealSummaryEditor.setContent(deal.dealSummary);
                 } else {
-                    dealSummaryEditor.setText(deal.dealSummary);
+                    dealSummaryEditor.setContent(deal.dealSummary);
                 }
             } else {
-                dealSummaryEditor.setText('');
+                dealSummaryEditor.clear();
             }
-            dealSummaryEditor.disable();
+            // SimpleEditor doesn't have disable method
         } catch (err) {
             console.error('Error setting deal summary:', err);
             // Try to reinitialize the editor if it failed
             initializeEditors();
             if (dealSummaryEditor && deal.dealSummary) {
-                dealSummaryEditor.root.innerHTML = deal.dealSummary || '';
-                dealSummaryEditor.disable();
+                dealSummaryEditor.setContent(deal.dealSummary || '');
+                // SimpleEditor doesn't have disable method
             }
         }
     } else {
@@ -812,23 +796,23 @@ async function editDeal(dealId) {
     // Set rich text editor content
     if (dealSummaryEditor) {
         try {
-            dealSummaryEditor.enable(); // Ensure editor is enabled for editing
+            // SimpleEditor is always enabled // Ensure editor is enabled for editing
             if (deal.dealSummary) {
                 // Check if it's HTML or plain text
                 if (deal.dealSummary.includes('<') && deal.dealSummary.includes('>')) {
-                    dealSummaryEditor.root.innerHTML = deal.dealSummary;
+                    dealSummaryEditor.setContent(deal.dealSummary);
                 } else {
-                    dealSummaryEditor.setText(deal.dealSummary);
+                    dealSummaryEditor.setContent(deal.dealSummary);
                 }
             } else {
-                dealSummaryEditor.setText('');
+                dealSummaryEditor.clear();
             }
         } catch (err) {
             console.error('Error setting deal summary:', err);
             // Try to reinitialize the editor if it failed
             initializeEditors();
             if (dealSummaryEditor && deal.dealSummary) {
-                dealSummaryEditor.root.innerHTML = deal.dealSummary || '';
+                dealSummaryEditor.setContent(deal.dealSummary || '');
             }
         }
     } else {
@@ -839,8 +823,8 @@ async function editDeal(dealId) {
     
     // Clear note editor
     if (noteEditor) {
-        noteEditor.enable(); // Ensure editor is enabled for editing
-        noteEditor.setText('');
+        // SimpleEditor is always enabled // Ensure editor is enabled for editing
+        noteEditor.clear();
     }
     
     // Show notes section for existing deals
@@ -1015,7 +999,7 @@ function escapeHtml(text) {
 
 async function saveDeal() {
     // Get HTML content from Quill editor
-    const dealSummaryContent = dealSummaryEditor ? dealSummaryEditor.root.innerHTML : '';
+    const dealSummaryContent = dealSummaryEditor ? dealSummaryEditor.getContent() : '';
     
     const dealData = {
         salesforceId: document.getElementById('salesforceId').value,
@@ -1103,7 +1087,7 @@ async function addNote() {
     if (!currentDealId) return;
     
     // Get HTML content from Quill editor
-    const noteContent = noteEditor ? noteEditor.root.innerHTML : '';
+    const noteContent = noteEditor ? noteEditor.getContent() : '';
     const noteText = noteContent === '<p><br></p>' ? '' : noteContent;
     
     if (!noteText) {
@@ -1123,7 +1107,7 @@ async function addNote() {
         if (response.ok) {
             // Clear the note editor
             if (noteEditor) {
-                noteEditor.setText('');
+                noteEditor.clear();
             }
             // Reload the deal to get updated notes
             const dealResponse = await fetch(`/api/deals/${currentDealId}`);

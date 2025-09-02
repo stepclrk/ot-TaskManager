@@ -14,6 +14,7 @@ import difflib
 from ftp_sync import FTPSyncManager
 from project_manager import ProjectManager
 from team_manager import TeamManager
+from meeting_exporter import MeetingExporter, get_meeting_filename
 
 app = Flask(__name__)
 CORS(app)
@@ -28,6 +29,8 @@ AI_SUMMARY_CACHE_FILE = 'data/ai_summary_cache.json'
 TOPICS_FILE = 'data/objectives.json'
 PROJECTS_FILE = 'data/projects.json'
 DEALS_FILE = 'data/deals.json'
+MEETINGS_FILE = 'data/meetings.json'
+MEETING_TEMPLATES_FILE = 'data/meeting_templates.json'
 
 def load_tasks():
     if os.path.exists(DATA_FILE):
@@ -53,6 +56,11 @@ def load_config():
                 config['dealStatuses'] = ['Open', 'Won', 'Lost']
             if 'csmLocations' not in config:
                 config['csmLocations'] = ['Onshore', 'Offshore']
+            # Add meeting configurations if they don't exist
+            if 'meetingTypes' not in config:
+                config['meetingTypes'] = ['Standup', 'Project', 'Client', 'Team', 'Review', 'Planning', 'Retrospective', 'One-on-One']
+            if 'meetingStatuses' not in config:
+                config['meetingStatuses'] = ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Rescheduled']
             return config
     return {
         'categories': ['Development', 'Support', 'Bug', 'Feature', 'Documentation'],
@@ -62,7 +70,9 @@ def load_config():
         'dealCustomerTypes': ['New Customer', 'Existing Customer'],
         'dealTypes': ['BNCE', 'BNCF', 'Advisory', 'RTS'],
         'dealStatuses': ['Open', 'Won', 'Lost'],
-        'csmLocations': ['Onshore', 'Offshore']
+        'csmLocations': ['Onshore', 'Offshore'],
+        'meetingTypes': ['Standup', 'Project', 'Client', 'Team', 'Review', 'Planning', 'Retrospective', 'One-on-One'],
+        'meetingStatuses': ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Rescheduled']
     }
 
 def save_config(config):
@@ -234,6 +244,54 @@ def save_deals(deals):
     os.makedirs('data', exist_ok=True)
     with open(DEALS_FILE, 'w') as f:
         json.dump(deals, f, indent=2, default=str)
+
+def load_meetings():
+    if os.path.exists(MEETINGS_FILE):
+        with open(MEETINGS_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+def save_meetings(meetings):
+    os.makedirs('data', exist_ok=True)
+    with open(MEETINGS_FILE, 'w') as f:
+        json.dump(meetings, f, indent=2, default=str)
+
+def load_meeting_templates():
+    if os.path.exists(MEETING_TEMPLATES_FILE):
+        with open(MEETING_TEMPLATES_FILE, 'r') as f:
+            return json.load(f)
+    return {
+        'templates': [
+            {
+                'id': 'weekly-standup',
+                'name': 'Weekly Standup',
+                'type': 'Standup',
+                'duration': 30,
+                'agenda': [
+                    {'item': 'What did you accomplish last week?', 'duration': 10},
+                    {'item': 'What will you work on this week?', 'duration': 10},
+                    {'item': 'Any blockers or challenges?', 'duration': 10}
+                ]
+            },
+            {
+                'id': 'project-kickoff',
+                'name': 'Project Kickoff Meeting',
+                'type': 'Project',
+                'duration': 60,
+                'agenda': [
+                    {'item': 'Project overview and objectives', 'duration': 15},
+                    {'item': 'Team introductions and roles', 'duration': 15},
+                    {'item': 'Timeline and milestones', 'duration': 15},
+                    {'item': 'Next steps and action items', 'duration': 15}
+                ]
+            }
+        ]
+    }
+
+def save_meeting_templates(templates):
+    os.makedirs('data', exist_ok=True)
+    with open(MEETING_TEMPLATES_FILE, 'w') as f:
+        json.dump(templates, f, indent=2, default=str)
 
 def calculate_financial_year(date_str):
     """Calculate Australian financial year from a date string.
@@ -435,6 +493,34 @@ def member_details(member_id):
 @app.route('/deals')
 def deals():
     return render_template('deals.html')
+
+@app.route('/meetings')
+def meetings():
+    return render_template('meetings.html')
+
+@app.route('/test-quill')
+def test_quill():
+    return send_file('test_quill_isolated.html')
+
+@app.route('/inspect-quill')
+def inspect_quill():
+    return send_file('inspect_quill.html')
+
+@app.route('/check-svg')
+def check_svg():
+    return send_file('check_svg.html')
+
+@app.route('/test-css-conflict')
+def test_css_conflict():
+    return send_file('test_css_conflict.html')
+
+@app.route('/test-quill-with-css')
+def test_quill_with_css():
+    return render_template('test_quill_with_css.html')
+
+@app.route('/diagnose-invisible')
+def diagnose_invisible():
+    return send_file('diagnose_invisible.html')
 
 @app.route('/projects/<project_id>')
 def project_workspace(project_id):
@@ -2155,6 +2241,12 @@ def get_members():
     members = team_manager.get_all_members()
     return jsonify(members)
 
+@app.route('/api/team-members', methods=['GET'])
+def get_team_members_alias():
+    """Alias for /api/members endpoint - returns all team members"""
+    members = team_manager.get_all_members()
+    return jsonify(members)
+
 @app.route('/api/members', methods=['POST'])
 def create_member():
     member_data = request.json
@@ -3450,6 +3542,603 @@ def favicon():
 # System notifications disabled - using browser notifications only
 # notification_thread = threading.Thread(target=check_notifications, daemon=True)
 # notification_thread.start()
+
+# ============================
+# MEETINGS API ENDPOINTS
+# ============================
+
+@app.route('/api/meetings', methods=['GET'])
+def get_meetings():
+    """Get all meetings"""
+    meetings = load_meetings()
+    return jsonify(meetings)
+
+@app.route('/api/meetings', methods=['POST'])
+def create_meeting():
+    """Create a new meeting"""
+    try:
+        meeting = request.json
+        meeting['id'] = str(uuid.uuid4())
+        meeting['created_at'] = datetime.now().isoformat()
+        meeting['updated_at'] = datetime.now().isoformat()
+        
+        # Set default values
+        if 'status' not in meeting:
+            meeting['status'] = 'Scheduled'
+        if 'attendees' not in meeting:
+            meeting['attendees'] = []
+        if 'agenda' not in meeting:
+            meeting['agenda'] = []
+        if 'action_items' not in meeting:
+            meeting['action_items'] = []
+        if 'decisions' not in meeting:
+            meeting['decisions'] = []
+        if 'attachments' not in meeting:
+            meeting['attachments'] = []
+        if 'notes' not in meeting:
+            meeting['notes'] = ''
+        if 'metadata' not in meeting:
+            meeting['metadata'] = {}
+        
+        meetings = load_meetings()
+        meetings.append(meeting)
+        save_meetings(meetings)
+        
+        return jsonify(meeting), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/<meeting_id>', methods=['GET'])
+def get_meeting(meeting_id):
+    """Get a specific meeting"""
+    meetings = load_meetings()
+    meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+    
+    if not meeting:
+        return jsonify({'error': 'Meeting not found'}), 404
+    
+    return jsonify(meeting)
+
+@app.route('/api/meetings/<meeting_id>', methods=['PUT'])
+def update_meeting(meeting_id):
+    """Update a specific meeting"""
+    try:
+        meetings = load_meetings()
+        meeting_data = request.json
+        
+        for i, meeting in enumerate(meetings):
+            if meeting['id'] == meeting_id:
+                meeting_data['updated_at'] = datetime.now().isoformat()
+                # Preserve created_at and id
+                meeting_data['id'] = meeting_id
+                if 'created_at' in meeting:
+                    meeting_data['created_at'] = meeting['created_at']
+                
+                meetings[i] = meeting_data
+                save_meetings(meetings)
+                return jsonify(meeting_data)
+        
+        return jsonify({'error': 'Meeting not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/<meeting_id>', methods=['DELETE'])
+def delete_meeting(meeting_id):
+    """Delete a specific meeting"""
+    meetings = load_meetings()
+    meetings = [m for m in meetings if m['id'] != meeting_id]
+    save_meetings(meetings)
+    return '', 204
+
+@app.route('/api/meetings/<meeting_id>/action-items', methods=['POST'])
+def add_action_item(meeting_id):
+    """Add action item to a meeting"""
+    try:
+        meetings = load_meetings()
+        action_item = request.json
+        action_item['id'] = str(uuid.uuid4())
+        action_item['created_at'] = datetime.now().isoformat()
+        
+        for meeting in meetings:
+            if meeting['id'] == meeting_id:
+                if 'action_items' not in meeting:
+                    meeting['action_items'] = []
+                meeting['action_items'].append(action_item)
+                meeting['updated_at'] = datetime.now().isoformat()
+                save_meetings(meetings)
+                return jsonify(action_item), 201
+        
+        return jsonify({'error': 'Meeting not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/<meeting_id>/create-tasks', methods=['POST'])
+def create_tasks_from_meeting(meeting_id):
+    """Create tasks from meeting action items"""
+    try:
+        meetings = load_meetings()
+        data = request.json
+        action_item_ids = data.get('action_item_ids', [])
+        
+        meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+        if not meeting:
+            return jsonify({'error': 'Meeting not found'}), 404
+        
+        tasks = load_tasks()
+        created_tasks = []
+        
+        for action_item in meeting.get('action_items', []):
+            if action_item['id'] in action_item_ids:
+                # Create task from action item
+                task = {
+                    'id': str(uuid.uuid4()),
+                    'title': action_item.get('title', 'Task from meeting'),
+                    'description': action_item.get('description', ''),
+                    'assigned_to': action_item.get('assigned_to', ''),
+                    'priority': action_item.get('priority', 'Medium'),
+                    'status': 'Open',
+                    'category': 'Meeting Action',
+                    'created_date': datetime.now().isoformat(),
+                    'follow_up_date': action_item.get('due_date'),
+                    'history': [{
+                        'timestamp': datetime.now().isoformat(),
+                        'action': 'created',
+                        'field': 'task',
+                        'old_value': None,
+                        'new_value': f'Task created from meeting: {meeting.get("title", "")}'
+                    }],
+                    'comments': [],
+                    'attachments': [],
+                    'dependencies': [],
+                    'blocks': [],
+                    'meeting_reference': {
+                        'meeting_id': meeting_id,
+                        'meeting_title': meeting.get('title', ''),
+                        'action_item_id': action_item['id']
+                    }
+                }
+                
+                tasks.append(task)
+                created_tasks.append(task)
+                
+                # Update action item with task reference
+                action_item['task_id'] = task['id']
+                action_item['task_created'] = True
+        
+        # Save both tasks and meetings
+        save_tasks(tasks)
+        save_meetings(meetings)
+        
+        return jsonify({
+            'created_tasks': created_tasks,
+            'count': len(created_tasks)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/<meeting_id>/linked-tasks', methods=['GET'])
+def get_meeting_linked_tasks(meeting_id):
+    """Get all tasks linked to a meeting"""
+    tasks = load_tasks()
+    linked_tasks = []
+    
+    for task in tasks:
+        if 'meeting_reference' in task and task['meeting_reference'].get('meeting_id') == meeting_id:
+            linked_tasks.append(task)
+    
+    return jsonify(linked_tasks)
+
+@app.route('/api/meetings/<meeting_id>/distribute', methods=['POST'])
+def distribute_meeting(meeting_id):
+    """Email distribution of meeting minutes (placeholder for future implementation)"""
+    try:
+        meetings = load_meetings()
+        data = request.json
+        recipients = data.get('recipients', [])
+        
+        meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+        if not meeting:
+            return jsonify({'error': 'Meeting not found'}), 404
+        
+        # For now, just mark as distributed and store distribution info
+        if 'metadata' not in meeting:
+            meeting['metadata'] = {}
+        
+        meeting['metadata']['distributed'] = True
+        meeting['metadata']['distribution_date'] = datetime.now().isoformat()
+        meeting['metadata']['recipients'] = recipients
+        meeting['updated_at'] = datetime.now().isoformat()
+        
+        save_meetings(meetings)
+        
+        # TODO: Implement actual email sending functionality
+        return jsonify({
+            'success': True,
+            'message': f'Meeting minutes marked for distribution to {len(recipients)} recipients',
+            'recipients': recipients
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meeting-templates', methods=['GET'])
+def get_meeting_templates():
+    """Get all meeting templates"""
+    templates = load_meeting_templates()
+    return jsonify(templates)
+
+@app.route('/api/meeting-templates', methods=['POST'])
+def create_meeting_template():
+    """Create a new meeting template"""
+    try:
+        template = request.json
+        template['id'] = str(uuid.uuid4())
+        template['created_at'] = datetime.now().isoformat()
+        
+        templates_data = load_meeting_templates()
+        if 'templates' not in templates_data:
+            templates_data['templates'] = []
+        
+        templates_data['templates'].append(template)
+        save_meeting_templates(templates_data)
+        
+        return jsonify(template), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/from-template', methods=['POST'])
+def create_meeting_from_template():
+    """Create a meeting from a template"""
+    try:
+        data = request.json
+        template_id = data.get('template_id')
+        
+        templates_data = load_meeting_templates()
+        template = None
+        
+        for t in templates_data.get('templates', []):
+            if t['id'] == template_id:
+                template = t
+                break
+        
+        if not template:
+            return jsonify({'error': 'Template not found'}), 404
+        
+        # Create meeting from template
+        meeting = {
+            'id': str(uuid.uuid4()),
+            'title': data.get('title', template.get('name', 'New Meeting')),
+            'type': template.get('type', 'General'),
+            'duration': template.get('duration', 60),
+            'agenda': template.get('agenda', []).copy(),
+            'date': data.get('date', ''),
+            'time': data.get('time', ''),
+            'location': data.get('location', ''),
+            'status': 'Scheduled',
+            'attendees': data.get('attendees', []),
+            'action_items': [],
+            'decisions': [],
+            'attachments': [],
+            'notes': '',
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat(),
+            'metadata': {
+                'created_from_template': template_id,
+                'template_name': template.get('name')
+            }
+        }
+        
+        meetings = load_meetings()
+        meetings.append(meeting)
+        save_meetings(meetings)
+        
+        return jsonify(meeting), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/<meeting_id>/ai-summary', methods=['POST'])
+def generate_meeting_summary(meeting_id):
+    """Generate AI summary of meeting minutes"""
+    try:
+        settings = load_settings()
+        
+        if not settings.get('api_key'):
+            return jsonify({'error': 'API key not configured'}), 400
+        
+        meetings = load_meetings()
+        meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+        
+        if not meeting:
+            return jsonify({'error': 'Meeting not found'}), 404
+        
+        # Build meeting context for AI
+        context = f"Meeting: {meeting.get('title', 'Untitled')}\n"
+        context += f"Date: {meeting.get('date', 'Not specified')}\n"
+        context += f"Type: {meeting.get('type', 'General')}\n"
+        context += f"Duration: {meeting.get('duration', 'Not specified')} minutes\n\n"
+        
+        if meeting.get('attendees'):
+            context += "Attendees:\n"
+            for attendee in meeting['attendees']:
+                context += f"- {attendee.get('name', '')} ({attendee.get('role', 'Attendee')})\n"
+            context += "\n"
+        
+        if meeting.get('agenda'):
+            context += "Agenda:\n"
+            for item in meeting['agenda']:
+                context += f"- {item.get('item', '')}\n"
+            context += "\n"
+        
+        if meeting.get('notes'):
+            context += f"Meeting Notes:\n{meeting['notes']}\n\n"
+        
+        if meeting.get('decisions'):
+            context += "Decisions Made:\n"
+            for decision in meeting['decisions']:
+                context += f"- {decision.get('decision', '')}\n"
+            context += "\n"
+        
+        if meeting.get('action_items'):
+            context += "Action Items:\n"
+            for action in meeting['action_items']:
+                context += f"- {action.get('title', '')} (Assigned to: {action.get('assigned_to', 'Unassigned')})\n"
+        
+        prompt = f"Please provide a comprehensive summary of this meeting:\n\n{context}\n\nInclude:\n1. Key discussion points\n2. Decisions made\n3. Action items and ownership\n4. Next steps\n\nFormat the response in clear, professional language suitable for stakeholders who didn't attend."
+        
+        result = call_ai_api(settings, prompt, max_tokens=800)
+        
+        if result['success']:
+            # Store summary in meeting metadata
+            if 'metadata' not in meeting:
+                meeting['metadata'] = {}
+            meeting['metadata']['ai_summary'] = result['text']
+            meeting['metadata']['summary_generated_at'] = datetime.now().isoformat()
+            meeting['updated_at'] = datetime.now().isoformat()
+            save_meetings(meetings)
+            
+            return jsonify({'summary': result['text']})
+        else:
+            return jsonify({'error': result.get('error', 'Failed to generate summary')}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/<meeting_id>/extract-actions', methods=['POST'])
+def extract_action_items(meeting_id):
+    """AI extraction of action items from meeting notes"""
+    try:
+        settings = load_settings()
+        
+        if not settings.get('api_key'):
+            return jsonify({'error': 'API key not configured'}), 400
+        
+        meetings = load_meetings()
+        meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+        
+        if not meeting:
+            return jsonify({'error': 'Meeting not found'}), 404
+        
+        notes = meeting.get('notes', '')
+        if not notes.strip():
+            return jsonify({'error': 'No meeting notes to analyze'}), 400
+        
+        prompt = f"""Analyze the following meeting notes and extract action items. For each action item, identify:
+1. The task/action to be completed
+2. Who is responsible (if mentioned)
+3. Any deadline or due date (if mentioned)
+4. Priority level (if apparent)
+
+Meeting Notes:
+{notes}
+
+Format your response as a JSON array with objects containing: title, description, assigned_to, due_date, priority. Only include clear, actionable items. If information is not specified, use null or appropriate defaults."""
+        
+        result = call_ai_api(settings, prompt, max_tokens=600)
+        
+        if result['success']:
+            try:
+                # Try to parse the AI response as JSON
+                import re
+                json_match = re.search(r'\[.*\]', result['text'], re.DOTALL)
+                if json_match:
+                    extracted_actions = json.loads(json_match.group())
+                else:
+                    # Fallback: create a simple action item from the text
+                    extracted_actions = [{
+                        'title': 'Review meeting notes for action items',
+                        'description': result['text'],
+                        'assigned_to': None,
+                        'due_date': None,
+                        'priority': 'Medium'
+                    }]
+                
+                # Add IDs and timestamps to extracted actions
+                for action in extracted_actions:
+                    action['id'] = str(uuid.uuid4())
+                    action['created_at'] = datetime.now().isoformat()
+                    action['extracted_by_ai'] = True
+                
+                return jsonify({'action_items': extracted_actions})
+            except json.JSONDecodeError:
+                # If JSON parsing fails, return the raw text
+                return jsonify({
+                    'action_items': [{
+                        'id': str(uuid.uuid4()),
+                        'title': 'AI Analysis Result',
+                        'description': result['text'],
+                        'assigned_to': None,
+                        'due_date': None,
+                        'priority': 'Medium',
+                        'created_at': datetime.now().isoformat(),
+                        'extracted_by_ai': True
+                    }]
+                })
+        else:
+            return jsonify({'error': result.get('error', 'Failed to extract action items')}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/meetings/<meeting_id>/export/html', methods=['GET'])
+def export_meeting_html(meeting_id):
+    """Export meeting as HTML"""
+    try:
+        meetings = load_meetings()
+        meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+        
+        if not meeting:
+            return jsonify({'error': 'Meeting not found'}), 404
+        
+        exporter = MeetingExporter()
+        html_content = exporter.export_to_html(meeting)
+        
+        return html_content, 200, {
+            'Content-Type': 'text/html',
+            'Content-Disposition': f'attachment; filename="{get_meeting_filename(meeting, "html")}"'
+        }
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/meetings/<meeting_id>/export/pdf', methods=['GET'])
+def export_meeting_pdf(meeting_id):
+    """Export meeting as PDF"""
+    try:
+        meetings = load_meetings()
+        meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+        
+        if not meeting:
+            return jsonify({'error': 'Meeting not found'}), 404
+        
+        try:
+            exporter = MeetingExporter()
+            pdf_buffer = exporter.export_to_pdf(meeting)
+            
+            return send_file(
+                pdf_buffer,
+                as_attachment=True,
+                download_name=get_meeting_filename(meeting, 'pdf'),
+                mimetype='application/pdf'
+            )
+        except ImportError as ie:
+            return jsonify({
+                'error': 'PDF export not available. Please install reportlab: pip install reportlab',
+                'details': str(ie)
+            }), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/meetings/<meeting_id>/export/word', methods=['GET'])
+def export_meeting_word(meeting_id):
+    """Export meeting as Word document"""
+    try:
+        meetings = load_meetings()
+        meeting = next((m for m in meetings if m['id'] == meeting_id), None)
+        
+        if not meeting:
+            return jsonify({'error': 'Meeting not found'}), 404
+        
+        try:
+            exporter = MeetingExporter()
+            word_buffer = exporter.export_to_word(meeting)
+            
+            return send_file(
+                word_buffer,
+                as_attachment=True,
+                download_name=get_meeting_filename(meeting, 'docx'),
+                mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            )
+        except ImportError as ie:
+            return jsonify({
+                'error': 'Word export not available. Please install python-docx: pip install python-docx',
+                'details': str(ie)
+            }), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/meetings/<meeting_id>/attachments', methods=['POST'])
+def upload_meeting_attachment(meeting_id):
+    """Upload an attachment for a meeting"""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Create attachment directory for meetings
+    meeting_dir = os.path.join(ATTACHMENTS_DIR, 'meetings', meeting_id)
+    os.makedirs(meeting_dir, exist_ok=True)
+    
+    # Save file with unique ID
+    file_id = str(uuid.uuid4())
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(meeting_dir, f"{file_id}-{filename}")
+    file.save(file_path)
+    
+    # Update meeting with attachment info
+    meetings = load_meetings()
+    for meeting in meetings:
+        if meeting['id'] == meeting_id:
+            if 'attachments' not in meeting:
+                meeting['attachments'] = []
+            
+            attachment = {
+                'id': file_id,
+                'filename': filename,
+                'size': os.path.getsize(file_path),
+                'type': file.mimetype or 'application/octet-stream',
+                'uploadedAt': datetime.now().isoformat()
+            }
+            meeting['attachments'].append(attachment)
+            
+            save_meetings(meetings)
+            return jsonify(attachment)
+    
+    return jsonify({'error': 'Meeting not found'}), 404
+
+@app.route('/api/meetings/<meeting_id>/attachments/<attachment_id>', methods=['DELETE'])
+def delete_meeting_attachment(meeting_id, attachment_id):
+    """Delete a meeting attachment"""
+    meetings = load_meetings()
+    
+    for meeting in meetings:
+        if meeting['id'] == meeting_id:
+            if 'attachments' in meeting:
+                # Find and remove attachment
+                meeting['attachments'] = [
+                    a for a in meeting['attachments'] 
+                    if a['id'] != attachment_id
+                ]
+                
+                # Delete file from disk
+                meeting_dir = os.path.join(ATTACHMENTS_DIR, 'meetings', meeting_id)
+                for filename in os.listdir(meeting_dir):
+                    if filename.startswith(attachment_id):
+                        file_path = os.path.join(meeting_dir, filename)
+                        try:
+                            os.remove(file_path)
+                        except:
+                            pass
+                
+                save_meetings(meetings)
+                return '', 204
+    
+    return jsonify({'error': 'Meeting or attachment not found'}), 404
+
+@app.route('/api/meetings/<meeting_id>/attachments/<attachment_id>', methods=['GET'])
+def download_meeting_attachment(meeting_id, attachment_id):
+    """Download a meeting attachment"""
+    meetings = load_meetings()
+    
+    for meeting in meetings:
+        if meeting['id'] == meeting_id:
+            if 'attachments' in meeting:
+                attachment = next((a for a in meeting['attachments'] if a['id'] == attachment_id), None)
+                if attachment:
+                    meeting_dir = os.path.join(ATTACHMENTS_DIR, 'meetings', meeting_id)
+                    for filename in os.listdir(meeting_dir):
+                        if filename.startswith(attachment_id):
+                            file_path = os.path.join(meeting_dir, filename)
+                            return send_file(file_path, as_attachment=True, download_name=attachment['filename'])
+    
+    return jsonify({'error': 'Attachment not found'}), 404
 
 if __name__ == '__main__':
     

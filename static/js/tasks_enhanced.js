@@ -1,7 +1,7 @@
 // Enhanced Task Management - Main Integration
 
-let quillEditor = null;
-let commentQuillEditor = null;
+let descriptionEditor = null; // SimpleEditor instance
+let commentEditor = null; // Comment SimpleEditor instance
 let selectedDependencies = [];
 let isLoadingEnhancedData = false;  // Flag to track if we're loading data
 
@@ -11,6 +11,38 @@ window.isLoadingEnhancedData = false;
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize enhanced features
     initializeEnhancedFeatures();
+    
+    // Set up a delegated event listener for the comment button
+    // This ensures it works even if the button is recreated
+    document.body.addEventListener('click', async function(e) {
+        if (e.target && (e.target.id === 'addCommentBtn' || e.target.closest('#addCommentBtn'))) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Comment button clicked (delegated)');
+            
+            const taskId = document.getElementById('taskId').value;
+            const commentText = document.getElementById('newComment').value;
+            
+            console.log('Task ID:', taskId);
+            console.log('Comment text:', commentText);
+            
+            if (taskId && commentText.trim()) {
+                console.log('Adding comment to task:', taskId);
+                try {
+                    await window.enhancedFeatures.addComment(taskId, commentText);
+                    // Clear the textarea after successful submission
+                    document.getElementById('newComment').value = '';
+                    console.log('Comment added successfully');
+                } catch (error) {
+                    console.error('Error adding comment:', error);
+                }
+            } else {
+                console.log('Cannot add comment - missing taskId or empty content');
+                if (!taskId) console.log('Missing task ID');
+                if (!commentText.trim()) console.log('Empty comment text');
+            }
+        }
+    });
     
     // Setup mutation observer to watch for modal display changes
     setupModalObserver();
@@ -75,9 +107,18 @@ function forceCompleteDataClear() {
     document.getElementById('commentCount').textContent = '';
     document.getElementById('attachmentCount').textContent = '';
     
-    // Clear editors
-    if (window.commentQuillEditor) {
-        window.commentQuillEditor.setText('');
+    // Clear editors safely
+    try {
+        // Clear comment textarea
+        const commentTextarea = document.getElementById('newComment');
+        if (commentTextarea) {
+            commentTextarea.value = '';
+        }
+        if (window.descriptionEditor && typeof window.descriptionEditor.clear === 'function') {
+            window.descriptionEditor.clear();
+        }
+    } catch (e) {
+        console.log('Editor clear error (can be ignored):', e.message);
     }
 }
 
@@ -121,14 +162,12 @@ async function initializeEnhancedFeatures() {
         document.getElementById('attachmentCount').textContent = '';
         
         // Clear the Quill editors
-        if (quillEditor) {
-            quillEditor.setText('');
-            quillEditor.root.innerHTML = '';
+        if (descriptionEditor) {
+            descriptionEditor.clear();
         }
-        if (commentQuillEditor) {
-            commentQuillEditor.setText('');
-            commentQuillEditor.root.innerHTML = '';
-        }
+        // Clear comment textarea
+        const textarea = document.getElementById('newComment');
+        if (textarea) textarea.value = '';
         
         // Make absolutely sure task ID is empty BEFORE calling original
         document.getElementById('taskId').value = '';
@@ -196,8 +235,8 @@ async function initializeEnhancedFeatures() {
         e.preventDefault();
         
         // Get rich text content
-        if (quillEditor) {
-            document.getElementById('description').value = quillEditor.root.innerHTML;
+        if (descriptionEditor) {
+            document.getElementById('description').value = descriptionEditor.getContent();
         }
         
         // Call original save
@@ -305,26 +344,24 @@ function initializeQuillEditor() {
     const container = document.getElementById('descriptionEditor');
     if (!container) return;
     
-    quillEditor = new Quill('#descriptionEditor', {
-        theme: 'snow',
-        modules: {
-            toolbar: [
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                [{ 'header': [1, 2, 3, false] }],
-                ['link'],
-                ['clean']
-            ]
-        },
-        placeholder: 'Enter task description...'
-    });
-    
-    // Make quillEditor globally accessible for template application
-    window.quillEditor = quillEditor;
-    
-    // Also store reference on the container for backup access
-    container.__quill = quillEditor;
+    // Initialize only if not already initialized
+    if (!window.descriptionEditor) {
+        try {
+            descriptionEditor = new SimpleEditor('descriptionEditor', {
+                placeholder: 'Enter task description...',
+                height: '200px',
+                toolbar: ['bold', 'italic', 'underline', 'bullet', 'number', 'link', 'heading', 'quote', 'clear']
+            });
+            
+            // Make descriptionEditor globally accessible for template application
+            window.descriptionEditor = descriptionEditor;
+            
+            // Also store reference on the container for backup access
+            container.__editor = descriptionEditor;
+        } catch (e) {
+            console.error('Failed to initialize description editor:', e);
+        }
+    }
 }
 
 function setupTabSwitching() {
@@ -361,6 +398,35 @@ function setupTabSwitching() {
                 targetTab.classList.add('active');
                 targetTab.style.display = 'block';
                 console.log('Activated tab:', tabName + 'Tab');
+                
+                // Ensure comment form is visible when comments tab is selected
+                if (tabName === 'comments') {
+                    console.log('Comments tab activated');
+                    
+                    // Ensure the add-comment div is visible
+                    const addCommentDiv = targetTab.querySelector('.add-comment');
+                    if (addCommentDiv) {
+                        addCommentDiv.style.display = 'block';
+                        addCommentDiv.style.visibility = 'visible';
+                    }
+                    
+                    // Ensure the textarea is visible and focus it
+                    const textarea = document.getElementById('newComment');
+                    if (textarea) {
+                        textarea.style.display = 'block';
+                        textarea.style.visibility = 'visible';
+                        setTimeout(() => textarea.focus(), 100);
+                    }
+                    
+                    // Ensure the button is visible
+                    const button = document.getElementById('addCommentBtn');
+                    if (button) {
+                        button.style.display = 'inline-block';
+                        button.style.visibility = 'visible';
+                    }
+                    
+                    console.log('Comment form elements made visible');
+                }
             } else {
                 console.error('Tab panel not found:', tabName + 'Tab');
             }
@@ -462,7 +528,7 @@ function setupEnhancedEventListeners() {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 const title = titleInput.value;
-                const description = quillEditor ? quillEditor.getText() : '';
+                const description = descriptionEditor ? descriptionEditor.getContent() : '';
                 const customer = document.getElementById('customerName').value;
                 
                 if (title.length > 3) {
@@ -472,55 +538,8 @@ function setupEnhancedEventListeners() {
         });
     }
     
-    // Initialize comment Quill editor (use global variable)
-    if (document.getElementById('commentEditor')) {
-        commentQuillEditor = new Quill('#commentEditor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link', 'blockquote'],
-                    ['clean']
-                ]
-            },
-            placeholder: 'Add a comment...'
-        });
-    }
-    
-    // Add comment with rich text support
-    const addCommentBtn = document.getElementById('addCommentBtn');
-    if (addCommentBtn) {
-        addCommentBtn.addEventListener('click', async () => {
-            const taskId = document.getElementById('taskId').value;
-            
-            // Get HTML content from Quill editor
-            let commentHtml = '';
-            if (commentQuillEditor) {
-                commentHtml = commentQuillEditor.root.innerHTML;
-                // Also update hidden textarea
-                document.getElementById('newComment').value = commentHtml;
-            } else {
-                // Fallback to plain textarea
-                commentHtml = document.getElementById('newComment').value;
-            }
-            
-            // Check if comment is not empty (strip HTML tags for check)
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = commentHtml;
-            const textContent = tempDiv.textContent || tempDiv.innerText || '';
-            
-            if (taskId && textContent.trim()) {
-                await window.enhancedFeatures.addComment(taskId, commentHtml);
-                
-                // Clear the editors
-                if (commentQuillEditor) {
-                    commentQuillEditor.setText('');
-                }
-                document.getElementById('newComment').value = '';
-            }
-        });
-    }
+    // Note: Comment button handler is now handled by the delegated event listener in DOMContentLoaded
+    // This avoids duplicate handlers and ensures it always works
     
     // Add dependency
     const addDepBtn = document.getElementById('addDependencyBtn');
@@ -546,16 +565,18 @@ function clearEnhancedData() {
     console.log('Clearing all enhanced data...', new Date().toISOString());
     console.trace('Called from:');
     
-    // Clear comment editor - be extra thorough
-    if (commentQuillEditor) {
-        try {
-            commentQuillEditor.setText('');
-            commentQuillEditor.root.innerHTML = '';
-            // Delete all content
-            commentQuillEditor.deleteText(0, commentQuillEditor.getLength());
-        } catch (e) {
-            console.log('Error clearing comment editor:', e);
+    // Clear editors safely
+    try {
+        // Clear comment textarea
+        const commentTextarea = document.getElementById('newComment');
+        if (commentTextarea) {
+            commentTextarea.value = '';
         }
+        if (typeof descriptionEditor !== 'undefined' && descriptionEditor && typeof descriptionEditor.clear === 'function') {
+            descriptionEditor.clear();
+        }
+    } catch (e) {
+        console.log('Editor clear error (can be ignored):', e.message);
     }
     
     // Clear comments container - use cloneNode to remove all event listeners
@@ -677,12 +698,8 @@ function loadEnhancedTaskData(taskId) {
     }
     
     // Load rich text description
-    if (quillEditor && task.description) {
-        if (task.description.includes('<')) {
-            quillEditor.root.innerHTML = task.description;
-        } else {
-            quillEditor.setText(task.description);
-        }
+    if (descriptionEditor && task.description) {
+        descriptionEditor.setContent(task.description);
     }
     
     // Load comments - only if we're still loading

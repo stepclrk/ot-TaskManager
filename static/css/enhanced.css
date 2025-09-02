@@ -124,6 +124,11 @@
     display: block;
 }
 
+/* Ensure comments tab shows flex when active */
+#commentsTab.active {
+    display: flex !important;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -283,6 +288,9 @@
 .add-comment {
     border-top: 1px solid #e0e0e0;
     padding-top: 1rem;
+    margin-top: 1rem;
+    display: block !important;
+    visibility: visible !important;
 }
 
 /* Comment editor Quill toolbar styling */
@@ -298,14 +306,47 @@
     font-size: 14px;
 }
 
-.add-comment textarea {
+.add-comment textarea,
+#newComment {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ddd;
     border-radius: 4px;
     resize: vertical;
     min-height: 80px;
+    display: block !important;
+    visibility: visible !important;
+    margin-bottom: 10px;
     margin-bottom: 0.5rem;
+}
+
+#addCommentBtn {
+    display: inline-block !important;
+    visibility: visible !important;
+    padding: 8px 16px;
+    margin-top: 10px;
+}
+
+/* Comments Tab Layout */
+#commentsTab {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#commentsContainer {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 300px;
+    margin-bottom: 15px;
+}
+
+#commentsTab .add-comment {
+    flex-shrink: 0;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: auto;
 }
 
 /* Attachments */
