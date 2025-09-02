@@ -5,6 +5,7 @@ let templates = [];
 let teamMembers = [];
 let objectiveEditor = null;
 let notesEditor = null;
+let expandedNotesEditor = null;
 let agendaNotesEditor = null;
 let agendaSortable = null;
 let currentView = 'grid';
@@ -152,7 +153,7 @@ function initializeEditors() {
     if (notesElement && !notesEditor) {
         notesEditor = new SimpleEditor('notesEditor', {
             placeholder: 'Meeting notes and discussion points...',
-            height: '200px',
+            height: '100px',
             toolbar: ['bold', 'italic', 'underline', 'bullet', 'number', 'link', 'heading', 'quote', 'clear']
         });
         
@@ -213,6 +214,7 @@ function initializeEventListeners() {
     // Modal controls
     document.getElementById('cancelBtn').addEventListener('click', closeModal);
     document.getElementById('copyMinutesBtn').addEventListener('click', copyMeetingMinutes);
+    document.getElementById('expandNotesBtn').addEventListener('click', expandNotes);
     
     // Tab management
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1920,3 +1922,132 @@ async function copyMeetingMinutes() {
         showNotification('Failed to copy meeting minutes', 'error');
     }
 }
+
+// Expanded Notes Functions
+function expandNotes() {
+    // Initialize expanded editor if not already done
+    const expandedElement = document.getElementById('expandedNotesEditor');
+    if (expandedElement && !expandedNotesEditor) {
+        expandedNotesEditor = new SimpleEditor('expandedNotesEditor', {
+            placeholder: 'Meeting notes and discussion points...\n\nYou have plenty of space here to write detailed notes, action items, and observations.',
+            height: '100%',
+            toolbar: ['bold', 'italic', 'underline', 'strike', 'bullet', 'number', 'link', 'heading', 'quote', 'code', 'clear'],
+            toolbarPosition: 'top'
+        });
+        
+        // Force the editor to fill available space after initialization
+        setTimeout(() => {
+            const modal = document.getElementById('expandedNotesModal');
+            const container = modal.querySelector('.expanded-notes-container');
+            const body = modal.querySelector('.expanded-notes-body');
+            const wrapper = expandedElement.querySelector('.simple-editor-wrapper');
+            const editorContent = expandedElement.querySelector('.simple-editor-content');
+            
+            // Get the actual height of header and footer
+            const header = modal.querySelector('.expanded-notes-header');
+            const footer = modal.querySelector('.expanded-notes-footer');
+            const headerHeight = header ? header.offsetHeight : 60;
+            const footerHeight = footer ? footer.offsetHeight : 70;
+            
+            // Calculate available height for the body
+            const totalHeight = window.innerHeight * 0.95; // 95vh
+            const bodyHeight = totalHeight - headerHeight - footerHeight;
+            
+            if (body) {
+                body.style.height = `${bodyHeight}px`;
+            }
+            
+            if (wrapper) {
+                wrapper.style.height = '100%';
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+            }
+            
+            if (editorContent) {
+                // Get toolbar height
+                const toolbar = expandedElement.querySelector('.simple-editor-toolbar');
+                const toolbarHeight = toolbar ? toolbar.offsetHeight : 50;
+                
+                // Set the content height to fill remaining space
+                const contentHeight = bodyHeight - toolbarHeight - 20; // 20px for some padding
+                editorContent.style.height = `${contentHeight}px`;
+                editorContent.style.minHeight = `${contentHeight}px`;
+                editorContent.style.maxHeight = `${contentHeight}px`;
+                editorContent.style.fontSize = '16px';
+                editorContent.style.lineHeight = '1.8';
+                editorContent.style.padding = '30px';
+                editorContent.style.overflowY = 'auto';
+                editorContent.style.boxSizing = 'border-box';
+            }
+        }, 100);
+    }
+    
+    // Get current notes content
+    const currentContent = notesEditor ? notesEditor.getContent() : document.getElementById('meetingNotes').value;
+    
+    // Set content in expanded editor
+    if (expandedNotesEditor) {
+        expandedNotesEditor.setContent(currentContent);
+    }
+    
+    // Show the modal
+    const modal = document.getElementById('expandedNotesModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        
+        // Focus the editor after a delay
+        setTimeout(() => {
+            const editorContent = document.querySelector('#expandedNotesEditor .simple-editor-content');
+            if (editorContent) {
+                editorContent.focus();
+            }
+        }, 200);
+        
+        // Add ESC key listener
+        document.addEventListener('keydown', handleExpandedNotesEsc);
+    }
+}
+
+function handleExpandedNotesEsc(event) {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('expandedNotesModal');
+        if (modal && modal.classList.contains('show')) {
+            closeExpandedNotes();
+        }
+    }
+}
+
+function saveExpandedNotes() {
+    // Get content from expanded editor
+    const expandedContent = expandedNotesEditor ? expandedNotesEditor.getContent() : '';
+    
+    // Update the main notes editor
+    if (notesEditor) {
+        notesEditor.setContent(expandedContent);
+    }
+    
+    // Update the hidden field
+    document.getElementById('meetingNotes').value = expandedContent;
+    
+    // Close the modal
+    closeExpandedNotes();
+    
+    showNotification('Notes updated', 'success');
+}
+
+function closeExpandedNotes() {
+    const modal = document.getElementById('expandedNotesModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+    
+    // Remove ESC key listener
+    document.removeEventListener('keydown', handleExpandedNotesEsc);
+}
+
+// Make functions available globally
+window.expandNotes = expandNotes;
+window.saveExpandedNotes = saveExpandedNotes;
+window.closeExpandedNotes = closeExpandedNotes;

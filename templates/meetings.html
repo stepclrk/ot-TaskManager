@@ -729,8 +729,13 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="meetingNotes">Notes</label>
-                            <div id="notesEditor" class="rich-editor"></div>
+                            <label for="meetingNotes">
+                                Notes
+                                <button type="button" id="expandNotesBtn" class="btn btn-small btn-secondary" style="float: right; padding: 4px 8px; font-size: 0.9rem;">
+                                    <i class="fas fa-expand"></i> Expand
+                                </button>
+                            </label>
+                            <div id="notesEditor" class="rich-editor" style="min-height: 100px; max-height: 150px;"></div>
                             <input type="hidden" id="meetingNotes">
                         </div>
                         
@@ -971,6 +976,23 @@
             <div class="form-actions">
                 <button type="submit" form="decisionForm" class="btn btn-primary">Save</button>
                 <button type="button" class="btn btn-secondary cancel-decision">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expanded Notes Modal -->
+    <div id="expandedNotesModal" class="modal">
+        <div class="expanded-notes-container">
+            <div class="expanded-notes-header">
+                <h3>Meeting Notes - Expanded View</h3>
+                <span class="close" onclick="closeExpandedNotes()">&times;</span>
+            </div>
+            <div class="expanded-notes-body">
+                <div id="expandedNotesEditor"></div>
+            </div>
+            <div class="expanded-notes-footer">
+                <button type="button" onclick="saveExpandedNotes()" class="btn btn-primary">Save & Close</button>
+                <button type="button" onclick="closeExpandedNotes()" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
