@@ -465,21 +465,28 @@ function renderMeetings() {
 
 function renderMeetingCard(meeting) {
     return `
-        <div class="meeting-card ${(meeting.status || '').toLowerCase()}" onclick="editMeeting('${meeting.id}')">
-            <div class="meeting-title">${escapeHtml(meeting.title)}</div>
-            <div class="meeting-meta">
-                ${meeting.customerName ? `<div>🏢 ${escapeHtml(meeting.customerName)}</div>` : ''}
-                ${meeting.projectName ? `<div>📁 ${escapeHtml(meeting.projectName)}</div>` : ''}
-                <div class="meeting-date">
-                    <span>📅 ${formatDateTime(meeting.date, meeting.time)}</span>
+        <div class="meeting-card ${(meeting.status || '').toLowerCase()}">
+            <div style="position: relative;">
+                <button class="btn btn-danger btn-small" style="position: absolute; right: 0; top: 0; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); deleteMeeting('${meeting.id}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <div onclick="editMeeting('${meeting.id}')" style="cursor: pointer;">
+                    <div class="meeting-title">${escapeHtml(meeting.title)}</div>
+                    <div class="meeting-meta">
+                        ${meeting.customerName ? `<div>🏢 ${escapeHtml(meeting.customerName)}</div>` : ''}
+                        ${meeting.projectName ? `<div>📁 ${escapeHtml(meeting.projectName)}</div>` : ''}
+                        <div class="meeting-date">
+                            <span>📅 ${formatDateTime(meeting.date, meeting.time)}</span>
+                        </div>
+                        <div class="meeting-attendees">
+                            <span>👥 ${meeting.attendees ? meeting.attendees.length : 0} attendees</span>
+                        </div>
+                        <div>📍 ${escapeHtml(meeting.location || 'No location')}</div>
+                    </div>
+                    <div class="meeting-status">
+                        <span class="status-${(meeting.status || '').toLowerCase()}">${formatStatus(meeting.status)}</span>
+                    </div>
                 </div>
-                <div class="meeting-attendees">
-                    <span>👥 ${meeting.attendees ? meeting.attendees.length : 0} attendees</span>
-                </div>
-                <div>📍 ${escapeHtml(meeting.location || 'No location')}</div>
-            </div>
-            <div class="meeting-status">
-                <span class="status-${(meeting.status || '').toLowerCase()}">${formatStatus(meeting.status)}</span>
             </div>
         </div>
     `;
@@ -669,6 +676,42 @@ function editMeeting(meetingId) {
         switchTab('details');
         // Quill toolbar fix no longer needed
     }, 50);
+}
+
+async function deleteMeeting(meetingId) {
+    const meeting = allMeetings.find(m => m.id === meetingId);
+    if (!meeting) return;
+    
+    if (!confirm(`Are you sure you want to delete the meeting "${meeting.title}"?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/meetings/${meetingId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            // Remove from local array
+            const index = allMeetings.findIndex(m => m.id === meetingId);
+            if (index !== -1) {
+                allMeetings.splice(index, 1);
+            }
+            
+            // Re-render the meetings
+            renderMeetings();
+            
+            // Show success notification if available
+            if (typeof showNotification === 'function') {
+                showNotification('Meeting deleted successfully', 'success');
+            }
+        } else {
+            alert('Failed to delete meeting');
+        }
+    } catch (error) {
+        console.error('Error deleting meeting:', error);
+        alert('Error deleting meeting');
+    }
 }
 
 function resetForm() {
